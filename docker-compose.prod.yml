@@ -17,7 +17,7 @@ services:
   # Backend Node.js
   backend:
     # Regarde les logs de ton GitHub Action 'build-and-push' pour avoir le nom exact.
-    image: registry.eirb.fr/mobiliteirb/mobiliteirb-backend:latest
+    image: registry.eirb.fr/mobiliteirb/backend:latest
     environment:
       # ICI : On injecte le mot de passe dynamique dans l'URL de connexion
       DATABASE_URL: postgres://user:${DB_PASSWORD}@db:5432/mobility_db
@@ -35,7 +35,7 @@ services:
   # Frontend (Nginx)
   frontend:
     # VERIFIE LE NOM ICI AUSSI
-    image: registry.eirb.fr/mobiliteirb/mobiliteirb-frontend:latest
+    image: registry.eirb.fr/mobiliteirb/frontend:latest
     ports:
       - "1077:80"
     networks:

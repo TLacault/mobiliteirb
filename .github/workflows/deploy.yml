@@ -13,7 +13,7 @@ jobs:
         uses: Eirbware/.github/.github/workflows/build-and-publish.yml@master
         with:
             file: "./backend/Dockerfile"
-            image_name: ${{ github.repository }}-backend
+            image_name: "mobiliteirb/backend"
             context: "./backend"
         # ON FORCE LE MAPPING ICI (Gauche = attendu par Eirbware, Droite = tes secrets)
         secrets:
@@ -43,7 +43,7 @@ jobs:
         uses: Eirbware/.github/.github/workflows/build-and-publish.yml@master
         with:
             file: "./frontend/Dockerfile"
-            image_name: ${{ github.repository }}-frontend
+            image_name: "mobiliteirb/frontend"
             context: "./frontend"
             artifact_name: env_file
         # IDEM ICI
