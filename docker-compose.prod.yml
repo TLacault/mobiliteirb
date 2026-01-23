@@ -6,7 +6,7 @@ services:
     image: postgis/postgis:15-3.3-alpine
     environment:
       POSTGRES_USER: user
-      POSTGRES_PASSWORD: password # CHANGE ÇA en prod !
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: mobility_db
     volumes:
       - pgdata:/var/lib/postgresql/data
@@ -16,25 +16,28 @@ services:
 
   # Backend Node.js
   backend:
-    image: registry.eirb.fr/mobiliteirb/backend:latest
+    # Regarde les logs de ton GitHub Action 'build-and-push' pour avoir le nom exact.
+    image: registry.eirb.fr/mobiliteirb/mobiliteirb-backend:latest
     environment:
-      DATABASE_URL: postgres://user:password@db:5432/mobility_db
+      # ICI : On injecte le mot de passe dynamique dans l'URL de connexion
+      DATABASE_URL: postgres://user:${DB_PASSWORD}@db:5432/mobility_db
       PORT: 3000
       # URLs pour l'Auth EirbConnect
       FRONTEND_URL: https://mobilit.eirb.fr
-      EIRB_CONNECT_CLIENT_ID: ${{EIRB_CLIENT_ID}} # A définir plus bas
-      EIRB_CONNECT_CLIENT_SECRET: ${{EIRB_CLIENT_SECRET}}
+      EIRB_CONNECT_CLIENT_ID: ${EIRB_CLIENT_ID}
+      EIRB_CONNECT_CLIENT_SECRET: ${EIRB_CLIENT_SECRET}
     networks:
       - app-network
     depends_on:
       - db
     restart: always
 
-  # Frontend (Nginx) - C'est lui qui est exposé
+  # Frontend (Nginx)
   frontend:
-    image: registry.eirb.fr/mobiliteirb/frontend:latest
+    # VERIFIE LE NOM ICI AUSSI
+    image: registry.eirb.fr/mobiliteirb/mobiliteirb-frontend:latest
     ports:
-      - "1077:80" # On map le port Eirbware (1077) vers le Nginx (80)
+      - "1077:80"
     networks:
       - app-network
     depends_on:
