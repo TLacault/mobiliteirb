@@ -35,7 +35,7 @@ services:
     # Changement ici : :main au lieu de :latest
     image: registry.eirb.fr/mobiliteirb/frontend:main
     ports:
-      - "1077:80"
+      - "10077:80"
     networks:
       - app-network
     depends_on:
