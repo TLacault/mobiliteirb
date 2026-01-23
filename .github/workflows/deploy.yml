@@ -7,17 +7,18 @@ on:
 jobs:
     # 1. Construction du Backend
     build-and-push-back:
-        # --- FIX ICI : On donne la permission explicite pour le token OIDC ---
         permissions:
             contents: read
             id-token: write
-        # ---------------------------------------------------------------------
         uses: Eirbware/.github/.github/workflows/build-and-publish.yml@master
         with:
             file: "./backend/Dockerfile"
             image_name: ${{ github.repository }}-backend
             context: "./backend"
-        secrets: inherit
+        # ON FORCE LE MAPPING ICI (Gauche = attendu par Eirbware, Droite = tes secrets)
+        secrets:
+            registry_username: ${{ secrets.REGISTRY_USERNAME }}
+            registry_api_key: ${{ secrets.REGISTRY_API_KEY }}
 
     # 2. Préparation des variables d'environnement pour le Front
     create-env:
@@ -25,7 +26,6 @@ jobs:
         steps:
             - name: Create .env file for Frontend
               run: |
-                  # On écrit l'URL de l'API pour que Vite l'intègre au build
                   echo "VITE_API_URL=https://mobilit.eirb.fr/api" > .env
             - name: Upload .env file
               uses: actions/upload-artifact@v4
@@ -34,24 +34,28 @@ jobs:
                   path: .env
                   include-hidden-files: true
 
-    # 3. Construction du Frontend (avec le fichier .env)
+    # 3. Construction du Frontend
     build-and-push-front:
         needs: create-env
-        # --- FIX ICI : Idem pour le frontend ---
         permissions:
             contents: read
             id-token: write
-        # ---------------------------------------
         uses: Eirbware/.github/.github/workflows/build-and-publish.yml@master
         with:
             file: "./frontend/Dockerfile"
             image_name: ${{ github.repository }}-frontend
             context: "./frontend"
             artifact_name: env_file
-        secrets: inherit
+        # IDEM ICI
+        secrets:
+            registry_username: ${{ secrets.REGISTRY_USERNAME }}
+            registry_api_key: ${{ secrets.REGISTRY_API_KEY }}
 
     # 4. Déploiement sur Portainer
     deploy:
         needs: [build-and-push-back, build-and-push-front]
         uses: Eirbware/.github/.github/workflows/deploy-stack.yml@master
-        secrets: inherit
+        # Pour le deploy, on peut laisser inherit ou mapper aussi si ça plante
+        secrets:
+            portainer_stack_webhook: ${{ secrets.PORTAINER_STACK_WEBHOOK }}
+            wireguard_conf: ${{ secrets.WIREGUARD_CONF }}
