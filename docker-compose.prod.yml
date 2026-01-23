@@ -1,0 +1,48 @@
+version: "3.8"
+
+services:
+  # Base de données
+  db:
+    image: postgis/postgis:15-3.3-alpine
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password # CHANGE ÇA en prod !
+      POSTGRES_DB: mobility_db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - app-network
+    restart: always
+
+  # Backend Node.js
+  backend:
+    image: registry.eirb.fr/mobiliteirb/backend:latest
+    environment:
+      DATABASE_URL: postgres://user:password@db:5432/mobility_db
+      PORT: 3000
+      # URLs pour l'Auth EirbConnect
+      FRONTEND_URL: https://mobilit.eirb.fr
+      EIRB_CONNECT_CLIENT_ID: ${{EIRB_CLIENT_ID}} # A définir plus bas
+      EIRB_CONNECT_CLIENT_SECRET: ${{EIRB_CLIENT_SECRET}}
+    networks:
+      - app-network
+    depends_on:
+      - db
+    restart: always
+
+  # Frontend (Nginx) - C'est lui qui est exposé
+  frontend:
+    image: registry.eirb.fr/mobiliteirb/frontend:latest
+    ports:
+      - "1077:80" # On map le port Eirbware (1077) vers le Nginx (80)
+    networks:
+      - app-network
+    depends_on:
+      - backend
+    restart: always
+
+networks:
+  app-network:
+
+volumes:
+  pgdata:

@@ -1,0 +1,41 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgis/postgis:18-3.5-alpine # Important: Image avec extension spatiale
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: mobility_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    command: npm run dev # Mode watch (nodemon)
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    environment:
+      DATABASE_URL: postgres://user:password@db:5432/mobility_db
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+
+  frontend:
+    build: ./frontend
+    command: npm run dev # Vite dev server
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "8080:5173" # Vite tourne souvent sur 5173 par défaut
+    environment:
+      - VITE_API_URL=http://localhost:3000
+
+volumes:
+  pgdata:

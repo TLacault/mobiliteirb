@@ -1,0 +1,48 @@
+name: Build and Deploy Mobility App
+
+on:
+    push:
+        branches: ["main"]
+
+jobs:
+    # 1. Construction du Backend
+    build-and-push-back:
+        uses: Eirbware/.github/.github/workflows/build-and-publish.yml@master
+        with:
+            file: "./backend/Dockerfile"
+            image_name: ${{ github.repository }}-backend
+            context: "./backend"
+        secrets: inherit
+
+    # 2. Préparation des variables d'environnement pour le Front
+    create-env:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Create .env file for Frontend
+              run: |
+                  # On écrit l'URL de l'API pour que Vite l'intègre au build
+                  echo "VITE_API_URL=https://mobilit.eirb.fr/api" > .env
+            - name: Upload .env file
+              uses: actions/upload-artifact@v4
+              with:
+                  name: env_file
+                  path: .env
+                  include-hidden-files: true
+
+    # 3. Construction du Frontend (avec le fichier .env)
+    build-and-push-front:
+        needs: create-env
+        uses: Eirbware/.github/.github/workflows/build-and-publish.yml@master
+        with:
+            file: "./frontend/Dockerfile"
+            image_name: ${{ github.repository }}-frontend
+            context: "./frontend"
+            # Cette option magique injecte le fichier .env créé juste avant dans le dossier du build
+            artifact_name: env_file
+        secrets: inherit
+
+    # 4. Déploiement sur Portainer
+    deploy:
+        needs: [build-and-push-back, build-and-push-front]
+        uses: Eirbware/.github/.github/workflows/deploy-stack.yml@master
+        secrets: inherit
