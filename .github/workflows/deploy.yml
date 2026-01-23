@@ -7,6 +7,11 @@ on:
 jobs:
     # 1. Construction du Backend
     build-and-push-back:
+        # --- FIX ICI : On donne la permission explicite pour le token OIDC ---
+        permissions:
+            contents: read
+            id-token: write
+        # ---------------------------------------------------------------------
         uses: Eirbware/.github/.github/workflows/build-and-publish.yml@master
         with:
             file: "./backend/Dockerfile"
@@ -32,12 +37,16 @@ jobs:
     # 3. Construction du Frontend (avec le fichier .env)
     build-and-push-front:
         needs: create-env
+        # --- FIX ICI : Idem pour le frontend ---
+        permissions:
+            contents: read
+            id-token: write
+        # ---------------------------------------
         uses: Eirbware/.github/.github/workflows/build-and-publish.yml@master
         with:
             file: "./frontend/Dockerfile"
             image_name: ${{ github.repository }}-frontend
             context: "./frontend"
-            # Cette option magique injecte le fichier .env créé juste avant dans le dossier du build
             artifact_name: env_file
         secrets: inherit
 
