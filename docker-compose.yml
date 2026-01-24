@@ -1,5 +1,4 @@
 services:
-  # Base de données
   db:
     image: postgis/postgis:15-3.3-alpine
     environment:
@@ -14,16 +13,14 @@ services:
       - dev-network
     restart: always
 
-  # Backend (Mode Développement avec Nodemon)
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    # Commande magique pour le hot-reload
     command: npm run dev
     volumes:
       - ./backend:/app
-      - /app/node_modules # Astuce pour ne pas écraser les node_modules du conteneur
+      - /app/node_modules
     environment:
       DATABASE_URL: postgres://${DB_USER:-user}:${DB_PASSWORD:-password}@db:5432/${DB_NAME:-mobility_db}
       PORT: 3000
@@ -34,13 +31,27 @@ services:
     depends_on:
       - db
 
-  # Frontend (Mode Développement avec Vite)
+  studio:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: build-stage
+    command: npx prisma studio --hostname 0.0.0.0 --port 5555
+    ports:
+      - "5555:5555"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    networks:
+      - dev-network
+    depends_on:
+      - backend
+
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
       target: build-stage
-    # --host est obligatoire pour accéder à Vite depuis l'extérieur du Docker
     command: npm run dev -- --host
     volumes:
       - ./frontend:/app

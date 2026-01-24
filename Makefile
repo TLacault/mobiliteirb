@@ -20,6 +20,8 @@ install:
 	@echo -e "${GREEN}=== Installation des dépendances (Backend & Frontend) ===${NC}"
 	docker compose run --rm backend npm install
 	docker compose run --rm frontend npm install
+	@echo -e "${GREEN}=== Mise en place de la Base de Données ===${NC}"
+	docker compose run --rm backend npx prisma migrate dev --name init_install
 	@echo -e "${GREEN}=== Ready ! Run 'make up' to start. ===${NC}"
 
 up:
@@ -27,6 +29,7 @@ up:
 	docker compose up -d
 	@echo -e "${GREEN}Frontend available at : http://localhost:5173${NC}"
 	@echo -e "${GREEN}Backend available at  : http://localhost:3000${NC}"
+	@echo -e "${GREEN}Studio available at   : http://localhost:5555${NC}"
 
 down:
 	docker compose down
