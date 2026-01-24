@@ -70,6 +70,25 @@ La carte passe dans la colonne **Done**.
 
 ---
 
+## Cas Particuliers 🚨
+
+Il y a un bug critique en Prod sur la main !
+Ne pas passer par develop.
+
+- **Créer une branche** depuis `main` : `hotfix/correction-urgente`
+
+- **Corriger** et **tester**.
+
+- **Fusionner** vers `main` ET vers `develop` (pour ne pas perdre le correctif au prochain déploiement)
+
+- **Conflit de fusion** (Merge Conflict)
+Si GitHub vous dit "Can't merge automatically", c'est que develop a bougé pendant que vous codiez.
+    - En local sur votre branche : `git merge develop`
+    - Réglez les conflits dans votre éditeur.
+    - Committez le résultat et pushez.
+
+---
+
 ## Resources Utiles
 
 - [Guide Gitflow](https://www.atlassian.com/fr/git/tutorials/comparing-workflows/gitflow-workflow)
