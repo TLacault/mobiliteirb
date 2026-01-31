@@ -8,8 +8,19 @@ COPY . .
 RUN npm run build
 
 # Etape de Production
-FROM nginx:stable-alpine as production-stage
-COPY --from=build-stage /app/dist /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+FROM node:22-alpine as production-stage
+WORKDIR /app
+
+# Copier les fichiers nécessaires depuis le build
+COPY --from=build-stage /app/.output /app/.output
+COPY --from=build-stage /app/package.json /app/package.json
+
+# Variables d'environnement pour Nuxt
+ENV NODE_ENV=production
+ENV NUXT_HOST=0.0.0.0
+ENV NUXT_PORT=3000
+
+EXPOSE 3000
+
+# Lancer le serveur Nuxt en mode production
+CMD ["node", ".output/server/index.mjs"]

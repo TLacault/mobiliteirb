@@ -52,14 +52,15 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       target: build-stage
-    command: npm run dev -- --host
+    command: npm run dev
     volumes:
       - ./frontend:/app
       - /app/node_modules
+      - /app/.nuxt
     ports:
-      - "5173:5173"
+      - "5137:5137"
     environment:
-      - VITE_API_URL=${VITE_API_URL:-/api}
+      - NUXT_PUBLIC_API_BASE=${NUXT_PUBLIC_API_BASE:-/api}
     networks:
       - dev-network
 

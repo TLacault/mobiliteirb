@@ -30,15 +30,28 @@ services:
       - db
     restart: always
 
-  # Frontend (Nginx)
+  # Frontend (Nuxt SSR avec reverse proxy Nginx)
   frontend:
     # Changement ici : :main au lieu de :latest
     image: registry.eirb.fr/mobiliteirb/frontend:main
+    environment:
+      NUXT_PUBLIC_API_BASE: /api
+      NODE_ENV: production
+    networks:
+      - app-network
+    restart: always
+
+  # Reverse proxy Nginx
+  nginx:
+    image: nginx:stable-alpine
     ports:
       - "10077:80"
+    volumes:
+      - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro
     networks:
       - app-network
     depends_on:
+      - frontend
       - backend
     restart: always
 

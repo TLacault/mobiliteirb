@@ -27,7 +27,7 @@ install:
 up:
 	@echo -e "${GREEN}=== Starting the environment ===${NC}"
 	docker compose up -d
-	@echo -e "${GREEN}Frontend available at : http://localhost:5173${NC}"
+	@echo -e "${GREEN}Frontend available at : http://localhost:5137${NC}"
 	@echo -e "${GREEN}Backend available at  : http://localhost:3000${NC}"
 	@echo -e "${GREEN}Studio available at   : http://localhost:5555${NC}"
 
