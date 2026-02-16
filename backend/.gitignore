@@ -2,3 +2,7 @@
 node_modules/
 
 /generated/prisma
+
+# Lock files for other package managers (project uses npm)
+pnpm-lock.yaml
+yarn.lock
