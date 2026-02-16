@@ -198,7 +198,6 @@ async function main() {
   let totalMobilities = 0;
   let totalTrips = 0;
   let totalSteps = 0;
-  let totalTransportModes = 0;
 
   for (const user of users) {
     // Each user has 1-3 mobilities (fewer for append mode)
@@ -247,17 +246,10 @@ async function main() {
           const startCoords = generateCoordinates();
           const endCoords = generateCoordinates();
 
-          // Select 1-2 transport modes for this step
-          const modeCount = faker.number.int({ min: 1, max: 2 });
-          const selectedModes = faker.helpers.arrayElements(
-            TRANSPORT_MODES,
-            modeCount,
-          );
-
-          // Calculate distance and carbon based on primary mode
-          const primaryMode = selectedModes[0];
-          const distance = getDistanceForMode(primaryMode);
-          const carbon = calculateCarbon(distance, primaryMode.carbonFactor);
+          // Select transport mode for this step
+          const transportMode = faker.helpers.arrayElement(TRANSPORT_MODES);
+          const distance = getDistanceForMode(transportMode);
+          const carbon = calculateCarbon(distance, transportMode.carbonFactor);
 
           const labelStart =
             s === 0 ? mobility.startLocation : generateLocationLabel();
@@ -273,10 +265,11 @@ async function main() {
           });
 
           // Use raw SQL for PostGIS geometry insertion
-          const stepResult = await prisma.$queryRaw`
+          await prisma.$queryRaw`
             INSERT INTO steps (
               id, sequence_order, label_start, label_end,
-              point_start, point_end, carbon, distance, metadata, id_trip
+              point_start, point_end, carbon, distance, metadata,
+              transport_mode, transport_carbon_factor, id_trip
             )
             VALUES (
               gen_random_uuid(),
@@ -288,25 +281,12 @@ async function main() {
               ${carbon}::double precision,
               ${distance}::double precision,
               ${metadata}::jsonb,
+              ${transportMode.label}::text,
+              ${transportMode.carbonFactor}::double precision,
               ${trip.id}::uuid
             )
-            RETURNING id
           `;
-
-          const stepId = stepResult[0].id;
           totalSteps++;
-
-          // Create transport modes for this step
-          for (const mode of selectedModes) {
-            await prisma.transportMode.create({
-              data: {
-                label: mode.label,
-                carbonFactor: mode.carbonFactor,
-                stepId: stepId,
-              },
-            });
-            totalTransportModes++;
-          }
         }
       }
     }
@@ -323,7 +303,6 @@ async function main() {
   );
   console.log(`  🛣️  Trips: ${currentTrips} → ${newTrips} (+${totalTrips})`);
   console.log(`  📍 Steps added: ${totalSteps}`);
-  console.log(`  🚌 Transport Modes added: ${totalTransportModes}`);
   console.log("\n✨ Data appended successfully!\n");
 }
 

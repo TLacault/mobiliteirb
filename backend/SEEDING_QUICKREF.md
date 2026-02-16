@@ -19,20 +19,7 @@ Each run creates RANDOM amounts:
     ↓
   🛣️  1-4 Trips per mobility
     ↓
-  📍 2-8 Steps per trip
-    ↓
-  🚌 1-2 Transport modes per step
-```
-
-## Data Examples
-
-**Users**
-- `john.doe` (student)
-- `marie.martin` (student)
-- `admin.user` (admin)
-
-**Routes**
-- Paris → Barcelona
+  📍 2-8 Steps per trip (each with one transport mode)
 - Lyon → Berlin
 - Toulouse → Amsterdam
 

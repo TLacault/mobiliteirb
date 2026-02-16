@@ -78,25 +78,13 @@ model Step {
     distance Float?
     metadata Json?
 
+    // Transport mode
+    transportMode         String? @map("transport_mode")
+    transportCarbonFactor Float?  @map("transport_carbon_factor")
+
     // FK : Trip
     tripId String @map("id_trip")
     trip   Trip   @relation(fields: [tripId], references: [id], onDelete: Cascade)
 
-    // Relations
-    modes TransportMode[]
-
     @@map("steps")
-}
-
-// --- Modèle TRANSPORT_MODE ---
-model TransportMode {
-    id           String  @id @default(uuid())
-    label        String?
-    carbonFactor Float?
-
-    // FK : Step
-    stepId String @map("id_step")
-    step   Step   @relation(fields: [stepId], references: [id], onDelete: Cascade)
-
-    @@map("transport_modes")
 }

@@ -8,8 +8,7 @@ The seed script generates coherent mobility data including:
 - **Users** with unique CAS logins and emails
 - **Mobilities** with realistic French and European city routes
 - **Trips** with different route options for each mobility
-- **Steps** with geographic coordinates and transport details
-- **Transport Modes** with realistic carbon factors
+- **Steps** with geographic coordinates, transport mode, and carbon metrics
 
 ## Features
 
@@ -89,9 +88,10 @@ docker compose run --rm backend npm run db:reset
 - **Locations**: Realistic station/stop names
 - **Coordinates**: PostGIS POINT geometries (SRID 4326)
 - **Distances**: Mode-appropriate (0.1-5000 km)
+- **Transport Mode**: One of 16 available modes (see below)
 - **Metadata**: Duration, wait time, comfort, accessibility
 
-### Transport Modes (1-2 per step)
+### Available Transport Modes
 
 | Mode | Carbon Factor (kg CO₂/km) |
 |------|---------------------------|
@@ -178,7 +178,6 @@ await prisma.mobility.findMany({
 await prisma.trip.findFirst({
   include: {
     steps: {
-      include: { modes: true },
       orderBy: { sequenceOrder: 'asc' }
     }
   }

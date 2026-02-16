@@ -57,9 +57,6 @@ async function getCompleteTripDetails(tripId) {
         },
       },
       steps: {
-        include: {
-          modes: true,
-        },
         orderBy: {
           sequenceOrder: "asc",
         },
@@ -88,7 +85,6 @@ async function getSelectedTrips() {
         },
       },
       steps: {
-        include: { modes: true },
         orderBy: { sequenceOrder: "asc" },
       },
     },
@@ -140,27 +136,30 @@ async function getMobilityCarbon(mobilityId) {
 
 // Get most popular transport modes
 async function getTransportModeStatistics() {
-  const modes = await prisma.transportMode.groupBy({
-    by: ["label"],
+  const modes = await prisma.step.groupBy({
+    by: ["transportMode"],
     _count: {
-      label: true,
+      transportMode: true,
     },
     _avg: {
-      carbonFactor: true,
+      transportCarbonFactor: true,
     },
     orderBy: {
       _count: {
-        label: "desc",
+        transportMode: "desc",
       },
+    },
+    where: {
+      transportMode: { not: null },
     },
   });
 
   console.log("Transport mode statistics:");
   modes.forEach((mode) => {
     console.log(
-      `  ${mode.label}: ${
-        mode._count.label
-      } uses, avg carbon: ${mode._avg.carbonFactor?.toFixed(3)} kg/km`,
+      `  ${mode.transportMode}: ${
+        mode._count.transportMode
+      } uses, avg carbon: ${mode._avg.transportCarbonFactor?.toFixed(3)} kg/km`,
     );
   });
 
@@ -183,9 +182,7 @@ async function findMobilitiesByCity(cityName) {
       trips: {
         where: { isSelected: true },
         include: {
-          steps: {
-            include: { modes: true },
-          },
+          steps: true,
         },
       },
     },
@@ -202,9 +199,7 @@ async function compareTripsForMobility(mobilityId) {
     include: {
       trips: {
         include: {
-          steps: {
-            include: { modes: true },
-          },
+          steps: true,
         },
       },
     },
@@ -224,7 +219,7 @@ async function compareTripsForMobility(mobilityId) {
       0,
     );
     const uniqueModes = [
-      ...new Set(trip.steps.flatMap((s) => s.modes.map((m) => m.label))),
+      ...new Set(trip.steps.map((s) => s.transportMode).filter(Boolean)),
     ];
 
     return {
