@@ -27,7 +27,9 @@ export default defineNuxtConfig({
     // Variables côté serveur uniquement
     public: {
       // Variables exposées côté client
-      apiBase: process.env.NUXT_PUBLIC_API_BASE || "/api",
+      // En dev: backend sur port 3000, en prod: proxy nginx
+      apiBase:
+        process.env.NUXT_PUBLIC_API_BASE || "http://localhost:3000/api/v1",
     },
   },
 

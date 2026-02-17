@@ -33,6 +33,7 @@ const navLinks = [
   { name: "Dashboard", path: "/dashboard" },
   { name: "Recherche", path: "/recherche" },
   { name: "Template", path: "/template" },
+  { name: "Mobilités", path: "/mobilites" },
 ];
 </script>
 
