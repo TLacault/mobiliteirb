@@ -1,5 +1,6 @@
 <template>
   <div>
+    <Navbar />
     <NuxtPage />
   </div>
 </template>
@@ -16,13 +17,9 @@ useHead({
 </script>
 
 <style>
-/* Styles globaux */
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+/* Import CSS Reset */
+@import "./src/assets/reset.css";
+
+/* Import Theme Variables */
+@import "./src/assets/theme.css";
 </style>
