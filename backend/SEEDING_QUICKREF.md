@@ -10,7 +10,6 @@
 
 ## What Gets Generated
 
-```
 Each run creates RANDOM amounts:
 
   👥 5-15 Users (or 3-8 in append mode)
