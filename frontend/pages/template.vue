@@ -1,15 +1,15 @@
 <template>
   <div class="page">
     <div class="container">
-      <h1>Home - Landing Page</h1>
-      <p>Start building your landing page components here</p>
+      <h1>Template</h1>
+      <p>Start building your template components here</p>
     </div>
   </div>
 </template>
 
 <script setup>
 useHead({
-  title: "Accueil",
+  title: "Template",
 });
 </script>
 
