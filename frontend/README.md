@@ -1,13 +1,15 @@
 # Frontend MobilitEirb - Nuxt 3
 
-## 🎯 Migration vers Nuxt 3
+## 🎯 Stack Frontend
 
-Le frontend a été migré de Vite + Vue vers **Nuxt 3** pour bénéficier de :
-- ✅ **SSR (Server-Side Rendering)** pour de meilleures performances et SEO
+Le frontend utilise **Nuxt 3** en mode **Client-Side Only** :
+- ✅ **Vue 3 Composition API** moderne et réactive
 - ✅ **Vue Router intégré** avec routing automatique basé sur les fichiers
 - ✅ **DevTools Nuxt** pour un debugging avancé
-- ✅ **Auto-imports** des composants et composables
-- ✅ **Écosystème riche** de modules et composants
+- ✅ **Auto-imports** des composants
+- ✅ **Docker-ready** avec configuration simple
+
+**⚠️ SSR désactivé** : Ce projet utilise uniquement le rendu côté client (CSR) en raison de la configuration Docker où les conteneurs ne peuvent pas communiquer via localhost pendant le SSR.
 
 ## 📁 Structure du projet
 
@@ -15,29 +17,28 @@ Le frontend a été migré de Vite + Vue vers **Nuxt 3** pour bénéficier de :
 frontend/
 ├── app.vue                 # Composant racine de l'application
 ├── nuxt.config.ts          # Configuration Nuxt
+├── API_GUIDE.md           # 📚 Guide pour faire des appels API (IMPORTANT)
 ├── pages/                  # Pages de l'application (routing automatique)
-│   └── index.vue          # Page d'accueil (/)
+│   ├── index.vue          # Page d'accueil (/)
+│   └── mobilites.vue      # Page des mobilités (/mobilites)
 ├── components/            # Composants réutilisables (auto-importés)
-├── composables/           # Fonctions composables (auto-importées)
-├── layouts/               # Layouts de pages
-├── middleware/            # Middleware de routes
-├── plugins/               # Plugins Vue/Nuxt
+│   └── MobilitiesList.vue # Liste des mobilités avec appels API
 ├── public/                # Assets statiques
-└── server/                # API serveur Nuxt (optionnel)
+└── Dockerfile             # Configuration Docker
 ```
+
+**Aucun SSR** : Les appels API se font uniquement côté client dans `onMounted()`.
 
 ## 🚀 Démarrage
 
-### Développement local (avec Docker)
+### Développement avec Docker (recommandé)
 
 ```bash
-# Initialiser le projet
-make install
+# Depuis la racine du projet
+docker compose up -d
 
-# Lancer l'environnement de dev
-make up
-
-# Le frontend sera accessible sur http://localhost:3001
+# Le frontend sera accessible sur http://localhost:5137
+# Le backend API sera sur http://localhost:3000
 ```
 
 ### Développement sans Docker
@@ -48,27 +49,32 @@ npm install
 npm run dev
 ```
 
+Le serveur de développement démarre sur **http://localhost:3000** (ou un port disponible).
+
 ## 🔧 Configuration
 
-### Variables d'environnement
+### Appels API
 
-Les variables d'environnement sont configurées dans `nuxt.config.ts` via `runtimeConfig` :
+Les appels API utilisent une approche **client-only**. L'URL de l'API est définie directement dans les composants :
+
+```javascript
+const API_BASE = 'http://localhost:3000/api/v1';
+```
+
+**Voir [API_GUIDE.md](./API_GUIDE.md) pour la documentation complète des appels API.** 📚
+
+### Nuxt Config
+
+Le fichier `nuxt.config.ts` contient la configuration minimale :
 
 ```typescript
-runtimeConfig: {
-  public: {
-    apiBase: process.env.NUXT_PUBLIC_API_BASE || '/api'
-  }
-}
+export default defineNuxtConfig({
+  compatibilityDate: '2024-04-03',
+  devtools: { enabled: true }
+})
 ```
 
-Pour les utiliser dans vos composants :
-```vue
-<script setup>
-const config = useRuntimeConfig()
-const apiUrl = config.public.apiBase
-</script>
-```
+Pas de `runtimeConfig` utilisé pour éviter les problèmes SSR en Docker.
 
 ## 📝 Routing
 
@@ -122,24 +128,49 @@ Les composants dans `/components` sont **auto-importés** :
 
 ## 📡 Appels API
 
-Utilisez les composables Nuxt pour les requêtes :
+**⚠️ Important** : Lisez d'abord [API_GUIDE.md](./API_GUIDE.md) pour comprendre l'approche client-only.
+
+### Exemple rapide
 
 ```vue
-<script setup>
-// Fetch automatique avec cache et SSR
-const { data, pending, error } = await useFetch('/api/users')
+<template>
+  <div>
+    <div v-if="loading">Chargement...</div>
+    <div v-else-if="error">Erreur : {{ error }}</div>
+    <ul v-else>
+      <li v-for="item in items" :key="item.id">{{ item.name }}</li>
+    </ul>
+  </div>
+</template>
 
-// Ou avec $fetch pour des appels manuels
-const config = useRuntimeConfig()
-const login = async (credentials) => {
-  const response = await $fetch(`${config.public.apiBase}/auth/login`, {
-    method: 'POST',
-    body: credentials
-  })
-  return response
-}
+<script setup>
+const API_BASE = 'http://localhost:3000/api/v1';
+const items = ref([]);
+const loading = ref(false);
+const error = ref(null);
+
+onMounted(async () => {
+  loading.value = true;
+  try {
+    items.value = await $fetch(`${API_BASE}/mobilites`);
+  } catch (err) {
+    error.value = err.message;
+  } finally {
+    loading.value = false;
+  }
+});
 </script>
 ```
+
+### Points clés
+
+- ✅ Utilisez `$fetch` pour les requêtes HTTP
+- ✅ Appelez l'API dans `onMounted()` (client-side uniquement)
+- ✅ Enveloppez les composants avec `<ClientOnly>` dans les pages
+- ❌ N'utilisez PAS `useFetch` (nécessite SSR)
+- ❌ N'utilisez PAS `useRuntimeConfig()` (problèmes Docker)
+
+Voir [components/MobilitiesList.vue](./components/MobilitiesList.vue) comme exemple complet.
 
 ## 🛠️ Outils de développement
 
@@ -151,74 +182,74 @@ Les DevTools Nuxt sont activés par défaut en dev. Accédez-y via :
 
 Fonctionnalités :
 - 📊 Visualisation des pages et routes
-- 🔍 Inspection des composables et état
-- 📦 Analyse des modules et plugins
-- 🎨 Éditeur de composants
+- 🔍 Inspection des composants et de leur état
 - ⚡ Timeline de performance
 
 ### Hot Module Replacement (HMR)
 
 Le HMR est automatique - vos modifications sont reflétées instantanément.
 
-## 📦 Modules recommandés
-
-Pour enrichir votre application, installez ces modules Nuxt :
-
-```bash
-# UI Component libraries
-npm install @nuxt/ui                    # Nuxt UI
-npm install @nuxtjs/tailwindcss        # TailwindCSS
-
-# Icons
-npm install @nuxt/icon                  # Icon library
-
-# HTTP client
-npm install @nuxtjs/axios              # Axios
-
-# State management
-npm install @pinia/nuxt pinia          # Pinia
-
-# Authentication
-npm install @sidebase/nuxt-auth        # Auth module
-```
-
-Puis ajoutez-les dans `nuxt.config.ts` :
-
-```typescript
-export default defineNuxtConfig({
-  modules: [
-    '@nuxt/ui',
-    '@nuxt/icon',
-    '@pinia/nuxt'
-  ]
-})
-```
-
 ## 🐳 Docker
 
-### Développement
 Le Dockerfile utilise un **multi-stage build** :
-- Stage 1 : Installation et build
-- Dev : Lance `npm run dev` avec hot-reload
+- **Base** : Node 22 Alpine avec pnpm
+- **Dev** : Lance `pnpm dev` avec hot-reload sur port 3000 (mappé vers 5137)
+- **Production** : Build SPA et serveur avec Nginx
 
-### Production
-Le serveur Nuxt SSR tourne sur le port **3000** en production.
-Un reverse proxy Nginx route le trafic vers Nuxt (frontend:3000) et l'API (backend:3000).
+### Environnement de développement
+
+```bash
+docker compose up -d
+```
+
+Le frontend tourne sur http://localhost:5137 avec hot-reload activé.
 
 ## 📚 Ressources
 
+- [API_GUIDE.md](./API_GUIDE.md) - **Guide principal pour les appels API**
 - [Documentation Nuxt 3](https://nuxt.com)
 - [Vue 3 Composition API](https://vuejs.org/guide/extras/composition-api-faq.html)
-- [Nuxt Modules](https://nuxt.com/modules)
-- [Exemples Nuxt](https://nuxt.com/docs/examples/hello-world)
+- [Backend API Documentation](../docs/API.md)
 
-## 🔄 Changements par rapport à Vite
+## ⚡ Quick Tips
 
-| Avant (Vite) | Après (Nuxt) |
-|-------------|--------------|
-| Port 5173 | Port 3001 |
-| `VITE_API_URL` | `NUXT_PUBLIC_API_BASE` |
-| SPA uniquement | SSR + SPA |
-| Vue Router manuel | Routing automatique |
-| `import` explicites | Auto-imports |
-| Build → dist/ | Build → .output/ |
+### Créer une nouvelle page
+
+```bash
+# Créez simplement un fichier dans /pages
+touch pages/about.vue  # Accessible sur /about
+```
+
+### Créer un nouveau composant
+
+```bash
+# Créez un fichier dans /components
+touch components/MyButton.vue  # Auto-importé partout
+```
+
+### Appeler l'API
+
+```vue
+<script setup>
+const API_BASE = 'http://localhost:3000/api/v1';
+
+onMounted(async () => {
+  const data = await $fetch(`${API_BASE}/mobilites`);
+});
+</script>
+```
+
+## 🚨 Troubleshooting
+
+### Erreur CORS
+- Vérifiez que le backend autorise http://localhost:5137
+- Redémarrez le backend : `docker compose restart backend`
+
+### Erreur 404 sur appels API
+- Vérifiez que l'URL de l'API est `http://localhost:3000/api/v1`
+- Testez avec curl : `curl http://localhost:3000/api/v1/mobilites`
+
+### Le composant ne se charge pas
+- Ouvrez la console navigateur (F12)
+- Vérifiez que vous utilisez `onMounted()` pour les appels API
+- Assurez-vous d'avoir `<ClientOnly>` autour du composant dans la page
