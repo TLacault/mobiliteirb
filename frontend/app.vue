@@ -2,10 +2,13 @@
   <div>
     <Navbar />
     <NuxtPage />
+    <EnjeuxSection />
   </div>
 </template>
 
 <script setup>
+import Enjeux from './components/EnjeuxSection.vue';
+
 // Configuration globale de l'application
 useHead({
   titleTemplate: "%s - MobilitEirb",
