@@ -39,6 +39,8 @@ services:
     command: npx prisma studio --hostname 0.0.0.0 --port 5555
     ports:
       - "5555:5555"
+    environment:
+      DATABASE_URL: postgres://${DB_USER:-user}:${DB_PASSWORD:-password}@db:5432/${DB_NAME:-mobility_db}
     volumes:
       - ./backend:/app
       - /app/node_modules
