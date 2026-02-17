@@ -1,6 +1,9 @@
 const express = require("express");
 const { PrismaClient } = require("@prisma/client"); // Import Prisma
 
+// Import des routes
+const mobiliteRoutes = require("./routes/mobiliteRoutes");
+
 const app = express();
 const prisma = new PrismaClient(); // Initialise le client
 const port = 3000;
@@ -8,10 +11,15 @@ const port = 3000;
 // Middleware pour lire le JSON
 app.use(express.json());
 
+// Route de base
 app.get("/", async (req, res) => {
   res.send("Hello from Backend!");
 });
 
+// Routes API v1
+app.use("/api/v1/mobilites", mobiliteRoutes);
+
+// ====== Routes legacy (à migrer vers la structure API v1) ======
 // Route pour créer un utilisateur
 app.post("/users", async (req, res) => {
   try {
