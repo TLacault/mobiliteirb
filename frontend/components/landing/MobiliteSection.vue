@@ -1,24 +1,30 @@
 <template>
   <div class="section-mobilite">
     <div class="content-wrapper">
-
       <!-- Zone texte -->
       <div class="text-zone">
         <div class="title-row">
-	  <Leaf :size="34" color="var(--primary)" />
+          <Leaf :size="34" color="var(--primary)" />
           <h1>Votre Mobilité Réinventée</h1>
         </div>
 
         <p>
-          Dédiée aux étudiants de <strong>l’Enseirb</strong>, cette plateforme vous permet de <strong>planifier vos déplacements</strong> lors de votre mobilité à l’étranger. Une interface intuitive pensée pour votre vie étudiante. Rejoignez une <strong>communauté engagée</strong> pour une mobilité plus <strong>fluide</strong>, <strong>économique</strong> et <strong>responsable</strong>.
+          Dédiée aux étudiants de <strong>l’Enseirb</strong>, cette plateforme
+          vous permet de <strong>planifier vos déplacements</strong> lors de
+          votre mobilité à l’étranger. Une interface intuitive pensée pour votre
+          vie étudiante. Rejoignez une <strong>communauté engagée</strong> pour
+          une mobilité plus <strong>fluide</strong>,
+          <strong>économique</strong> et <strong>responsable</strong>.
         </p>
       </div>
 
       <!-- Zone image -->
       <div class="image-zone">
-        <img src="/images/mobilite_illustration.png" alt="Illustration mobilité" />
+        <img
+          src="/images/mobilite_illustration.png"
+          alt="Illustration mobilité"
+        />
       </div>
-
     </div>
   </div>
 </template>
@@ -27,14 +33,12 @@
 import { Leaf } from "lucide-vue-next";
 
 useHead({
-  title: "MobiliteReinventee",
+  title: "MobiliteSection",
 });
 </script>
 
 <style scoped>
 .section-mobilite {
-  background: linear-gradient(to bottom, #f8fffd, #f0fdfa); 
-  padding: 80px 20px;
   display: flex;
   justify-content: center;
 }
@@ -75,7 +79,6 @@ useHead({
   justify-content: center;
 }
 
-
 .text-zone p {
   font-size: 1.1rem;
   color: var(--text);
@@ -83,10 +86,9 @@ useHead({
   margin-bottom: 12px;
 }
 
-
 .image-zone img {
   width: 100%;
-  max-width: 420px;
+  max-width: 700px;
   object-fit: contain;
 }
 </style>

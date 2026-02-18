@@ -2,10 +2,9 @@
   <div class="page">
     <div class="background-gradient"></div>
     <HeroSection />
-    <MobiliteReinventeeSection />
+    <MobiliteSection />
     <EnjeuxSection />
     <SolutionSection />
->>>>>>> 54ae9af03bff9cf9f55e56069e5ae27ab6ff4fd2
   </div>
 </template>
 
@@ -13,7 +12,7 @@
 import HeroSection from "../components/landing/HeroSection.vue";
 import EnjeuxSection from "../components/landing/EnjeuxSection.vue";
 import SolutionSection from "../components/landing/SolutionSection.vue";
-import MobiliteReinventeeSection from "../components/MobiliteReinventee.vue";
+import MobiliteSection from "../components/landing/MobiliteSection.vue";
 
 useHead({
   title: "Accueil",
@@ -43,7 +42,7 @@ useHead({
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 5rem;
+  gap: 7rem;
 }
 
 .container {
