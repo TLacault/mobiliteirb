@@ -1,74 +1,74 @@
 <template>
+  <nav class="nav-enjeux"></nav>
 
-    <nav class="nav-enjeux"></nav>
-
-    <!--Un conteneur parent qui centre tout au milieu de l'écran.-->
-    <div class="section-enjeux">
-
-        <!--Un titre avec une icône d'alerte.-->
-        <div class="titre-container">
-            <span class="icon-warning">
-                <TriangleAlert :size="34" color="var(--primary)" />
-            </span>
-            <h2>Les Enjeux</h2>
-        </div>
-
-        <!--Une zone flexible (Flexbox) contenant 3 colonnes identiques.-->
-        <div class="flex-container">
-
-            <!--Chaque colonne est divisée en deux : à gauche l'icône (le triangle), à droite le texte.-->
-            <div class="column">
-
-                <!--Colone 1-->
-                <div class="icon-triangle">
-                    <Car color="var(--background)" />
-                </div>
-
-                <div class="text-content">
-                    <span class="stat-number">34%</span>
-                    <p class="stat-desc">des émissions de CO2 proviennent du secteur des transports</p>
-                </div>
-
-            </div>
-
-            <div class="column">
-
-                <!--Colone 2-->
-                <div class="icon-triangle" >
-                    <Cloudy color="var(--background)" centered/>
-                </div>
-
-                <div class="text-content">
-                    <span class="stat-number">9 tonnes</span>
-                    <p class="stat-desc" >d’émissions moyennes par individus en France chaque année</p>
-                </div>
-
-            </div>
-
-            <div class="column">
-
-                <!--Colone 3-->
-                <div class="icon-triangle">
-                    <Goal color="var(--background)" />
-                </div>
-
-                <div class="text-content">
-                    <span class="stat-number">-55%</span>
-                    <p class="stat-desc">de réduction de ces émissions d’ici 2030 pour limiter le réchauffement</p>
-                </div>
-
-            </div>
-
-        </div>
-
-        <!--Un pied de page arrondi pour la source-->
-        <div class="source-bar">
-        <Info color="var(--primary)"/>
-        <span> Toutes les données proviennent de sources vérifiées<a href="https://ecologie.gouv.fr">ecologie.gouv.fr</a></span>
-        </div>
-
+  <!--Un conteneur parent qui centre tout au milieu de l'écran.-->
+  <div class="section-enjeux">
+    <!--Un titre avec une icône d'alerte.-->
+    <div class="titre-container">
+      <span class="icon-warning">
+        <TriangleAlert :size="34" color="var(--primary)" />
+      </span>
+      <h2>Les Enjeux</h2>
     </div>
 
+    <!--Une zone flexible (Flexbox) contenant 3 colonnes identiques.-->
+    <div class="flex-container">
+      <!--Chaque colonne est divisée en deux : à gauche l'icône (le triangle), à droite le texte.-->
+      <div class="column">
+        <!--Colone 1-->
+        <div class="icon-triangle">
+          <Car color="var(--background)" />
+        </div>
+
+        <div class="text-content">
+          <span class="stat-number">34%</span>
+          <p class="stat-desc">
+            des émissions de CO2 proviennent du secteur des transports
+          </p>
+        </div>
+      </div>
+
+      <div class="column">
+        <!--Colone 2-->
+        <div class="icon-triangle">
+          <Cloudy color="var(--background)" centered />
+        </div>
+
+        <div class="text-content">
+          <span class="stat-number">9 tonnes</span>
+          <p class="stat-desc">
+            d’émissions moyennes par individus en France chaque année
+          </p>
+        </div>
+      </div>
+
+      <div class="column">
+        <!--Colone 3-->
+        <div class="icon-triangle">
+          <Goal color="var(--background)" />
+        </div>
+
+        <div class="text-content">
+          <span class="stat-number">-55%</span>
+          <p class="stat-desc">
+            de réduction de ces émissions d’ici 2030 pour limiter le
+            réchauffement
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!--Un pied de page arrondi pour la source-->
+    <div class="source-bar">
+      <Info color="var(--primary)" />
+      <span>
+        Toutes les données proviennent de sources vérifiées<a
+          href="https://ecologie.gouv.fr"
+          >ecologie.gouv.fr</a
+        ></span
+      >
+    </div>
+  </div>
 </template>
 
 <style scoped>
@@ -103,7 +103,6 @@
   margin: 0;
 }
 
-
 /* 3. Les 3 colonnes */
 .flex-container {
   display: flex;
@@ -136,7 +135,6 @@
   align-items: center;
   flex-shrink: 0;
 }
-
 
 /* 6. Typographie des stats */
 .text-content {
@@ -172,9 +170,9 @@
 }
 
 .source-bar span {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .source-bar a {
@@ -182,15 +180,12 @@
   color: var(--primary);
   font-weight: bold;
 }
-
 </style>
 
 <script setup>
-
 import { TriangleAlert, Car, Cloudy, Goal, Info } from "lucide-vue-next";
 
 useHead({
   title: "EnjeuxSection",
 });
-
 </script>
