@@ -42,6 +42,7 @@ import { User, MoveDown } from "lucide-vue-next";
   padding: 3rem 1rem;
   position: relative;
   background: linear-gradient(to bottom, transparent, var(--background));
+  min-height: 100vh;
 }
 
 .section-hero::before {
@@ -65,6 +66,7 @@ import { User, MoveDown } from "lucide-vue-next";
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
+  margin-top: 10vh;
 }
 
 .logo-image {
@@ -128,7 +130,11 @@ import { User, MoveDown } from "lucide-vue-next";
 }
 
 .more-info {
-  padding: 3.5rem 1rem;
+  position: absolute;
+  bottom: 10rem;
+  left: 50%;
+  transform: translateX(-50%);
+
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -136,7 +142,7 @@ import { User, MoveDown } from "lucide-vue-next";
 }
 
 .more-arrow {
-  padding: 0.5rem 0.25rem;
+  padding: 0.7rem 0.25rem;
   background: var(--primary);
   border-radius: 1rem;
   opacity: 0.7;
