@@ -1,14 +1,15 @@
 <template>
   <div class="page">
     <div class="container">
-      <h1>Home - Landing Page</h1>
-      <p>Start building your landing page components here</p>
+      <HeroSection />
       <EnjeuxSection />
     </div>
   </div>
 </template>
 
 <script setup>
+import HeroSection from '../components/HeroSection.vue';
+
 useHead({
   title: "Accueil",
 });
