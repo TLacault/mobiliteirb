@@ -9,18 +9,22 @@
           </div>
           <p>
             <span class="bold">MobilitEirb</span>
-            calcule instantanément l'impact carbone de vos itinéraires pour vous aider à privilégier les 
-            <span class="bold">options douces</span>.
-            Visualisez vos 
+            calcule instantanément l'impact carbone de vos itinéraires pour vous
+            aider à privilégier les
+            <span class="bold">options douces</span>. Visualisez vos
             <span class="bold">économies de CO2</span>
-            en temps réel et adoptez sans effort des habitudes durables comme le covoiturage ou les transports en commun.
-            Prenez le contrôle de votre
+            en temps réel et adoptez sans effort des habitudes durables comme le
+            covoiturage ou les transports en commun. Prenez le contrôle de votre
             <span class="bold">empreinte écologique</span>
             au quotidien sans sacrifier votre temps de trajet.
           </p>
         </div>
         <div class="right-column">
-          <img src="/images/example_trajet.png" alt="La Solution image" class="solution-img" />
+          <img
+            src="/images/example_trajet.png"
+            alt="La Solution image"
+            class="solution-img"
+          />
         </div>
       </div>
     </div>
@@ -28,7 +32,7 @@
 </template>
 
 <script setup>
-import { Puzzle } from 'lucide-vue-next';
+import { Puzzle } from "lucide-vue-next";
 
 useHead({
   title: "La Solution",
@@ -38,7 +42,6 @@ useHead({
 <style scoped>
 .solution-section {
   background: linear-gradient(to top, #f0fdfa, #e6f7f4);
-  min-height: calc(100vh - 73px);
   padding: 3rem 0;
 }
 
@@ -70,7 +73,7 @@ useHead({
   background-clip: text;
   color: transparent;
   font-size: 1.5rem;
-  font-weight: 800;
+  font-weight: 700;
   margin: 0;
 }
 
