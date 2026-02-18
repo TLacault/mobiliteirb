@@ -1,23 +1,90 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-    provider      = "prisma-client-js"
-    output        = "../node_modules/.prisma/client"
-    binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+    provider        = "prisma-client-js"
+    previewFeatures = ["postgresqlExtensions"] // Nécessaire pour PostGIS
+    binaryTargets   = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
-    provider = "postgresql"
-    url      = env("DATABASE_URL")
+    provider   = "postgresql"
+    url        = env("DATABASE_URL")
+    extensions = [postgis] // Active l'extension PostGIS dans Postgres
 }
 
+// --- Modèle USER ---
 model User {
-    id        Int      @id @default(autoincrement())
-    email     String   @unique
-    name      String?
-    createdAt DateTime @default(now())
+    id        String   @id @default(uuid())
+    casLogin  String   @unique @map("cas_login") // Le login unique venant du JWT
+    email     String?
+    role      String   @default("student") // student / admin
+    createdAt DateTime @default(now()) @map("created_at")
+
+    // Relations
+    mobilities Mobility[]
+
+    @@map("users")
+}
+
+// --- Modèle MOBILITY ---
+model Mobility {
+    id         String   @id @default(uuid())
+    name       String
+    year       DateTime @db.Date // Juste la date, pas l'heure
+    isPublic   Boolean  @default(true) @map("is_public")
+    isOriginal Boolean  @default(true) @map("is_original")
+    lastEdit   DateTime @updatedAt @map("last_edit")
+
+    startLocation String @map("start")
+    endLocation   String @map("end")
+
+    // FK : User
+    userId String @map("id_user")
+    user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    // Relations
+    trips Trip[]
+
+    @@map("mobilities")
+}
+
+// --- Modèle TRIP ---
+model Trip {
+    id         String  @id @default(uuid())
+    name       String?
+    isSelected Boolean @default(false) @map("is_selected")
+
+    // FK : Mobility
+    mobilityId String   @map("id_mobility")
+    mobility   Mobility @relation(fields: [mobilityId], references: [id], onDelete: Cascade)
+
+    // Relations
+    steps Step[]
+
+    @@map("trips")
+}
+
+// --- Modèle STEP ---
+model Step {
+    id            String  @id @default(uuid())
+    sequenceOrder Int     @map("sequence_order")
+    labelStart    String? @map("label_start")
+    labelEnd      String? @map("label_end")
+
+    // Gestion PostGIS pour point_start et point_end
+    // Prisma ne gère pas nativement les types géo en JS pur, on utilise Unsupported
+    pointStart Unsupported("geometry(Point, 4326)")? @map("point_start")
+    pointEnd   Unsupported("geometry(Point, 4326)")? @map("point_end")
+
+    carbon   Float?
+    distance Float?
+    metadata Json?
+
+    // Transport mode
+    transportMode         String? @map("transport_mode")
+    transportCarbonFactor Float?  @map("transport_carbon_factor")
+
+    // FK : Trip
+    tripId String @map("id_trip")
+    trip   Trip   @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+    @@map("steps")
 }

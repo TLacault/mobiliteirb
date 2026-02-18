@@ -1,66 +1,68 @@
 <template>
-  <div class="container">
-    <h1>Bienvenue sur MobilitEirb</h1>
-    <p>Plateforme de mobilité pour l'ENSEIRB-MATMECA</p>
-
-    <div class="info-box">
-      <h2>À propos</h2>
-      <p>Cette application utilise :</p>
-      <ul>
-        <li>✅ Nuxt 3 avec SSR</li>
-        <li>✅ Vue 3 avec Composition API</li>
-        <li>✅ Vue Router intégré</li>
-        <li>✅ Outils de développement Nuxt</li>
-      </ul>
-    </div>
+  <div class="page">
+    <div class="background-gradient"></div>
+    <HeroSection />
+    <MobiliteSection />
+    <EnjeuxSection />
+    <SolutionSection />
   </div>
 </template>
 
 <script setup>
-// Configuration SEO pour cette page
+import HeroSection from "../components/landing/HeroSection.vue";
+import EnjeuxSection from "../components/landing/EnjeuxSection.vue";
+import SolutionSection from "../components/landing/SolutionSection.vue";
+import MobiliteSection from "../components/landing/MobiliteSection.vue";
+
 useHead({
   title: "Accueil",
 });
-
-// Configuration du runtime pour récupérer l'URL de l'API
-const config = useRuntimeConfig();
-console.log("API URL:", config.public.apiBase);
 </script>
 
 <style scoped>
+/* Background */
+.background-gradient {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  /* primary, background, secondary */
+  background: radial-gradient(
+    circle at top right,
+    oklch(70.62% 0.139 158.37 / 0.3),
+    oklch(98.02% 0.011 167.81 / 0.3),
+    oklch(80.58% 0.058 231.66 / 0.3)
+  );
+  z-index: -10;
+}
+
+/* Page & Sections */
+.page {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 7rem;
+}
+
 .container {
-  max-width: 800px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  padding: 0 2rem;
+  gap: 10rem;
 }
 
 h1 {
-  color: #2c3e50;
+  font-family: var(--font-ubuntu);
   font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--text);
   margin-bottom: 1rem;
 }
 
-.info-box {
-  background: #f4f4f4;
-  border-radius: 8px;
-  padding: 2rem;
-  margin-top: 2rem;
-  text-align: left;
-}
-
-.info-box h2 {
-  color: #35495e;
-  margin-bottom: 1rem;
-}
-
-ul {
-  list-style: none;
-  padding-left: 0;
-}
-
-li {
-  margin: 0.5rem 0;
+p {
+  color: var(--text);
+  opacity: 0.7;
   font-size: 1.1rem;
 }
 </style>

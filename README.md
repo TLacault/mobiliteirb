@@ -29,6 +29,19 @@ Pour effacer les volumes de données (base de données, code synchronisé), util
 make clean
 ```
 
+### Database Seeding
+
+Pour remplir la base de données avec des données de test aléatoires :
+
+```bash
+make seed         # Efface et remplit la base avec des données aléatoires
+make seed-append  # Ajoute des données sans effacer l'existant
+make db-reset     # Réinitialise tout et reseed
+```
+
+📚 **Documentation complète** : [backend/SEEDING.md](./backend/SEEDING.md)
+📋 **Référence rapide** : [backend/SEEDING_QUICKREF.md](./backend/SEEDING_QUICKREF.md)
+
 ### Workflow & Architecture
 
 Ce projet suit une architecture **client-serveur** avec une base de données PostgreSQL.
