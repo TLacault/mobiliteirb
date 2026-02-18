@@ -9,9 +9,9 @@
 </template>
 
 <script setup>
-import HeroSection from '../components/HeroSection.vue';
-import EnjeuxSection from '../components/EnjeuxSection.vue';
-import SolutionSection from '../components/SolutionSection.vue';
+import HeroSection from "../components/HeroSection.vue";
+import EnjeuxSection from "../components/EnjeuxSection.vue";
+import SolutionSection from "../components/SolutionSection.vue";
 
 useHead({
   title: "Accueil",

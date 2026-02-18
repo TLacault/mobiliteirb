@@ -1,6 +1,5 @@
 <template>
   <div class="section-hero">
-
     <!-- Logo Section -->
     <div class="logo-hero">
       <img src="/images/logo.png" alt="MobilitEirb Logo" class="logo-image" />
@@ -10,24 +9,26 @@
     <!-- Text Section -->
     <div class="text-hero">
       <p>Calculez les émissions CO2 de vos trajets rapidement.</p>
-      <p>Partagez vos mobilités et inspirez-vous de celles des autres étudiants.</p>
+      <p>
+        Partagez vos mobilités et inspirez-vous de celles des autres étudiants.
+      </p>
     </div>
 
     <!-- Account/Connection Section -->
     <div class="account-hero">
-        <NuxtLink to="/connexion" class="btn-connexion"> 
-          <div class="btn-text">
-            <User /> 
-            <p>Se Connecter</p>
-          </div>
-          <p class="text-connexion">Réservé aux étudiants de l'Enseirb</p>
-        </NuxtLink>
+      <NuxtLink to="/connexion" class="btn-connexion">
+        <div class="btn-text">
+          <User />
+          <p>Se Connecter</p>
+        </div>
+        <p class="text-connexion">Réservé aux étudiants de l'Enseirb</p>
+      </NuxtLink>
     </div>
 
     <!-- More information Section -->
     <div class="more-info">
       <p>En Savoir Plus</p>
-      <div class="more-arrow"><MoveDown color="var(--background)"/></div>
+      <div class="more-arrow"><MoveDown color="var(--background)" /></div>
     </div>
   </div>
 </template>
@@ -46,7 +47,10 @@ import { User, MoveDown } from "lucide-vue-next";
 .section-hero::before {
   content: "";
   position: absolute;
-  top: 1rem; left: 0; right: 0; bottom: 0;
+  top: 1rem;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background-image: url(../public/images/minimalist_earth.png);
   background-repeat: no-repeat;
   background-position: center top;
