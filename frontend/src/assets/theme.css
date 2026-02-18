@@ -11,6 +11,15 @@
   --tertiary: oklch(43.15% 0.073 199.96);
   --accent: oklch(68.03% 0.094 254.96);
 
+  /* Gradient Variants */
+  --linearPrimarySecondary: linear-gradient(oklch(70.62% 0.139 158.37), oklch(80.58% 0.058 231.66));
+  --linearPrimaryAccent: linear-gradient(oklch(70.62% 0.139 158.37), oklch(68.03% 0.094 254.96));
+  --linearSecondaryAccent: linear-gradient(oklch(80.58% 0.058 231.66), oklch(68.03% 0.094 254.96));
+  --radialPrimarySecondary: radial-gradient(oklch(70.62% 0.139 158.37), oklch(80.58% 0.058 231.66));
+  --radialPrimaryAccent: radial-gradient(oklch(70.62% 0.139 158.37), oklch(68.03% 0.094 254.96));
+  --radialSecondaryAccent: radial-gradient(oklch(80.58% 0.058 231.66), oklch(68.03% 0.094 254.96));
+  --gradientCallToAction: linear-gradient(to right, oklch(70.62% 0.139 158.37), oklch(43.15% 0.073 199.96));
+
   /* Font Families */
   --font-inter: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
     sans-serif;

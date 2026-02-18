@@ -27,7 +27,7 @@
     <!-- More information Section -->
     <div class="more-info">
       <p>En Savoir Plus</p>
-      <button class="btn-more"><MoveDown color="var(--background)"/></button>
+      <div class="more-arrow"><MoveDown color="var(--background)"/></div>
     </div>
   </div>
 </template>
@@ -98,7 +98,7 @@ import { User, MoveDown } from "lucide-vue-next";
 
 .btn-connexion {
   padding: 0.6rem 1.5rem;
-  background: linear-gradient(to right, var(--primary), var(--tertiary));
+  background: var(--gradientCallToAction);
   color: white;
   text-decoration: none;
   border-radius: 6.25rem;
@@ -124,16 +124,18 @@ import { User, MoveDown } from "lucide-vue-next";
 }
 
 .more-info {
+  padding: 3.5rem 1rem;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
   align-items: center;
 }
 
-.btn-more {
+.more-arrow {
   padding: 0.5rem 0.25rem;
-  background: linear-gradient(to bottom, var(--primary), var(--tertiary));
+  background: var(--primary);
   border-radius: 1rem;
+  opacity: 0.7;
   animation: translation 2s ease-in-out infinite;
 }
 
