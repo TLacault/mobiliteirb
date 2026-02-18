@@ -13,7 +13,11 @@ import { Github, Copyright } from "lucide-vue-next";
     <UContainer class="footer-container">
       <!--Logo et titre -->
       <div class="footer-logo">
-        <img src="/images/logo.png" alt="MobilitEirb Logo" class="logo-image" />
+        <img
+          src="/images/logo.webp"
+          alt="MobilitEirb Logo"
+          class="logo-image"
+        />
         <span class="logo-text">Mobilit'<span class="green">Eirb</span></span>
       </div>
       <!-- Description et crédits -->
@@ -57,7 +61,12 @@ import { Github, Copyright } from "lucide-vue-next";
 
 <style scoped>
 .footer {
-  background-color: var(--background);
+  background: linear-gradient(
+    to bottom,
+    oklch(98.358% 0.0142 181.171 / 0.8),
+    oklch(96.275% 0.01831 184.612 / 0.8),
+    oklch(98.358% 0.0142 181.171 / 0.8)
+  );
   padding: 2rem 0;
 }
 

@@ -21,7 +21,7 @@
         </div>
         <div class="right-column">
           <img
-            src="/images/example_trajet.png"
+            src="/images/example_trajet.webp"
             alt="La Solution image"
             class="solution-img"
           />
@@ -41,8 +41,8 @@ useHead({
 
 <style scoped>
 .solution-section {
-  background: linear-gradient(to top, #f0fdfa, #e6f7f4);
   padding: 3rem 0;
+  margin-bottom: 10rem;
 }
 
 .solution-container {

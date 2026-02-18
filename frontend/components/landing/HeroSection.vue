@@ -1,9 +1,18 @@
 <template>
-  <div class="section-hero">
+  <div class="section-hero constainer">
+    <!-- Background World Map -->
+    <div class="background-map">
+      <img
+        src="/images/world.webp"
+        alt="World Map Background"
+        class="map-image"
+      />
+    </div>
+
     <!-- Logo Section -->
     <div class="logo-hero">
-      <img src="/images/logo.png" alt="MobilitEirb Logo" class="logo-image" />
-      <span class="logo-text">Mobilit'<span class="green">Eirb</span></span>
+      <img src="/images/logo.webp" alt="MobilitEirb Logo" class="logo-image" />
+      <span class="logo-text">Mobilit<span class="green">Eirb</span></span>
     </div>
 
     <!-- Text Section -->
@@ -41,32 +50,37 @@ import { User, MoveDown } from "lucide-vue-next";
 .section-hero {
   padding: 3rem 1rem;
   position: relative;
-  background: linear-gradient(to bottom, transparent, var(--background));
   min-height: 100vh;
 }
 
-.section-hero::before {
-  content: "";
-  position: absolute;
-  top: 1rem;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: url(../public/images/minimalist_earth.png);
-  background-repeat: no-repeat;
-  background-position: center top;
-  background-size: 90%;
-  opacity: 0.3;
+/* Background Map */
+.background-map {
+  position: fixed;
+  top: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100dvw;
+  height: 100dvh;
+  overflow: hidden;
+  opacity: 0.25;
   z-index: -1;
+  filter: blur(3px);
 }
 
+.map-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Logo Section */
 .logo-hero {
   padding: 0.5rem 1rem;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
-  margin-top: 10vh;
+  margin-top: 15vh;
 }
 
 .logo-image {
@@ -86,6 +100,7 @@ import { User, MoveDown } from "lucide-vue-next";
   }
 }
 
+/* Text Section */
 .text-hero {
   padding: 1.5rem 1rem;
   font-family: var(--font-inter);
@@ -103,7 +118,7 @@ import { User, MoveDown } from "lucide-vue-next";
 }
 
 .btn-connexion {
-  padding: 0.6rem 1.5rem;
+  padding: 0.5rem 2.5rem;
   background: var(--gradientCallToAction);
   color: white;
   text-decoration: none;
@@ -129,9 +144,10 @@ import { User, MoveDown } from "lucide-vue-next";
   opacity: 0.65;
 }
 
+/* Voir Plus */
 .more-info {
   position: absolute;
-  bottom: 10rem;
+  bottom: 7rem;
   left: 50%;
   transform: translateX(-50%);
 
