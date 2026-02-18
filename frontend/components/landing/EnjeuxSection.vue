@@ -2,7 +2,7 @@
   <nav class="nav-enjeux"></nav>
 
   <!--Un conteneur parent qui centre tout au milieu de l'écran.-->
-  <div class="section-enjeux">
+  <div class="section-enjeux container">
     <!--Un titre avec une icône d'alerte.-->
     <div class="titre-container">
       <span class="icon-warning">
@@ -74,7 +74,6 @@
 <style scoped>
 /* 1. Le fond et le centrage global */
 .section-enjeux {
-  background: linear-gradient(to bottom, #f0fdfa, #e6f7f4);
   padding: 80px 20px;
   color: var(--text);
   display: flex;
@@ -124,7 +123,7 @@
 
 /* 5. Le triangle  */
 .icon-triangle {
-  background-image: url("/images/triangle_shape.png");
+  background-image: url("/images/triangle_shape.webp");
   background-size: contain;
   background-repeat: no-repeat;
   padding-top: 16px;
