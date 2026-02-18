@@ -2,7 +2,7 @@
   <div>
     <Navbar />
     <NuxtPage />
-    <EnjeuxSection />
+
   </div>
 </template>
 

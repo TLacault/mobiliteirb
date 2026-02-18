@@ -63,7 +63,8 @@
 
         <!--Un pied de page arrondi pour la source-->
         <div class="source-bar">
-        <span>ⓘ Toutes les données proviennent de sources vérifiées<a href="https://ecologie.gouv.fr">ecologie.gouv.fr</a></span>
+        <Info color="var(--primary)"/>
+        <span> Toutes les données proviennent de sources vérifiées<a href="https://ecologie.gouv.fr">ecologie.gouv.fr</a></span>
         </div>
 
     </div>
@@ -73,13 +74,12 @@
 <style scoped>
 /* 1. Le fond et le centrage global */
 .section-enjeux {
-  background: linear-gradient(to bottom, #f0fdfa, #e6f7f4); /* Dégradé léger partant du bas éventuèlement à mettre en var glob */
+  background: linear-gradient(to bottom, #f0fdfa, #e6f7f4);
   padding: 80px 20px;
-  font-family: 'Arial', 'Inter'; /* police par défault de tout les text */
   color: var(--text);
-  display: flex; /* pour pouvoir faire des colonnes */
-  flex-direction: column; /* sans ça ça aligne tout en ligne */
-  align-items: center; /* centre horizontalement */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 /* 2. Le Titre */
@@ -91,18 +91,15 @@
 }
 
 .titre-container h2 {
-  /* Dégradé horizontal : Clair à gauche -> Foncé à droite */
   background: linear-gradient(to right, var(--primary), oklch(50% 0.12 160));
 
-  /* On découpe le fond pour qu'il n'apparaisse que dans les lettres */
   -webkit-background-clip: text;
   background-clip: text;
 
-  /* On rend le texte transparent pour laisser voir le dégradé */
   color: transparent;
 
   font-size: 1.5rem;
-  font-weight: 800; /* Un peu plus épais pour bien voir le dégradé */
+  font-weight: 800;
   margin: 0;
 }
 
@@ -120,10 +117,10 @@
 /* 4. Style des Colonnes */
 .column {
   display: flex;
-  align-items: center; /* Aligne l'icône et le texte verticalement */
+  align-items: center;
   gap: 15px;
   flex: 1;
-  min-width: 280px; /* Évite que les colonnes soient trop écrasées */
+  min-width: 280px;
 }
 
 /* 5. Le triangle  */
@@ -163,12 +160,15 @@
 
 /* 7. La barre de source */
 .source-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   border: 1px solid var(--primary);
   background-color: white;
   padding: 8px 24px;
   border-radius: 50px;
   font-size: 0.85rem;
-  color: var(--primary);
+  color: var(--text);
 }
 
 .source-bar span {
@@ -178,10 +178,8 @@
 }
 
 .source-bar a {
-  /* On enlève le soulignement */
   text-decoration: none;
-  /* On lui donne la même couleur que le reste du texte de la bulle */
-  color: inherit;
+  color: var(--primary);
   font-weight: bold;
 }
 
@@ -189,7 +187,7 @@
 
 <script setup>
 
-import { TriangleAlert, Car, Cloudy, Goal } from "lucide-vue-next";
+import { TriangleAlert, Car, Cloudy, Goal, Info } from "lucide-vue-next";
 
 useHead({
   title: "EnjeuxSection",

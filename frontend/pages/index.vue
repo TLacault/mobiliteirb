@@ -3,6 +3,7 @@
     <div class="container">
       <h1>Home - Landing Page</h1>
       <p>Start building your landing page components here</p>
+      <EnjeuxSection />
     </div>
   </div>
 </template>
