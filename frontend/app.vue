@@ -2,11 +2,12 @@
   <div>
     <Navbar />
     <NuxtPage />
-
+    <Footer />
   </div>
 </template>
 
 <script setup>
+import Footer from "./components/Footer.vue";
 // Configuration globale de l'application
 useHead({
   titleTemplate: "%s - MobilitEirb",
