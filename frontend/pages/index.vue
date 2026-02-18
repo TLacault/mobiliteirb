@@ -2,6 +2,7 @@
   <div class="page">
     <div class="container">
       <HeroSection />
+      <MobiliteReinventeeSection />
       <EnjeuxSection />
       <SolutionSection />
     </div>
@@ -12,6 +13,7 @@
 import HeroSection from "../components/HeroSection.vue";
 import EnjeuxSection from "../components/EnjeuxSection.vue";
 import SolutionSection from "../components/SolutionSection.vue";
+import MobiliteReinventeeSection from "../components/MobiliteReinventee.vue";
 
 useHead({
   title: "Accueil",
