@@ -91,7 +91,7 @@ const navLinks = [
 }
 
 .nav-link {
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 1.5rem;
   color: var(--text);
   font-weight: 500;
   text-decoration: none;

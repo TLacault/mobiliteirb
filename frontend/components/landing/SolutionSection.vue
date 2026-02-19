@@ -4,8 +4,8 @@
       <div class="columns">
         <div class="left-column">
           <div class="title-container">
-            <Puzzle :size="34" color="var(--primary)" />
-            <span class="logo-text">La Solution</span>
+            <Puzzle :size="40" color="var(--primary)" />
+            <span class="section-title gradient-cta">La Solution</span>
           </div>
           <p>
             <span class="bold">MobilitEirb</span>
@@ -63,23 +63,15 @@ useHead({
 
 .title-container {
   display: flex;
-  gap: 15px;
+  align-items: center;
+  gap: 12px;
   margin-bottom: 1rem;
-}
-
-.logo-text {
-  background: linear-gradient(to right, var(--primary), oklch(50% 0.12 160));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin: 0;
 }
 
 p {
   color: var(--text);
-  text-align: justify;
+  text-align: left;
+  line-height: 1.8;
   font-size: 1.1rem;
 }
 

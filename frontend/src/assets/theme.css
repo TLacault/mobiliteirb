@@ -38,16 +38,21 @@
   );
   --gradientCallToAction: linear-gradient(
     to right,
-    oklch(70.62% 0.139 158.37),
+    oklch(70.62% 0.139 158.37) 30%,
     oklch(43.15% 0.073 199.96)
   );
 
   /* Font Families */
-  --font-inter:
-    "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
-  --font-ubuntu:
-    "Ubuntu", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+  --font-inter: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
     sans-serif;
+  --font-ubuntu: "Ubuntu", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "Roboto", sans-serif;
+
+  /* Font Sizes */
+  --font-title: 3.5rem;
+  --font-section-title: 2.2rem;
+  --font-subtitle: 1.25rem;
+  --font-body: 1rem;
 }
 
 /* Apply Inter font globally */
@@ -55,4 +60,38 @@ body {
   font-family: var(--font-inter);
   color: var(--text);
   background-color: var(--background);
+}
+
+/* Text */
+.gradient-cta {
+  background: var(--gradientCallToAction);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.title {
+  font-size: var(--font-title);
+  font-weight: 700;
+}
+
+.section-title {
+  font-size: var(--font-section-title);
+  font-weight: 600;
+}
+
+.subtitle {
+  font-size: var(--font-subtitle);
+  font-weight: 500;
+}
+
+.body {
+  font-size: var(--font-body);
+  font-weight: 400;
+}
+
+.detail {
+  font-size: var(--font-body);
+  font-weight: 400;
+  opacity: 0.65;
 }

@@ -5,7 +5,7 @@ const navLinks = [
   { name: "Recherche", path: "/recherche" },
 ];
 
-import { Github, Copyright } from "lucide-vue-next";
+import { Github, Copyright, Mail, MessagesSquare } from "lucide-vue-next";
 </script>
 
 <template>
@@ -18,24 +18,39 @@ import { Github, Copyright } from "lucide-vue-next";
           alt="MobilitEirb Logo"
           class="logo-image"
         />
-        <span class="logo-text">Mobilit'<span class="green">Eirb</span></span>
+        <span class="logo-text">Mobilit<span class="green">Eirb</span></span>
       </div>
       <!-- Description et crédits -->
       <div class="footer-content">
-        <span
-          >Outil pédagogique pour estimer les émissions de CO2 des déplacements
-          internationaux d’élèves. Réalisé par les élèves de deuxième année
-          d’informatique dans le cadre du projet de fin d’année à
-          l’Enseirb-Matmeca Facteurs d’émission basés sur les données de
-          <a href="https://ecologie.gouv.fr">ecologie.gouv.fr</a>. Résultats
-          fournis à titre indicatif.</span
-        >
+        <span class="detail">
+          Outil pédagogique pour estimer les émissions de CO2 des déplacements
+          internationaux d'élèves. Réalisé par les élèves de deuxième année
+          d'informatique dans le cadre du projet de fin d'année à
+          l'Enseirb-Matmeca. Facteurs d'émission basés sur les données de
+          <a href="https://ecologie.gouv.fr">ecologie.gouv.fr</a>.
+          <br />Résultats fournis à titre indicatif.
+        </span>
       </div>
 
       <!-- Liens de navigation et icône GitHub -->
-      <div class="github">
-        <a href="https://github.com/TLacault/mobiliteirb">
-          <Github color="var(--text)" />
+      <div class="icon-links">
+        <a href="#" class="mail" target="_blank" rel="noopener">
+          <Mail color="var(--background)" size="20" stroke-width="2" />
+        </a>
+        <a
+          href="https://github.com/TLacault/mobiliteirb"
+          class="github"
+          target="_blank"
+          rel="noopener"
+        >
+          <Github color="var(--background)" size="20" stroke-width="2" />
+        </a>
+        <a href="#" class="telegram" target="_blank" rel="noopener">
+          <messagesSquare
+            color="var(--background)"
+            size="20"
+            stroke-width="2"
+          />
         </a>
       </div>
 
@@ -51,9 +66,9 @@ import { Github, Copyright } from "lucide-vue-next";
       </div>
 
       <div class="copyright-section">
-        <div><Copyright /></div>
+        <Copyright size="16" />
+        All rights reserved - MobilitEirb
         {{ new Date().getFullYear() }}
-        - Projet CO2 Mobilité
       </div>
     </UContainer>
   </footer>
@@ -94,24 +109,42 @@ import { Github, Copyright } from "lucide-vue-next";
 }
 
 .footer-content {
-  color: var(--text);
-  opacity: 0.7;
-  font-size: 0.9rem;
   text-align: center;
   max-width: 800px;
-}
+  line-height: 1.8;
 
-.footer-content a {
-  text-decoration: none;
-  color: var(--primary);
-  font-weight: bold;
+  & a {
+    text-decoration: none;
+    color: var(--primary);
+    font-weight: bold;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
 }
 
 .footer-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1.2rem;
+}
+
+.icon-links {
+  display: flex;
+  gap: 1rem;
+
+  & a {
+    background-color: var(--primary);
+    padding: 0.6rem;
+    border-radius: 100px;
+
+    transition: all 0.3s ease-in-out;
+    &:hover {
+      background-color: var(--tertiary);
+    }
+  }
 }
 
 .footer-links {

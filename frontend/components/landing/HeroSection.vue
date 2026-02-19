@@ -36,7 +36,7 @@
 
     <!-- More information Section -->
     <div class="more-info">
-      <p>En Savoir Plus</p>
+      <p class="detail">En Savoir Plus</p>
       <div class="more-arrow"><MoveDown color="var(--background)" /></div>
     </div>
   </div>
@@ -169,9 +169,11 @@ import { User, MoveDown } from "lucide-vue-next";
   0%,
   100% {
     translate: 0;
+    opacity: 0.6;
   }
   50% {
     translate: 0rem 0.5rem;
+    opacity: 0.8;
   }
 }
 </style>
