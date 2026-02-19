@@ -3,11 +3,14 @@
     <div class="container">
       <h1>Dashboard</h1>
       <p>Start building your dashboard components here</p>
+      <MobilityCard />
     </div>
   </div>
 </template>
 
 <script setup>
+import MobilityCard from "./MobilityCard.vue";
+
 useHead({
   title: "Dashboard",
 });
