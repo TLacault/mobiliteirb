@@ -15,11 +15,11 @@
 services:
   backend:
     ports:
-      - "3000:3000"  # API Express
+      - "3001:3001"  # API Express
 
   frontend:
     ports:
-      - "5137:3000"  # Nuxt Dev Server
+      - "8080:3000"  # Nuxt Dev Server
 
   postgres:
     ports:
@@ -33,10 +33,10 @@ Chaque service tourne dans **son propre conteneur** avec **son propre réseau lo
 Quand Nuxt fait du SSR, il exécute le code Vue **côté serveur** (dans le conteneur frontend) AVANT de l'envoyer au navigateur.
 
 **Scénario problématique** :
-1. Utilisateur visite `http://localhost:5137/mobilites`
+1. Utilisateur visite `http://localhost:8080/mobilites`
 2. Nuxt SSR essaie d'exécuter le code côté serveur
-3. Le code appelle `http://localhost:3000/api/v1/mobilites`
-4. ❌ **Erreur !** `localhost:3000` dans le conteneur frontend **≠** `localhost:3000` sur la machine hôte
+3. Le code appelle `http://localhost:3001/api/v1/mobilites`
+4. ❌ **Erreur !** `localhost:3001` dans le conteneur frontend **≠** `localhost:3001` sur la machine hôte
 
 ### Visualisation du problème
 
@@ -52,13 +52,13 @@ Quand Nuxt fait du SSR, il exécute le code Vue **côté serveur** (dans le cont
 │  │ (network A)  │      │ (network B)  │   │
 │  └──────────────┘      └──────────────┘   │
 │         │                                   │
-│         │ SSR essaie : localhost:3000      │
+│         │ SSR essaie : localhost:3001      │
 │         ↓ (cherche dans network A)         │
 │        ❌ Not found!                        │
 └─────────────────────────────────────────────┘
 ```
 
-Mais depuis le **navigateur** (sur l'hôte), `localhost:3000` fonctionne parfaitement !
+Mais depuis le **navigateur** (sur l'hôte), `localhost:3001` fonctionne parfaitement !
 
 ```
 ┌─────────────────────────────────────────────┐
@@ -66,8 +66,8 @@ Mais depuis le **navigateur** (sur l'hôte), `localhost:3000` fonctionne parfait
 │                                             │
 │  👤 Navigateur                              │
 │     │                                       │
-│     ├──✓ localhost:5137 → Frontend         │
-│     └──✓ localhost:3000 → Backend          │
+│     ├──✓ localhost:8080 → Frontend         │
+│     └──✓ localhost:3001 → Backend          │
 │                                             │
 │  Les deux fonctionnent car ports mappés !  │
 └─────────────────────────────────────────────┘
@@ -79,7 +79,7 @@ Nous faisons **tous les appels API depuis le navigateur** après le chargement d
 
 ```vue
 <script setup>
-const API_BASE = 'http://localhost:3000/api/v1';
+const API_BASE = 'http://localhost:3001/api/v1';
 
 // ⚠️ PAS d'appel au top-level (SSR)
 // const { data } = await useFetch(...) ❌
@@ -94,8 +94,8 @@ onMounted(async () => {
 ### Pourquoi ça marche ?
 
 - `onMounted()` s'exécute **uniquement dans le navigateur**
-- Depuis le navigateur, `localhost:3000` pointe vers l'hôte
-- Le mapping de ports Docker (`3000:3000`) permet la connexion
+- Depuis le navigateur, `localhost:3001` pointe vers l'hôte
+- Le mapping de ports Docker (`3001:3001`) permet la connexion
 
 ## 🔄 Alternatives Envisagées
 
@@ -113,10 +113,10 @@ services:
     networks:
       - app-network
     environment:
-      # SSR utiliserait : http://backend:3000
-      API_URL_SSR: http://backend:3000
-      # Browser utiliserait : http://localhost:3000
-      API_URL_CLIENT: http://localhost:3000
+      # SSR utiliserait : http://backend:3001
+      API_URL_SSR: http://backend:3001
+      # Browser utiliserait : http://localhost:3001
+      API_URL_CLIENT: http://localhost:3001
 ```
 
 **Problèmes** :
@@ -154,7 +154,7 @@ const API_BASE = 'http://backend:3000/api/v1';
 <!-- Simple et prévisible -->
 <script setup>
 onMounted(() => {
-  $fetch('http://localhost:3000/api/v1/mobilites');
+  $fetch('http://localhost:3001/api/v1/mobilites');
 });
 </script>
 ```
@@ -268,7 +268,7 @@ export default defineNuxtConfig({
 
     public: {
       // Client-side (Browser)
-      apiBaseClient: process.env.API_BASE_CLIENT || 'http://localhost:3000'
+      apiBaseClient: process.env.API_BASE_CLIENT || 'http://localhost:3001'
     }
   }
 })

@@ -4,15 +4,20 @@ const { PrismaClient } = require("@prisma/client"); // Import Prisma
 
 // Import des routes
 const mobiliteRoutes = require("./routes/mobiliteRoutes");
+const authRoutes = require("./routes/authRoutes");
 
 const app = express();
 const prisma = new PrismaClient(); // Initialise le client
-const port = 3000;
+const port = process.env.PORT || 3001;
 
 // Configuration CORS pour permettre les requêtes du frontend
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:5137",
+    origin: [
+      process.env.FRONTEND_URL || "http://localhost:8080",
+      "http://localhost:5137",
+      "http://localhost:5173",
+    ],
     credentials: true,
   }),
 );
@@ -26,6 +31,7 @@ app.get("/", async (req, res) => {
 });
 
 // Routes API v1
+app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/mobilites", mobiliteRoutes);
 
 // ====== Routes legacy (à migrer vers la structure API v1) ======

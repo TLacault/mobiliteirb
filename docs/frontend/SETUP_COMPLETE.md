@@ -4,7 +4,7 @@
 
 ### 1. **API Configuration**
 - ✅ `nuxt.config.ts` updated with API base URL
-- ✅ Backend CORS configured for port 5137
+- ✅ Backend CORS configured for port 8080
 
 ### 2. **Two Approaches Implemented**
 
@@ -42,13 +42,13 @@ components/
 1. **Make sure Docker containers are running:**
    ```bash
    docker compose ps
-   # backend on :3000 ✅
-   # frontend on :5137 ✅
+   # backend on :3001 ✅
+   # frontend on :8080 ✅
    ```
 
 2. **Visit the test page:**
    ```
-   http://localhost:5137/mobilites
+   http://localhost:8080/mobilites
    ```
 
 3. **You should see:**
@@ -219,7 +219,7 @@ Both `MobilitiesList.vue` and `MobilitiesListService.vue` include:
 ✅ **Fixed!** Backend now includes:
 ```javascript
 app.use(cors({
-  origin: "http://localhost:5137",
+  origin: "http://localhost:8080",
   credentials: true
 }));
 ```
@@ -242,7 +242,7 @@ onMounted(async () => {
 
 ### Data Not Loading
 1. Check backend is running: `docker compose ps`
-2. Test API directly: `curl http://localhost:3000/api/v1/mobilites`
+2. Test API directly: `curl http://localhost:3001/api/v1/mobilites`
 3. Check browser console for errors
 4. Verify CORS is working
 
@@ -251,7 +251,7 @@ onMounted(async () => {
 ## 📚 Next Steps
 
 1. **Test the components** ✅
-   - Visit `http://localhost:5137/mobilites`
+   - Visit `http://localhost:8080/mobilites`
 
 2. **Choose your approach** ✅
    - Composables (recommended)

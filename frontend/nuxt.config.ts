@@ -6,7 +6,7 @@ export default defineNuxtConfig({
 
   // Configuration du serveur pour le développement
   devServer: {
-    port: 5137,
+    port: 8080,
     host: "0.0.0.0",
   },
 
@@ -17,7 +17,7 @@ export default defineNuxtConfig({
   vite: {
     server: {
       hmr: {
-        clientPort: 5137,
+        clientPort: 8080,
       },
     },
   },
@@ -27,9 +27,9 @@ export default defineNuxtConfig({
     // Variables côté serveur uniquement
     public: {
       // Variables exposées côté client
-      // En dev: backend sur port 3000, en prod: proxy nginx
+      // En dev: backend sur port 3001, en prod: proxy nginx
       apiBase:
-        process.env.NUXT_PUBLIC_API_BASE || "http://localhost:3000/api/v1",
+        process.env.NUXT_PUBLIC_API_BASE || "http://localhost:3001/api/v1",
     },
   },
 
