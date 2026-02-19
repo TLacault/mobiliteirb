@@ -1,29 +1,29 @@
 <template>
   <div class="page">
     <div class="container">
-      <h1>Connexion</h1>
-
       <!-- Section de connexion -->
       <div v-if="!isAuthenticated" class="login-section">
         <p class="description">
-          Connectez-vous avec votre compte ENSEIRB-MATMECA pour accéder à
-          l'application
+          Utilisez votre compte <strong>CAS</strong> ou vos identifiants
+          <strong>EirbConnect</strong> pour accéder à l'application
         </p>
 
         <button @click="handleLogin" class="login-button">
-          <span class="button-icon">🔐</span>
-          <span class="button-text">Se connecter avec EirbConnect</span>
+          <UserKey class="button-icon" size="30" />
+          <p>Se connecter avec <strong>EirbConnect</strong></p>
         </button>
 
         <p class="info-text">
-          Vous serez redirigé vers la page d'authentification sécurisée de
-          l'ENSEIRB
+          Vous serez redirigé vers la page d'authentification.
         </p>
       </div>
 
       <!-- Section utilisateur connecté -->
       <div v-else class="user-section">
-        <h2>Bienvenue !</h2>
+        <div class="user-space">
+          <CircleUserRound size="35" color="var(--primary)" />
+          <h2 class="section-title">Mon Espace</h2>
+        </div>
 
         <div class="user-card">
           <div class="user-info">
@@ -56,7 +56,8 @@
           </div>
 
           <button @click="handleLogout" class="logout-button">
-            Se déconnecter
+            <LogOut class="button-icon" size="20" />
+            <p>Se déconnecter</p>
           </button>
         </div>
 
@@ -75,6 +76,7 @@
 
 <script setup>
 const { user, isAuthenticated, login, logout, checkAuth } = useAuth();
+import { UserKey, CircleUserRound, LogOut } from "lucide-vue-next";
 
 useHead({
   title: "Connexion",
@@ -105,7 +107,7 @@ const handleLogout = () => {
 .page {
   min-height: calc(100vh - 73px);
   padding: 3rem 0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--radialPrimarySecondary);
 }
 
 .container {
@@ -143,13 +145,12 @@ h1 {
   display: inline-flex;
   align-items: center;
   gap: 0.75rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--gradientCallToAction);
   color: white;
   border: none;
   border-radius: 8px;
   padding: 1rem 2rem;
   font-size: 1.1rem;
-  font-weight: 600;
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
   box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
@@ -162,14 +163,6 @@ h1 {
 
 .login-button:active {
   transform: translateY(0);
-}
-
-.button-icon {
-  font-size: 1.5rem;
-}
-
-.button-text {
-  font-family: var(--font-ubuntu);
 }
 
 .info-text {
@@ -188,17 +181,23 @@ h1 {
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
 }
 
-h2 {
-  font-family: var(--font-ubuntu);
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--text);
+.user-space {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+  gap: 1rem;
   margin-bottom: 2rem;
-  text-align: center;
+
+  & h2 {
+    color: var(--primary);
+    font-family: var(--font-ubuntu);
+    font-size: 2rem;
+  }
 }
 
 .user-card {
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: rgba(0, 0, 0, 0.1);
   border-radius: 12px;
   padding: 2rem;
   margin-bottom: 2rem;
@@ -236,20 +235,24 @@ h2 {
 }
 
 .logout-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+
   width: 100%;
-  background: #e74c3c;
+  background: var(--danger);
   color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 0.875rem 1.5rem;
+  border-radius: 100px;
+  padding: 0.5rem 1.5rem;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s;
-}
 
-.logout-button:hover {
-  background: #c0392b;
+  transition: all 0.3s ease-in-out;
+  &:hover {
+    box-shadow: 0 4px 15px rgba(209, 47, 47, 0.4);
+  }
 }
 
 .actions {
@@ -265,29 +268,30 @@ h2 {
   border-radius: 8px;
   font-weight: 600;
   text-decoration: none;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: all 0.3s ease-in-out;
 }
 
 .action-button.primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--gradientCallToAction);
   color: white;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-}
+  box-shadow: 0 4px 15px oklch(43.15% 0.073 199.96 / 0.3);
 
-.action-button.primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+  &:hover {
+    /* transform: translateY(-2px); */
+    box-shadow: 0 6px 20px oklch(43.15% 0.073 199.96 / 0.5);
+  }
 }
 
 .action-button.secondary {
   background: white;
-  color: #667eea;
-  border: 2px solid #667eea;
-}
+  color: var(--primary);
+  border: 2px solid var(--primary);
 
-.action-button.secondary:hover {
-  background: #667eea;
-  color: white;
+  transition: all 0.3s ease-in-out;
+  &:hover {
+    background: var(--primary);
+    color: white;
+  }
 }
 
 /* Responsive */

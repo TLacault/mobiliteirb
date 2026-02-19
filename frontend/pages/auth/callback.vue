@@ -14,22 +14,6 @@
         <h2>Erreur d'authentification</h2>
         <p class="error-message">{{ error }}</p>
 
-        <div class="error-help" v-if="error.includes('VPN')">
-          <h3>📡 Connexion VPN requise</h3>
-          <p>
-            Pour utiliser EirbConnect, vous devez être connecté au VPN de
-            l'ENSEIRB :
-          </p>
-          <ol>
-            <li>
-              Connectez-vous au VPN sur
-              <a href="https://vpn.eirb.fr" target="_blank">vpn.eirb.fr</a>
-            </li>
-            <li>Utilisez vos identifiants ENSEIRB</li>
-            <li>Revenez sur cette page et réessayez</li>
-          </ol>
-        </div>
-
         <button @click="retry" class="retry-button">
           Retour à la connexion
         </button>

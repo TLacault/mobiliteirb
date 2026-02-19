@@ -33,7 +33,11 @@
           <button @click="toggleMenu" class="user-button">
             <span class="user-avatar">{{ userInitials }}</span>
             <span class="user-name">{{ userName }}</span>
-            <span class="dropdown-icon" :class="{ open: isMenuOpen }">▼</span>
+            <ChevronDown
+              class="dropdown-icon"
+              size="20"
+              :class="{ open: isMenuOpen }"
+            />
           </button>
 
           <div v-if="isMenuOpen" class="dropdown-menu">
@@ -50,16 +54,19 @@
             <div class="dropdown-divider"></div>
 
             <NuxtLink to="/dashboard" class="dropdown-item" @click="closeMenu">
-              📊 Dashboard
+              <LayoutDashboard class="dropdown-icon" size="20" />
+              <p>Dashboard</p>
             </NuxtLink>
             <NuxtLink to="/connexion" class="dropdown-item" @click="closeMenu">
-              👤 Mon profil
+              <CircleUserRound class="dropdown-icon" size="20" />
+              <p>Mon profil</p>
             </NuxtLink>
 
             <div class="dropdown-divider"></div>
 
             <button @click="handleLogout" class="dropdown-item logout">
-              🚪 Se déconnecter
+              <LogOut class="dropdown-icon" size="20" color="var(--danger)" />
+              <p>Se déconnecter</p>
             </button>
           </div>
         </div>
@@ -71,6 +78,12 @@
 <script setup>
 const { user, isAuthenticated, logout, checkAuth } = useAuth();
 const isMenuOpen = ref(false);
+import {
+  LayoutDashboard,
+  CircleUserRound,
+  LogOut,
+  ChevronDown,
+} from "lucide-vue-next";
 
 const navLinks = [
   { name: "Accueil", path: "/" },
@@ -222,10 +235,10 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 0.75rem;
   background-color: rgba(0, 0, 0, 0.05);
   border: none;
-  border-radius: 0.5rem;
+  border-radius: 100px;
   cursor: pointer;
   transition: background-color 0.2s;
 }
@@ -240,7 +253,11 @@ onMounted(() => {
   justify-content: center;
   width: 32px;
   height: 32px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: radial-gradient(
+    circle at 30% 30%,
+    oklch(70.62% 0.139 158.37) 30%,
+    oklch(43.15% 0.073 199.96)
+  );
   color: white;
   border-radius: 50%;
   font-weight: 600;
@@ -306,7 +323,11 @@ onMounted(() => {
   justify-content: center;
   width: 48px;
   height: 48px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: radial-gradient(
+    circle at 30% 30%,
+    oklch(70.62% 0.139 158.37) 30%,
+    oklch(43.15% 0.073 199.96)
+  );
   color: white;
   border-radius: 50%;
   font-weight: 700;
@@ -344,7 +365,11 @@ onMounted(() => {
 }
 
 .dropdown-item {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  line-height: 1;
+
   width: 100%;
   padding: 0.75rem;
   text-align: left;
