@@ -1,7 +1,6 @@
 <template>
   <div class="page">
     <div class="container">
-      <h1>Dashboard</h1>
       <ImporterSection />
 
       <!-- Mobilitie Cards Section -->
@@ -13,6 +12,7 @@
 
         <div class="cards-container">
           <MobilityCard v-for="card in cards" :key="card.id" />
+          <MobilityCardNew />
         </div>
       </div>
     </div>
@@ -22,7 +22,8 @@
 <script setup>
 import { Map } from "lucide-vue-next";
 import ImporterSection from "../components/dashboard/ImporterSection.vue";
-import MobilityCard from "./MobilityCard.vue";
+import MobilityCard from "../components/dashboard/MobilityCard.vue";
+import MobilityCardNew from "../components/dashboard/MobilityCardNew.vue";
 
 const cards = [
   { id: 1, name: "Mobilité 1" },

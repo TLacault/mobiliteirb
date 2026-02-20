@@ -6,6 +6,7 @@ import {
   Timer,
   MapPin,
   PencilRuler,
+  CalendarCheck2,
 } from "lucide-vue-next";
 </script>
 
@@ -16,7 +17,7 @@ import {
     <div class="card-title">
       <!-- Récup nom de la mobilité -->
       <div class="icon"><Briefcase color="var(--primary)" /></div>
-      <p>blablabla</p>
+      <p>Stage 3A</p>
     </div>
     <div class="stats-section">
       <div class="stat-section">
@@ -32,14 +33,18 @@ import {
       <div class="stat-section">
         <!-- Récup nb d'étapes -->
         <div class="icon"><MapPin /></div>
-        <p>4 étape</p>
+        <p>4 étapes</p>
       </div>
     </div>
 
     <div class="traject-section">
       <!-- Récup départ -->
       <div class="departure-point etape"><p>Bordeaux</p></div>
-      <div class="arrow"></div>
+      <div class="route-visual">
+        <div class="start-dot"></div>
+        <div class="line"></div>
+        <div class="arrow-head"></div>
+      </div>
       <!-- Récup arrivée -->
       <div class="destination-point etape"><p>Paris</p></div>
     </div>
@@ -51,7 +56,13 @@ import {
         <p>Modifier</p>
       </div>
       <!-- Récup date de modification -->
-      <div class="date-modification"><p>9/11/2004</p></div>
+      <div class="date-modification">
+        <div class="text">
+          <div class="icon"><CalendarCheck2 size="12" /></div>
+          <p>Dernière modification</p>
+        </div>
+        <div class="date-value"><p>9/11/2004</p></div>
+      </div>
     </div>
   </div>
 </template>
@@ -106,7 +117,7 @@ import {
   align-items: center;
   gap: 0.5rem;
 
-  color: var(--text);
+  color: #9ca3af;
 }
 
 .traject-section {
@@ -123,24 +134,47 @@ import {
   background-color: var(--accent);
 }
 
-.arrow {
-  width: 30px;
-  height: 2px;
-  background-color: var(--text);
-  position: relative;
+.route-visual {
+  display: flex;
+  align-items: center;
+  color: #7299cf;
+  margin: 0 1rem;
 }
 
-.arrow::after {
-  content: "";
-  position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 0;
-  height: 0;
-  border-left: 8px solid var(--text);
-  border-top: 4px solid transparent;
-  border-bottom: 4px solid transparent;
+/* Le petit cercle au début */
+.start-dot {
+  width: 8px;
+  height: 8px;
+  background-color: white;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+/* La ligne horizontale */
+.line {
+  height: 4px;
+  width: 60px;
+  background-color: currentColor;
+  margin: 0 -4px;
+  border-radius: 1.5rem;
+}
+
+.arrow-head {
+  width: 14px;
+  height: 14px;
+  border-top: 4px solid currentColor;
+  border-right: 4px solid currentColor;
+
+  border-top-right-radius: 3px;
+  border-bottom-left-radius: 2px;
+  border-top-left-radius: 2px;
+
+  transform: rotate(45deg);
+  margin-left: -8px;
+  flex-shrink: 0;
 }
 
 .footer-section {
@@ -167,6 +201,18 @@ import {
 }
 
 .date-modification {
-  color: var(--text);
+  color: #6b7280;
+  font-size: 0.6rem;
+  margin-top: 0.5rem;
+}
+
+.text {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.date-value {
+  padding: 0.2rem 1.1rem;
 }
 </style>
