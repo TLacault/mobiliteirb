@@ -8,16 +8,33 @@ import {
   PencilRuler,
   CalendarCheck2,
 } from "lucide-vue-next";
+
+const props = defineProps({
+  m: {
+    type: Object,
+    required: true
+  }
+});
+
+const mobility = computed(() => props.m);
+
+const formattedDate = computed(() => {
+  return new Date(mobility.value.lastEdit).toLocaleDateString("fr-FR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "2-digit",
+  });
+});
 </script>
 
-<template>
+<template>  
   <div class="card-container">
     <!-- Boutton-->
     <div class="trash-button"><Trash2 color="red" /></div>
     <div class="card-title">
       <!-- Récup nom de la mobilité -->
       <div class="icon"><Briefcase color="var(--primary)" /></div>
-      <p>Stage 3A</p>
+      <p>{{ mobility.name }}</p>
     </div>
     <div class="stats-section">
       <div class="stat-section">
@@ -39,14 +56,14 @@ import {
 
     <div class="traject-section">
       <!-- Récup départ -->
-      <div class="departure-point etape"><p>Bordeaux</p></div>
+      <div class="departure-point etape"><p>{{ mobility.startLocation }}</p></div>
       <div class="route-visual">
         <div class="start-dot"></div>
         <div class="line"></div>
         <div class="arrow-head"></div>
       </div>
       <!-- Récup arrivée -->
-      <div class="destination-point etape"><p>Paris</p></div>
+      <div class="destination-point etape"><p>{{ mobility.endLocation }}</p></div>
     </div>
 
     <div class="footer-section">
@@ -61,7 +78,7 @@ import {
           <div class="icon"><CalendarCheck2 size="12" /></div>
           <p>Dernière modification</p>
         </div>
-        <div class="date-value"><p>9/11/2004</p></div>
+        <div class="date-value"><p>{{ formattedDate }}</p></div>
       </div>
     </div>
   </div>

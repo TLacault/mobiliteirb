@@ -9,9 +9,12 @@
           <Map color="var(--primary)" size="40" />
           <h2 class="section-title gradient-cta">Vos Mobilités</h2>
         </div>
-
         <div class="cards-container">
-          <MobilityCard v-for="card in cards" :key="card.id" />
+          <MobilityCard 
+            v-for="card in cards" 
+            :key="card.id" 
+            :m="card"
+          />
           <MobilityCardNew />
         </div>
       </div>
@@ -25,13 +28,15 @@ import ImporterSection from "../components/dashboard/ImporterSection.vue";
 import MobilityCard from "../components/dashboard/MobilityCard.vue";
 import MobilityCardNew from "../components/dashboard/MobilityCardNew.vue";
 
-const cards = [
-  { id: 1, name: "Mobilité 1" },
-  { id: 2, name: "Mobilité 2" },
-  { id: 3, name: "Mobilité 3" },
-  { id: 4, name: "Mobilité 4" },
-  { id: 5, name: "Mobilité 5" },
-]; // a remplacer par une requete API
+const { data: allMobilities } = await useFetch('http://localhost:3000/api/v1/mobilites');
+
+const currentUserId = computed(() => "7dc4d757-4b30-4742-8055-a8a11e918ad3"); 
+// Récupérer l'id de l'utilisateur courant par une requête
+
+const cards = computed(() => {
+  if (!allMobilities.value) return [];
+  return allMobilities.value.filter(m => m.userId === currentUserId.value);
+});
 
 useHead({
   title: "Dashboard",
