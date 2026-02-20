@@ -3,13 +3,33 @@
     <div class="container">
       <h1>Dashboard</h1>
       <p>Start building your dashboard components here</p>
-      <MobilityCard />
+
+      <!-- Mobilitie Cards Section -->
+      <div class="mobilities">
+        <div class="title-container">
+          <Map color="var(--primary)" size="40" />
+          <h2 class="section-title gradient-cta">Vos Mobilités</h2>
+        </div>
+
+        <div class="cards-container">
+          <MobilityCard v-for="card in cards" :key="card.id" />
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
+import { Map } from "lucide-vue-next";
 import MobilityCard from "./MobilityCard.vue";
+
+const cards = [
+  { id: 1, name: "Mobilité 1" },
+  { id: 2, name: "Mobilité 2" },
+  { id: 3, name: "Mobilité 3" },
+  { id: 4, name: "Mobilité 4" },
+  { id: 5, name: "Mobilité 5" },
+]; // a remplacer par une requete API
 
 useHead({
   title: "Dashboard",
@@ -40,5 +60,23 @@ p {
   color: var(--text);
   opacity: 0.7;
   font-size: 1.1rem;
+}
+
+.title-container {
+  padding: 2rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.cards-container {
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(350px, 500px)
+  ); /* 550px : size max of MobilityCard */
+  justify-content: center;
 }
 </style>
