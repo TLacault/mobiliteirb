@@ -2,7 +2,7 @@
   <div class="page">
     <div class="container">
       <h1>Dashboard</h1>
-      <p>Start building your dashboard components here</p>
+      <ImporterSection />
 
       <!-- Mobilitie Cards Section -->
       <div class="mobilities">
@@ -21,6 +21,7 @@
 
 <script setup>
 import { Map } from "lucide-vue-next";
+import ImporterSection from "../components/dashboard/ImporterSection.vue";
 import MobilityCard from "./MobilityCard.vue";
 
 const cards = [
