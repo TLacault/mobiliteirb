@@ -18,6 +18,7 @@ import { MapPlus } from "lucide-vue-next";
 <style scoped>
 .card-container {
   flex-wrap: wrap;
+  height: 225px;
   max-width: 500px;
   position: relative;
   display: flex;
