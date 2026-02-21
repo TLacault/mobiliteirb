@@ -28,14 +28,39 @@ import ImporterSection from "../components/dashboard/ImporterSection.vue";
 import MobilityCard from "../components/dashboard/MobilityCard.vue";
 import MobilityCardNew from "../components/dashboard/MobilityCardNew.vue";
 
-const { data: allMobilities } = await useFetch('http://localhost:3000/api/v1/mobilites');
+const API_BASE = "http://localhost:3000/api/v1";
 
-const currentUserId = computed(() => "7dc4d757-4b30-4742-8055-a8a11e918ad3"); 
-// Récupérer l'id de l'utilisateur courant par une requête
+const mobilities = ref([]);
+const loading = ref(false);
+const error = ref(null);
+
+/**
+ * Charge les mobilités depuis l'API
+ */
+const loadData = async () => {
+  loading.value = true;
+  error.value = null;
+
+  try {
+    console.log("🔧 Fetching from:", `${API_BASE}/mobilites`);
+    mobilities.value = await $fetch(`${API_BASE}/mobilites`);
+    console.log("✅ Mobilities loaded:", mobilities.value.length);
+  } catch (e) {
+    console.error("❌ Error loading mobilities:", e);
+    error.value = e.message || "Erreur lors du chargement";
+  } finally {
+    loading.value = false;
+  }
+};
 
 const cards = computed(() => {
-  if (!allMobilities.value) return [];
-  return allMobilities.value.filter(m => m.userId === currentUserId.value);
+  if (!mobilities.value) return [];
+  else if (mobilities.value.length < 5) return mobilities.value;
+  return mobilities.value.slice(0, 5);
+});
+
+onMounted(() => {
+  loadData();
 });
 
 useHead({
