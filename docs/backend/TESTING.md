@@ -16,7 +16,7 @@ docker exec -it mobilit-eirb-backend-1 npx prisma studio
 ```
 Ou via une requête :
 ```bash
-curl http://localhost:3000/users
+curl http://localhost:3001/users
 ```
 
 ## Tests des endpoints Mobilités
@@ -24,7 +24,7 @@ curl http://localhost:3000/users
 ### 1. Créer une mobilité
 
 ```bash
-curl -X POST http://localhost:3000/api/v1/mobilites \
+curl -X POST http://localhost:3001/api/v1/mobilites \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Échange Erasmus",
@@ -41,7 +41,7 @@ curl -X POST http://localhost:3000/api/v1/mobilites \
 ### 2. Récupérer toutes les mobilités
 
 ```bash
-curl http://localhost:3000/api/v1/mobilites
+curl http://localhost:3001/api/v1/mobilites
 ```
 
 **Réponse attendue** : Code 200 avec un tableau de mobilités
@@ -49,7 +49,7 @@ curl http://localhost:3000/api/v1/mobilites
 ### 3. Récupérer une mobilité par ID
 
 ```bash
-curl http://localhost:3000/api/v1/mobilites/REMPLACER_PAR_ID
+curl http://localhost:3001/api/v1/mobilites/REMPLACER_PAR_ID
 ```
 
 **Réponse attendue** :
@@ -59,7 +59,7 @@ curl http://localhost:3000/api/v1/mobilites/REMPLACER_PAR_ID
 ### 4. Supprimer une mobilité
 
 ```bash
-curl -X DELETE http://localhost:3000/api/v1/mobilites/REMPLACER_PAR_ID
+curl -X DELETE http://localhost:3001/api/v1/mobilites/REMPLACER_PAR_ID
 ```
 
 **Réponse attendue** :
@@ -71,7 +71,7 @@ curl -X DELETE http://localhost:3000/api/v1/mobilites/REMPLACER_PAR_ID
 ### Créer une mobilité sans données requises
 
 ```bash
-curl -X POST http://localhost:3000/api/v1/mobilites \
+curl -X POST http://localhost:3001/api/v1/mobilites \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Test incomplet"
@@ -83,7 +83,7 @@ curl -X POST http://localhost:3000/api/v1/mobilites \
 ### Récupérer une mobilité inexistante
 
 ```bash
-curl http://localhost:3000/api/v1/mobilites/id-qui-nexiste-pas
+curl http://localhost:3001/api/v1/mobilites/id-qui-nexiste-pas
 ```
 
 **Réponse attendue** : Code 404 avec message d'erreur

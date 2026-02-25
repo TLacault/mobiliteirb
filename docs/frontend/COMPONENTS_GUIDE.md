@@ -5,7 +5,7 @@
 ### Configuration
 L'API backend est configurée dans `nuxt.config.ts` :
 ```typescript
-apiBase: "http://localhost:3000/api/v1"
+apiBase: "http://localhost:3001/api/v1"
 ```
 
 ---
@@ -27,7 +27,7 @@ const { data, pending, error } = await getAllMobilities();
 </script>
 ```
 
-**Pour tester** : Visitez `http://localhost:5137/mobilites`
+**Pour tester** : Visitez `http://localhost:8080/mobilites`
 
 ---
 
@@ -96,7 +96,7 @@ await stepAPI.getByTrip(tripId)
 ## 🧪 Tester les Composants
 
 ### Option 1 : Page dédiée
-Visitez : `http://localhost:5137/mobilites`
+Visitez : `http://localhost:8080/mobilites`
 
 ### Option 2 : Dans app.vue
 ```vue
@@ -128,7 +128,7 @@ Visitez : `http://localhost:5137/mobilites`
 ```javascript
 // backend/index.js
 const cors = require('cors');
-app.use(cors({ origin: 'http://localhost:5137' }));
+app.use(cors({ origin: 'http://localhost:8080' }));
 ```
 
 ### SSR Error avec Services

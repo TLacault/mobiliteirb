@@ -20,7 +20,7 @@ frontend/
 L'URL de l'API est **en dur** dans les composants :
 
 ```javascript
-const API_BASE = 'http://localhost:3000/api/v1';
+const API_BASE = 'http://localhost:3001/api/v1';
 ```
 
 **Pourquoi ?**
@@ -45,7 +45,7 @@ const API_BASE = 'http://localhost:3000/api/v1';
 </template>
 
 <script setup>
-const API_BASE = 'http://localhost:3000/api/v1';
+const API_BASE = 'http://localhost:3001/api/v1';
 
 const items = ref([]);
 const loading = ref(false);
@@ -209,8 +209,8 @@ Si vous voyez `CORS error` dans la console :
 
 Si vous voyez `404 Page not found` :
 
-1. Vérifiez que l'URL de l'API est correcte : `http://localhost:3000/api/v1`
-2. Testez l'API directement : `curl http://localhost:3000/api/v1/mobilites`
+1. Vérifiez que l'URL de l'API est correcte : `http://localhost:3001/api/v1`
+2. Testez l'API directement : `curl http://localhost:3001/api/v1/mobilites`
 3. Vérifiez que le backend est lancé : `docker compose ps`
 
 ### Les données ne se chargent pas

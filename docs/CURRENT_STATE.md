@@ -10,8 +10,8 @@
 
 | Couche | Technologie | Version | Port |
 |--------|-------------|---------|------|
-| **Frontend** | Nuxt 3 + Vue 3 | 3.32+ | 5137 |
-| **Backend** | Node.js + Express | 22 / 4.21 | 3000 |
+| **Frontend** | Nuxt 3 + Vue 3 | 3.32+ | 8080 |
+| **Backend** | Node.js + Express | 22 / 4.21 | 3001 |
 | **Database** | PostgreSQL + PostGIS | 15 | 5433 |
 | **ORM** | Prisma | 5.x | - |
 
@@ -64,11 +64,11 @@ backend/
 
 #### CORS
 
-CORS activé pour `http://localhost:5137` (frontend en dev) :
+CORS activé pour `http://localhost:8080` (frontend en dev) :
 
 ```javascript
 app.use(cors({
-  origin: "http://localhost:5137",
+  origin: "http://localhost:8080",
   credentials: true
 }));
 ```
@@ -93,13 +93,13 @@ frontend/
 
 **Pourquoi ?**
 - Les conteneurs Docker ne partagent pas localhost
-- Le SSR tenterait d'appeler `localhost:3000` depuis le conteneur Nuxt
+- Le SSR tenterait d'appeler `localhost:3001` depuis le conteneur Nuxt
 - Solution plus simple : appels API uniquement côté client
 
 **Comment ?**
 ```vue
 <script setup>
-const API_BASE = 'http://localhost:3000/api/v1';
+const API_BASE = 'http://localhost:3001/api/v1';
 const data = ref([]);
 
 onMounted(async () => {
@@ -209,13 +209,13 @@ cd backend && npx prisma studio
 
 ```bash
 # Liste des mobilités
-curl http://localhost:3000/api/v1/mobilites
+curl http://localhost:3001/api/v1/mobilites
 
 # Mobilité par ID
-curl http://localhost:3000/api/v1/mobilites/UUID_ICI
+curl http://localhost:3001/api/v1/mobilites/UUID_ICI
 
 # Créer une mobilité
-curl -X POST http://localhost:3000/api/v1/mobilites \
+curl -X POST http://localhost:3001/api/v1/mobilites \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Mon Erasmus",
@@ -262,10 +262,10 @@ git push origin feature/nom-de-la-feature
 
 ```bash
 # Backend
-curl http://localhost:3000/api/v1/mobilites
+curl http://localhost:3001/api/v1/mobilites
 
 # Frontend
-# Ouvrir http://localhost:5137 dans le navigateur
+# Ouvrir http://localhost:8080 dans le navigateur
 ```
 
 ## ⚠️ Points d'Attention
@@ -283,7 +283,7 @@ curl http://localhost:3000/api/v1/mobilites
 
 ### CORS en Production
 
-⚠️ CORS actuellement configuré pour `http://localhost:5137`
+⚠️ CORS actuellement configuré pour `http://localhost:8080`
 - À changer pour l'URL de production
 - Utiliser variables d'environnement : `process.env.FRONTEND_URL`
 
@@ -332,15 +332,15 @@ curl http://localhost:3000/api/v1/mobilites
 **Symptôme** : `CORS error` dans la console navigateur
 
 **Solution** :
-1. Vérifier que backend/index.js a `app.use(cors({origin: "http://localhost:5137"}))`
+1. Vérifier que backend/index.js a `app.use(cors({origin: "http://localhost:8080"}))`
 2. Redémarrer le backend : `docker compose restart backend`
 
 ### ❌ Erreur 404 sur API
-**Symptôme** : `[GET] http://localhost:3000/api/v1/mobilites: 404`
+**Symptôme** : `[GET] http://localhost:3001/api/v1/mobilites: 404`
 
 **Solution** :
 1. Vérifier que le backend est lancé : `docker compose ps`
-2. Tester avec curl : `curl http://localhost:3000/api/v1/mobilites`
+2. Tester avec curl : `curl http://localhost:3001/api/v1/mobilites`
 3. Vérifier les logs : `docker compose logs backend`
 
 ### ❌ Les données ne s'affichent pas
