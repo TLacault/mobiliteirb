@@ -1,6 +1,8 @@
 const express = require("express");
+const { PrismaClient } = require("@prisma/client");
 
 const router = express.Router();
+const prisma = new PrismaClient();
 
 // Configuration OpenID EirbConnect
 const OPENID_CONFIG = {
@@ -73,12 +75,39 @@ router.post("/callback", async (req, res) => {
 
     const userInfo = await userInfoResponse.json();
 
-    // Retourner les tokens et les infos utilisateur
+    // Identifier le login CAS (preferred_username fourni par EirbConnect/Keycloak)
+    const casLogin = userInfo.preferred_username;
+    if (!casLogin) {
+      return res.status(400).json({
+        error: "missing_cas_login",
+        message: "Le champ preferred_username est absent du token EirbConnect",
+      });
+    }
+
+    // Chercher l'utilisateur en base ou le créer s'il n'existe pas encore
+    const dbUser = await prisma.user.upsert({
+      where: { casLogin },
+      update: {
+        // Mettre à jour l'email si le provider en fournit un nouveau
+        ...(userInfo.email ? { email: userInfo.email } : {}),
+      },
+      create: {
+        casLogin,
+        email: userInfo.email || null,
+        role: "student",
+      },
+    });
+
+    // Retourner les tokens et les infos utilisateur (DB + OpenID)
     res.json({
       access_token: tokens.access_token,
       refresh_token: tokens.refresh_token,
       expires_in: tokens.expires_in,
-      user: userInfo,
+      user: {
+        ...userInfo,
+        dbId: dbUser.id,
+        role: dbUser.role,
+      },
     });
   } catch (error) {
     console.error("Auth callback error:", error);
