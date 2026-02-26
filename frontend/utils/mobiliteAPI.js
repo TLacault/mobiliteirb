@@ -10,8 +10,9 @@ const API_BASE = "http://localhost:3001/api/v1";
  */
 export async function getMobiliteUuids() {
   try {
+    const token = localStorage.getItem("access_token");
     const response = await $fetch(`${API_BASE}/mobilites`, {
-      credentials: "include",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
     return response;
   } catch (error) {

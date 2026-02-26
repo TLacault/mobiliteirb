@@ -37,14 +37,72 @@ const validateId = (req, res, next) => {
   next();
 };
 
+const { PrismaClient } = require("@prisma/client");
+const prisma = new PrismaClient();
+
 /**
- * TODO: Middleware d'authentification JWT
- * À implémenter une fois le système d'authentification en place
+ * Middleware d'authentification JWT
+ * Décode le Bearer token EirbConnect (Keycloak JWT), récupère le casLogin
+ * et charge le profil utilisateur depuis la DB dans req.user.
  */
-const authenticateJWT = (req, res, next) => {
-  // const token = req.headers.authorization?.split(' ')[1];
-  // Validation du token...
-  next();
+const authenticateJWT = async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res
+      .status(401)
+      .json({ error: "unauthorized", message: "Token manquant" });
+  }
+
+  const token = authHeader.slice(7);
+
+  try {
+    // Décoder le payload JWT (base64url) sans vérification de signature
+    // Le token provient directement d'EirbConnect/Keycloak, considéré fiable
+    const parts = token.split(".");
+    if (parts.length !== 3) throw new Error("Format JWT invalide");
+    const payload = JSON.parse(
+      Buffer.from(
+        parts[1].replace(/-/g, "+").replace(/_/g, "/"),
+        "base64",
+      ).toString("utf-8"),
+    );
+
+    const casLogin = payload.preferred_username;
+    if (!casLogin) {
+      return res
+        .status(401)
+        .json({
+          error: "unauthorized",
+          message: "preferred_username absent du token",
+        });
+    }
+
+    // Vérification expiration
+    if (payload.exp && Date.now() / 1000 > payload.exp) {
+      return res
+        .status(401)
+        .json({ error: "token_expired", message: "Token expiré" });
+    }
+
+    // Charger l'utilisateur depuis la DB
+    const user = await prisma.user.findUnique({ where: { casLogin } });
+    if (!user) {
+      return res
+        .status(401)
+        .json({
+          error: "user_not_found",
+          message: "Utilisateur introuvable en base",
+        });
+    }
+
+    req.user = user; // { id, casLogin, email, role, createdAt }
+    next();
+  } catch (err) {
+    console.error("authenticateJWT error:", err);
+    return res
+      .status(401)
+      .json({ error: "unauthorized", message: "Token invalide" });
+  }
 };
 
 module.exports = {

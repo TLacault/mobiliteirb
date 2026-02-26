@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const mobiliteController = require("../controllers/mobiliteController");
+const { authenticateJWT } = require("../middlewares/index");
 
 /**
  * Routes pour la ressource Mobilité
@@ -8,7 +9,7 @@ const mobiliteController = require("../controllers/mobiliteController");
  */
 
 // GET /api/v1/mobilites - Récupère toutes les mobilités
-router.get("/", mobiliteController.getAllMobilites);
+router.get("/", authenticateJWT, mobiliteController.getAllMobilites);
 
 // TODO GET /api/v1/mobilites/:id - Récupérer une mobilité par son ID
 
