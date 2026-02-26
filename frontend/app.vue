@@ -8,6 +8,13 @@
 
 <script setup>
 import Footer from "./components/Footer.vue";
+
+// Restaurer la session utilisateur depuis localStorage au chargement de l'app
+const { checkAuth } = useAuth();
+onMounted(async () => {
+  await checkAuth();
+});
+
 // Configuration globale de l'application
 useHead({
   titleTemplate: "%s - MobilitEirb",
