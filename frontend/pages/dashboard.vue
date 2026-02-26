@@ -3,33 +3,20 @@
     <div class="container">
       <ImporterSection />
 
-      <!-- Mobilitie Cards Section -->
+      <!-- Mobilities Section -->
       <div class="mobilities-section">
         <div class="title-container">
           <Map color="var(--primary)" size="40" />
           <h2 class="section-title gradient-cta">Vos Mobilités</h2>
         </div>
         <div class="cards-container">
-          <!-- <MobilityCard
+          <MobilityCard
             v-for="mobility in mobilityIDs"
             :key="mobility.uuid"
-            :m="mobility"
-          /> -->
+            :uuid="mobility.uuid"
+          />
           <MobilityCardNew />
         </div>
-      </div>
-
-      <!-- Debug: Affichage des UUIDs -->
-      <div class="debug-section">
-        <h3>UUIDs des mobilités (debug)</h3>
-        <div v-if="mobilityIDs.length > 0">
-          <ul class="uuid-list">
-            <li v-for="mobility in mobilityIDs" :key="mobility.uuid">
-              {{ mobility.uuid }}
-            </li>
-          </ul>
-        </div>
-        <p v-else>Aucune mobilité trouvée.</p>
       </div>
     </div>
   </div>

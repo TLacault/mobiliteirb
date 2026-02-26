@@ -21,7 +21,26 @@ export async function getMobiliteUuids() {
   }
 }
 
-// TODO getMobiliteById(id) - Récupérer une mobilité par son ID
+/**
+ * Récupère le détail d'une mobilité par son UUID
+ * @param {string} id - UUID de la mobilité
+ * @returns {Promise<Object>} Détail de la mobilité avec stats
+ */
+export async function getMobiliteById(id) {
+  try {
+    const token = localStorage.getItem("access_token");
+    const response = await $fetch(`${API_BASE}/mobilites/${id}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    return response;
+  } catch (error) {
+    console.error(
+      `Erreur lors de la récupération de la mobilité ${id}:`,
+      error,
+    );
+    throw error;
+  }
+}
 
 // TODO deleteMobiliteById(id) - Supprimer une mobilité par son ID
 

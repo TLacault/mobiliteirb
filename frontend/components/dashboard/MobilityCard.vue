@@ -8,17 +8,31 @@ import {
   PencilRuler,
   CalendarCheck2,
 } from "lucide-vue-next";
+import { getMobiliteById } from "../../utils/mobiliteAPI.js";
 
 const props = defineProps({
-  m: {
-    type: Object,
+  uuid: {
+    type: String,
     required: true,
   },
 });
 
-const mobility = computed(() => props.m);
+const mobility = ref(null);
+const loading = ref(true);
+const error = ref(null);
+
+onMounted(async () => {
+  try {
+    mobility.value = await getMobiliteById(props.uuid);
+  } catch (e) {
+    error.value = e.message || "Erreur lors du chargement";
+  } finally {
+    loading.value = false;
+  }
+});
 
 const formattedDate = computed(() => {
+  if (!mobility.value?.lastEdit) return "—";
   return new Date(mobility.value.lastEdit).toLocaleDateString("fr-FR", {
     day: "2-digit",
     month: "2-digit",
@@ -28,34 +42,44 @@ const formattedDate = computed(() => {
 </script>
 
 <template>
-  <div class="card-container">
+  <!-- Chargement -->
+  <div v-if="loading" class="card-container card-loading">
+    <p>Chargement...</p>
+  </div>
+
+  <!-- Erreur -->
+  <div v-else-if="error" class="card-container card-error">
+    <p>{{ error }}</p>
+  </div>
+
+  <!-- Données -->
+  <div v-else-if="mobility" class="card-container">
     <!-- Boutton-->
     <div class="trash-button"><Trash2 color="red" /></div>
     <div class="card-title">
-      <!-- Récup nom de la mobilité -->
       <div class="icon"><Briefcase color="var(--primary)" /></div>
       <p>{{ mobility.name }}</p>
     </div>
     <div class="stats-section">
       <div class="stat-section">
-        <!-- Récup émissions de CO2 -->
         <div class="icon"><Leaf /></div>
-        <p>2kg CO2</p>
+        <p>{{ mobility.stats.totalCarbon }} kg CO₂</p>
       </div>
       <div class="stat-section">
-        <!-- Récup durée -->
         <div class="icon"><Timer /></div>
-        <p>15 min</p>
+        <p>{{ mobility.stats.totalDistance }} km</p>
       </div>
       <div class="stat-section">
-        <!-- Récup nb d'étapes -->
         <div class="icon"><MapPin /></div>
-        <p>4 étapes</p>
+        <p>
+          {{ mobility.stats.stepCount }} étape{{
+            mobility.stats.stepCount !== 1 ? "s" : ""
+          }}
+        </p>
       </div>
     </div>
 
     <div class="traject-section">
-      <!-- Récup départ -->
       <div class="departure-point etape">
         <p>{{ mobility.startLocation }}</p>
       </div>
@@ -64,7 +88,6 @@ const formattedDate = computed(() => {
         <div class="line"></div>
         <div class="arrow-head"></div>
       </div>
-      <!-- Récup arrivée -->
       <div class="destination-point etape">
         <p>{{ mobility.endLocation }}</p>
       </div>
@@ -72,11 +95,9 @@ const formattedDate = computed(() => {
 
     <div class="footer-section">
       <div class="modifier-section">
-        <!--Faire une boutton-->
         <div class="icon"><PencilRuler /></div>
         <p>Modifier</p>
       </div>
-      <!-- Récup date de modification -->
       <div class="date-modification">
         <div class="text">
           <div class="icon"><CalendarCheck2 size="12" /></div>
@@ -91,6 +112,17 @@ const formattedDate = computed(() => {
 </template>
 
 <style scoped>
+.card-loading,
+.card-error {
+  justify-content: center;
+  color: #9ca3af;
+  font-size: 0.9rem;
+  min-height: 120px;
+}
+.card-error {
+  color: #ef4444;
+}
+
 .card-container {
   flex-wrap: wrap;
   max-width: 500px;

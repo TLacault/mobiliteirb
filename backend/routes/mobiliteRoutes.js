@@ -11,7 +11,8 @@ const { authenticateJWT } = require("../middlewares/index");
 // GET /api/v1/mobilites - Récupère toutes les mobilités
 router.get("/", authenticateJWT, mobiliteController.getAllMobilites);
 
-// TODO GET /api/v1/mobilites/:id - Récupérer une mobilité par son ID
+// GET /api/v1/mobilites/:id - Récupérer une mobilité par son ID
+router.get("/:id", authenticateJWT, mobiliteController.getMobiliteById);
 
 // TODO DELETE /api/v1/mobilites/:id - Supprimer une mobilité par son ID
 
