@@ -13,3 +13,5 @@ logs
 
 # Temp Files
 eirbconnect.php
+
+package-lock.json

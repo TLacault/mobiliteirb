@@ -12,8 +12,8 @@ import {
 const props = defineProps({
   m: {
     type: Object,
-    required: true
-  }
+    required: true,
+  },
 });
 
 const mobility = computed(() => props.m);
@@ -27,7 +27,7 @@ const formattedDate = computed(() => {
 });
 </script>
 
-<template>  
+<template>
   <div class="card-container">
     <!-- Boutton-->
     <div class="trash-button"><Trash2 color="red" /></div>
@@ -56,14 +56,18 @@ const formattedDate = computed(() => {
 
     <div class="traject-section">
       <!-- Récup départ -->
-      <div class="departure-point etape"><p>{{ mobility.startLocation }}</p></div>
+      <div class="departure-point etape">
+        <p>{{ mobility.startLocation }}</p>
+      </div>
       <div class="route-visual">
         <div class="start-dot"></div>
         <div class="line"></div>
         <div class="arrow-head"></div>
       </div>
       <!-- Récup arrivée -->
-      <div class="destination-point etape"><p>{{ mobility.endLocation }}</p></div>
+      <div class="destination-point etape">
+        <p>{{ mobility.endLocation }}</p>
+      </div>
     </div>
 
     <div class="footer-section">
@@ -78,7 +82,9 @@ const formattedDate = computed(() => {
           <div class="icon"><CalendarCheck2 size="12" /></div>
           <p>Dernière modification</p>
         </div>
-        <div class="date-value"><p>{{ formattedDate }}</p></div>
+        <div class="date-value">
+          <p>{{ formattedDate }}</p>
+        </div>
       </div>
     </div>
   </div>

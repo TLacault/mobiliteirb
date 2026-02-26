@@ -4,39 +4,32 @@
       <ImporterSection />
 
       <!-- Mobilitie Cards Section -->
-      <div class="mobilities">
+      <div class="mobilities-section">
         <div class="title-container">
           <Map color="var(--primary)" size="40" />
           <h2 class="section-title gradient-cta">Vos Mobilités</h2>
         </div>
         <div class="cards-container">
-          <MobilityCard v-for="card in cards" :key="card.id" :m="card" />
+          <!-- <MobilityCard
+            v-for="mobility in mobilityIDs"
+            :key="mobility.uuid"
+            :m="mobility"
+          /> -->
           <MobilityCardNew />
         </div>
       </div>
-      <div class="welcome-section">
-        <h1>Dashboard</h1>
-        <p class="welcome-message" v-if="user">
-          Bonjour,
-          <strong>{{ user.given_name }} {{ user.family_name }}</strong> 👋
-        </p>
-      </div>
 
-      <div class="dashboard-content">
-        <p>Start building your dashboard components here</p>
-
-        <!-- Exemple de carte d'information utilisateur -->
-        <div class="info-card" v-if="user">
-          <h3>Vos informations</h3>
-          <ul>
-            <li><strong>Email :</strong> {{ user.email }}</li>
-            <li><strong>Username :</strong> {{ user.preferred_username }}</li>
-            <li v-if="user.ecole"><strong>École :</strong> {{ user.ecole }}</li>
-            <li v-if="user.diplome">
-              <strong>Diplôme :</strong> {{ user.diplome }}
+      <!-- Debug: Affichage des UUIDs -->
+      <div class="debug-section">
+        <h3>UUIDs des mobilités (debug)</h3>
+        <div v-if="mobilityIDs.length > 0">
+          <ul class="uuid-list">
+            <li v-for="mobility in mobilityIDs" :key="mobility.uuid">
+              {{ mobility.uuid }}
             </li>
           </ul>
         </div>
+        <p v-else>Aucune mobilité trouvée.</p>
       </div>
     </div>
   </div>
@@ -44,27 +37,30 @@
 
 <script setup>
 import { Map } from "lucide-vue-next";
+
+// Components
 import ImporterSection from "../components/dashboard/ImporterSection.vue";
 import MobilityCard from "../components/dashboard/MobilityCard.vue";
 import MobilityCardNew from "../components/dashboard/MobilityCardNew.vue";
 
-const API_BASE = "http://localhost:3000/api/v1";
+// API
+import { getMobiliteUuids } from "../utils/mobiliteAPI.js";
 
-const mobilities = ref([]);
+// State
+const mobilityIDs = ref([]);
 const loading = ref(false);
 const error = ref(null);
 
-/**
- * Charge les mobilités depuis l'API
- */
+// Charge les mobilités depuis l'API
 const loadData = async () => {
   loading.value = true;
   error.value = null;
 
   try {
-    console.log("🔧 Fetching from:", `${API_BASE}/mobilites`);
-    mobilities.value = await $fetch(`${API_BASE}/mobilites`);
-    console.log("✅ Mobilities loaded:", mobilities.value.length);
+    console.log("🔧 Fetching mobilités UUIDs...");
+    mobilityIDs.value = await getMobiliteUuids();
+    console.log("✅ Mobilities loaded:", mobilityIDs.value.length);
+    console.log("📋 UUIDs:", mobilityIDs.value);
   } catch (e) {
     console.error("❌ Error loading mobilities:", e);
     error.value = e.message || "Erreur lors du chargement";
@@ -72,12 +68,6 @@ const loadData = async () => {
     loading.value = false;
   }
 };
-
-const cards = computed(() => {
-  if (!mobilities.value) return [];
-  else if (mobilities.value.length < 5) return mobilities.value;
-  return mobilities.value.slice(0, 5);
-});
 
 onMounted(() => {
   loadData();
@@ -107,37 +97,10 @@ useHead({
   padding: 0 2rem;
 }
 
-.welcome-section {
-  margin-bottom: 3rem;
-}
+/* Mobilites */
 
-h1 {
-  font-family: var(--font-ubuntu);
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 1rem;
-}
-
-.welcome-message {
-  color: var(--text);
-  font-size: 1.3rem;
-}
-
-.welcome-message strong {
-  color: #667eea;
-}
-
-.dashboard-content {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-}
-
-.dashboard-content > p {
-  color: var(--text);
-  opacity: 0.7;
-  font-size: 1.1rem;
+.mobilities-section {
+  margin-top: 4rem;
 }
 
 .title-container {
@@ -193,5 +156,39 @@ h1 {
 .info-card li strong {
   color: #667eea;
   margin-right: 0.5rem;
+}
+
+/* DEUBG */
+
+.debug-section {
+  background: #f8f9fa;
+  border: 2px dashed #667eea;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-top: 5rem;
+}
+
+.debug-section h3 {
+  font-family: var(--font-ubuntu);
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #667eea;
+  margin-bottom: 1rem;
+}
+
+.uuid-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-family: monospace;
+}
+
+.uuid-list li {
+  padding: 0.5rem;
+  background: white;
+  margin-bottom: 0.5rem;
+  border-radius: 6px;
+  color: var(--text);
+  word-break: break-all;
 }
 </style>

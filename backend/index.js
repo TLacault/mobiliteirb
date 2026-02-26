@@ -3,9 +3,10 @@ const cors = require("cors");
 const { PrismaClient } = require("@prisma/client"); // Import Prisma
 
 // Import des routes
-const mobiliteRoutes = require("./routes/mobiliteRoutes");
 const authRoutes = require("./routes/authRoutes");
+const mobiliteRoutes = require("./routes/mobiliteRoutes");
 
+// Initialisation de l'application Express
 const app = express();
 const prisma = new PrismaClient(); // Initialise le client
 const port = process.env.PORT || 3001;

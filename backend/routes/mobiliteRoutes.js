@@ -10,13 +10,10 @@ const mobiliteController = require("../controllers/mobiliteController");
 // GET /api/v1/mobilites - Récupère toutes les mobilités
 router.get("/", mobiliteController.getAllMobilites);
 
-// GET /api/v1/mobilites/:id - Récupère une mobilité par ID
-router.get("/:id", mobiliteController.getMobiliteById);
+// TODO GET /api/v1/mobilites/:id - Récupérer une mobilité par son ID
 
-// POST /api/v1/mobilites - Crée une nouvelle mobilité
-router.post("/", mobiliteController.createMobilite);
+// TODO DELETE /api/v1/mobilites/:id - Supprimer une mobilité par son ID
 
-// DELETE /api/v1/mobilites/:id - Supprime une mobilité
-router.delete("/:id", mobiliteController.deleteMobilite);
+// TODO POST /api/v1/mobilites - Créer une nouvelle mobilité
 
 module.exports = router;
