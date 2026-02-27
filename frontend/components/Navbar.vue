@@ -192,15 +192,43 @@ onMounted(() => {
 }
 
 .nav-link {
-  padding: 0.5rem 1.5rem;
+  position: relative;
+  padding: 0.5rem 1rem;
   color: var(--text);
   font-weight: 500;
   text-decoration: none;
   border-radius: 0.375rem;
-  transition: background-color 0.2s;
+  transition: color 0.2s ease, background-color 0.2s ease;
+
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: 2px;
+    left: 1rem;
+    right: 1rem;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--primary);
+    transform: scaleX(0);
+    transition: transform 0.25s ease;
+  }
 
   &:hover {
-    background-color: rgba(0, 0, 0, 0.05);
+    color: var(--primary);
+    /* background-color: rgba(0, 0, 0, 0.04); */
+
+    &::after {
+      transform: scaleX(0.5);
+    }
+  }
+
+  &.router-link-exact-active {
+    color: var(--primary);
+    font-weight: 600;
+
+    &::after {
+      transform: scaleX(1);
+    }
   }
 }
 
