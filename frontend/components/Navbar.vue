@@ -89,8 +89,6 @@ const navLinks = [
   { name: "Accueil", path: "/" },
   { name: "Dashboard", path: "/dashboard" },
   { name: "Recherche", path: "/recherche" },
-  { name: "Template", path: "/template" },
-  { name: "Mobilités", path: "/mobilites" },
 ];
 
 // Vérifier l'authentification au montage
