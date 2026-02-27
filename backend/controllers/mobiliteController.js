@@ -86,9 +86,36 @@ async function getMobiliteById(req, res) {
 
 // TODO DELETE mobilites/:id - Supprimer une mobilité par son ID
 
-// TODO POST mobilites - Créer une nouvelle mobilité
+/**
+ * POST /api/v1/mobilites
+ * Créer une nouvelle mobilité
+ */
+async function createMobilite(req, res) {
+  try {
+    const userId = req.user.id;
+    const { name, year, isPublic, isOriginal, startLocation, endLocation } =
+      req.body;
+
+    const newMobilite = await prisma.mobility.create({
+      data: {
+        name,
+        year,
+        isPublic,
+        isOriginal,
+        startLocation,
+        endLocation,
+        userId,
+      },
+    });
+    res.status(201).json({ uuid: newMobilite.id });
+  } catch (error) {
+    console.error("Erreur lors de la création de la mobilité :", error);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+}
 
 module.exports = {
   getAllMobilites,
   getMobiliteById,
+  createMobilite,
 };

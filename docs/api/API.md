@@ -55,5 +55,19 @@ Production: https://mobilit.eirb.fr/api/v1
 <!-- TODO DELETE /mobilites/:id - supprimer une mobilité par son ID -->
 
 <!-- TODO POST /mobilites - créer une nouvelle mobilité -->
+#### `POST /mobilites`
+**Fonction** : Crée une nouvelle mobilité
+
+**Exemple** : `POST /mobilites`
+**Réponse** :
+```json
+{
+  "name": "Mobilité Erasmus 2024",
+  "year": "2024",
+  "startLocation": "Paris, France",
+  "endLocation": "Berlin, Germany",
+  "isPublic": true,
+}
+```
 
 <!-- TODO PUT /mobilites/:id - modifier la visibilité d'une mobilité (publique/privée) -->

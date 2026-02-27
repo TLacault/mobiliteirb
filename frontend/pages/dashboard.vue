@@ -44,12 +44,8 @@ const loadData = async () => {
   error.value = null;
 
   try {
-    console.log("🔧 Fetching mobilités UUIDs...");
     mobilityIDs.value = await getMobiliteUuids();
-    console.log("✅ Mobilities loaded:", mobilityIDs.value.length);
-    console.log("📋 UUIDs:", mobilityIDs.value);
   } catch (e) {
-    console.error("❌ Error loading mobilities:", e);
     error.value = e.message || "Erreur lors du chargement";
   } finally {
     loading.value = false;

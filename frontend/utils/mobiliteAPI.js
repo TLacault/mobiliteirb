@@ -37,3 +37,21 @@ export async function getMobiliteById(id) {
 // TODO deleteMobiliteById(id) - Supprimer une mobilité par son ID
 
 // TODO createMobilite(data) - Créer une nouvelle mobilité
+/**
+ * Créer une nouvelle mobilité
+ * @param {Object} data - Données de la mobilité à créer
+ * @returns {Promise<string>} - UUID de la nouvelle mobilité créée
+ */
+export async function createMobilite(data) {
+  try {
+    const response = await authenticatedFetch(`${API_BASE}/mobilites`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    return response.uuid;
+  } catch (error) {
+    console.error("Erreur lors de la création de la mobilité:", error);
+    throw error;
+  }
+}
