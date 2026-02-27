@@ -10,7 +10,7 @@
       </div>
 
       <div class="error-card" v-if="error">
-        <div class="error-icon">❌</div>
+        <div class="error-icon"><XCircle size="64" color="#e74c3c" /></div>
         <h2>Erreur d'authentification</h2>
         <p class="error-message">{{ error }}</p>
 
@@ -20,7 +20,9 @@
       </div>
 
       <div class="success-card" v-if="success">
-        <div class="success-icon">✅</div>
+        <div class="success-icon">
+          <CheckCircle size="64" color="#27ae60" />
+        </div>
         <h2>Authentification réussie !</h2>
         <p>Redirection en cours...</p>
       </div>
@@ -29,6 +31,7 @@
 </template>
 
 <script setup>
+import { XCircle, CheckCircle } from "lucide-vue-next";
 const route = useRoute();
 const router = useRouter();
 const { handleCallback } = useAuth();
@@ -92,11 +95,11 @@ const retry = () => {
 
 <style scoped>
 .callback-page {
-  min-height: 100vh;
+  min-height: calc(100vh - 73px);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--radialPrimarySecondary);
   padding: 2rem;
 }
 
@@ -152,7 +155,8 @@ p {
 
 /* Error */
 .error-icon {
-  font-size: 4rem;
+  display: flex;
+  justify-content: center;
   margin-bottom: 1rem;
 }
 
@@ -207,7 +211,7 @@ p {
 }
 
 .retry-button {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--gradientCallToAction);
   color: white;
   border: none;
   border-radius: 8px;
@@ -226,7 +230,8 @@ p {
 
 /* Success */
 .success-icon {
-  font-size: 4rem;
+  display: flex;
+  justify-content: center;
   margin-bottom: 1rem;
   animation: scaleIn 0.5s ease-out;
 }

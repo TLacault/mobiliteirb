@@ -95,7 +95,7 @@ const formattedDate = computed(() => {
 
     <div class="footer-section">
       <div class="modifier-section">
-        <div class="icon"><PencilRuler /></div>
+        <PencilRuler size="18" />
         <p>Modifier</p>
       </div>
       <div class="date-modification">
@@ -130,17 +130,17 @@ const formattedDate = computed(() => {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  padding: 1rem;
-  border-radius: 0.5rem;
+  padding: 1.5rem;
+  border-radius: 15px;
   background-color: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   border: 1px solid var(--primary);
   align-items: center;
 }
 .trash-button {
   position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
+  top: 1.3rem;
+  right: 1.3rem;
   padding: 0.4rem;
   border-radius: 100px;
   transition: all 0.3s ease-in-out;

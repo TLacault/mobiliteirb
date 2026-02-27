@@ -87,7 +87,7 @@ useHead({
 /* Mobilites */
 
 .mobilities-section {
-  margin-top: 4rem;
+  margin-top: 2rem;
 }
 
 .title-container {
