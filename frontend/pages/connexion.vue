@@ -28,46 +28,44 @@
         <div class="user-card">
           <div class="user-info">
             <div class="info-row">
-              <span class="label">Nom complet :</span>
+              <span class="label"><User size="16" /> Nom complet</span>
               <span class="value"
                 >{{ user?.given_name }} {{ user?.family_name }}</span
               >
             </div>
 
             <div class="info-row" v-if="user?.email">
-              <span class="label">Email :</span>
+              <span class="label"><Mail size="16" /> Email</span>
               <span class="value">{{ user?.email }}</span>
             </div>
 
             <div class="info-row" v-if="user?.preferred_username">
-              <span class="label">Nom d'utilisateur :</span>
+              <span class="label"><AtSign size="16" /> Nom d'utilisateur</span>
               <span class="value">{{ user?.preferred_username }}</span>
             </div>
 
             <div class="info-row" v-if="user?.ecole">
-              <span class="label">École :</span>
+              <span class="label"><Building2 size="16" /> École</span>
               <span class="value">{{ user?.ecole }}</span>
             </div>
 
             <div class="info-row" v-if="user?.diplome">
-              <span class="label">Diplôme :</span>
+              <span class="label"><GraduationCap size="16" /> Diplôme</span>
               <span class="value">{{ user?.diplome }}</span>
             </div>
           </div>
-
-          <button @click="handleLogout" class="logout-button">
-            <LogOut class="button-icon" size="20" />
-            <p>Se déconnecter</p>
-          </button>
         </div>
 
         <div class="actions">
           <NuxtLink to="/dashboard" class="action-button primary">
-            Accéder au Dashboard
+            <LayoutDashboard size="18" /> Accéder au Dashboard
           </NuxtLink>
           <NuxtLink to="/" class="action-button secondary">
-            Retour à l'accueil
+            <House size="18" /> Retour à l'accueil
           </NuxtLink>
+          <button @click="handleLogout" class="logout-button">
+            <LogOut size="18" /> Se déconnecter
+          </button>
         </div>
       </div>
     </div>
@@ -76,7 +74,18 @@
 
 <script setup>
 const { user, isAuthenticated, login, logout, checkAuth } = useAuth();
-import { UserKey, CircleUserRound, LogOut } from "lucide-vue-next";
+import {
+  UserKey,
+  CircleUserRound,
+  LogOut,
+  User,
+  Mail,
+  AtSign,
+  Building2,
+  GraduationCap,
+  LayoutDashboard,
+  House,
+} from "lucide-vue-next";
 
 useHead({
   title: "Connexion",
@@ -121,7 +130,6 @@ h1 {
   font-size: 2.5rem;
   font-weight: 700;
   color: white;
-  margin-bottom: 2rem;
   text-align: center;
 }
 
@@ -137,7 +145,6 @@ h1 {
 .description {
   color: var(--text);
   font-size: 1.1rem;
-  margin-bottom: 2rem;
   line-height: 1.6;
 }
 
@@ -148,12 +155,13 @@ h1 {
   background: var(--gradientCallToAction);
   color: white;
   border: none;
-  border-radius: 8px;
-  padding: 1rem 2rem;
-  font-size: 1.1rem;
+  border-radius: 100px;
+  padding: 0.85rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 15px oklch(43.15% 0.073 199.96 / 0.3);
 }
 
 .login-button:hover {
@@ -197,17 +205,16 @@ h1 {
 }
 
 .user-card {
-  background: rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.05);
   border-radius: 12px;
-  padding: 2rem;
-  margin-bottom: 2rem;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
 .user-info {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  margin-bottom: 2rem;
 }
 
 .info-row {
@@ -223,9 +230,13 @@ h1 {
 }
 
 .label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
   font-weight: 600;
   color: var(--text);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
+  opacity: 0.75;
 }
 
 .value {
@@ -235,40 +246,42 @@ h1 {
 }
 
 .logout-button {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
   gap: 0.5rem;
-
-  width: 100%;
-  background: var(--danger);
-  color: white;
+  background: none;
+  color: var(--danger);
+  border: 2px solid var(--danger);
   border-radius: 100px;
-  padding: 0.5rem 1.5rem;
-  font-size: 1rem;
+  padding: 0.6rem 1.5rem;
+  font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-
-  transition: all 0.3s ease-in-out;
+  transition: all 0.2s ease-in-out;
   &:hover {
-    box-shadow: 0 4px 15px rgba(209, 47, 47, 0.4);
+    background: var(--danger);
+    color: white;
   }
 }
 
 .actions {
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.5rem;
 }
 
 .action-button {
-  display: block;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   text-align: center;
-  padding: 1rem 2rem;
-  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  border-radius: 100px;
   font-weight: 600;
+  font-size: 0.95rem;
   text-decoration: none;
-  transition: all 0.3s ease-in-out;
+  transition: all 0.2s ease-in-out;
 }
 
 .action-button.primary {
@@ -277,7 +290,6 @@ h1 {
   box-shadow: 0 4px 15px oklch(43.15% 0.073 199.96 / 0.3);
 
   &:hover {
-    /* transform: translateY(-2px); */
     box-shadow: 0 6px 20px oklch(43.15% 0.073 199.96 / 0.5);
   }
 }
@@ -287,7 +299,6 @@ h1 {
   color: var(--primary);
   border: 2px solid var(--primary);
 
-  transition: all 0.3s ease-in-out;
   &:hover {
     background: var(--primary);
     color: white;
