@@ -15,6 +15,7 @@ router.get("/", authenticateJWT, mobiliteController.getAllMobilites);
 router.get("/:id", authenticateJWT, mobiliteController.getMobiliteById);
 
 // TODO DELETE /api/v1/mobilites/:id - Supprimer une mobilité par son ID
+router.delete("/:id", authenticateJWT, mobiliteController.deleteMobiliteById);
 
 // TODO POST /api/v1/mobilites - Créer une nouvelle mobilité
 router.post("/", authenticateJWT, mobiliteController.createMobilite);
