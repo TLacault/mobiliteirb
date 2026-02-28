@@ -1,5 +1,8 @@
 <script setup>
 import { MapPlus } from "lucide-vue-next";
+import PopupNewMobilityForm from "../popup/PopupNewMobilityForm.vue";
+
+const showForm = ref(false);
 </script>
 
 <template>
@@ -7,18 +10,18 @@ import { MapPlus } from "lucide-vue-next";
     <div class="card-title">
       <p>Démarrer un nouveau projet</p>
     </div>
-    <!-- Popup -->
-    <div class="new-mobility-button">
+    <button class="new-mobility-button" @click="showForm = true">
       <div class="icon"><MapPlus color="var(--background)" /></div>
       <p>Nouvelle mobilité</p>
-    </div>
+    </button>
+    <PopupNewMobilityForm v-model="showForm" />
   </div>
 </template>
 
 <style scoped>
 .card-container {
   flex-wrap: wrap;
-  height: 225px;
+  height: 240px;
   max-width: 500px;
   position: relative;
   display: flex;
@@ -48,8 +51,9 @@ import { MapPlus } from "lucide-vue-next";
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
+  border-radius: 32px;
   background-color: var(--primary);
+  background: var(--gradientCallToAction);
   color: var(--background);
   font-weight: 600;
   cursor: pointer;
