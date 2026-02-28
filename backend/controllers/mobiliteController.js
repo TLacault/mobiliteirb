@@ -84,7 +84,37 @@ async function getMobiliteById(req, res) {
   }
 }
 
-// TODO DELETE mobilites/:id - Supprimer une mobilité par son ID
+/**
+ * DELETE /api/v1/mobilites/:id
+ * Supprimer une mobilité par son ID (seulement si elle appartient à l'utilisateur)
+ */
+async function deleteMobiliteById(req, res) {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    const mobilite = await prisma.mobility.findUnique({
+      where: { id },
+    });
+
+    if (!mobilite) {
+      return res.status(404).json({ error: "Mobilité introuvable" });
+    }
+
+    if (mobilite.userId !== userId) {
+      return res.status(403).json({ error: "Accès non autorisé" });
+    }
+
+    await prisma.mobility.delete({
+      where: { id },
+    });
+
+    res.json({ message: "Mobilité supprimée avec succès", id: id });
+  } catch (error) {
+    console.error("Erreur lors de la suppression de la mobilité :", error);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+}
 
 /**
  * POST /api/v1/mobilites
@@ -118,4 +148,5 @@ module.exports = {
   getAllMobilites,
   getMobiliteById,
   createMobilite,
+  deleteMobiliteById,
 };
