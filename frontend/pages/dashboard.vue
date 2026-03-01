@@ -15,7 +15,7 @@
             :key="mobility.uuid"
             :uuid="mobility.uuid"
           />
-          <MobilityCardNew />
+          <MobilityCardNew @new-mobility-created="newMobilityCreated" />
         </div>
       </div>
     </div>
@@ -66,6 +66,11 @@ const { user } = useAuth();
 useHead({
   title: "Dashboard",
 });
+
+// Ajouter une nouvelle mobilité à la liste après sa création
+const newMobilityCreated = (uuid) => {
+  mobilityIDs.value = [{ uuid }, ...mobilityIDs.value];
+};
 </script>
 
 <style scoped>

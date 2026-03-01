@@ -51,7 +51,6 @@ export async function deleteMobiliteById(id) {
   }
 }
 
-// TODO createMobilite(data) - Créer une nouvelle mobilité
 /**
  * Créer une nouvelle mobilité
  * @param {Object} data - Données de la mobilité à créer

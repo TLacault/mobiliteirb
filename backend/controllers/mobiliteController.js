@@ -126,15 +126,19 @@ async function createMobilite(req, res) {
     const { name, year, isPublic, isOriginal, startLocation, endLocation } =
       req.body;
 
+    if (!name || !year || !startLocation || !endLocation) {
+      return res.status(400).json({ error: "Données incomplètes" });
+    }
+
     const newMobilite = await prisma.mobility.create({
       data: {
         name,
-        year,
+        year: new Date(year),
         isPublic,
         isOriginal,
         startLocation,
         endLocation,
-        userId,
+        userId: req.user.id,
       },
     });
     res.status(201).json({ uuid: newMobilite.id });
