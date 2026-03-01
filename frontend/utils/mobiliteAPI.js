@@ -35,6 +35,21 @@ export async function getMobiliteById(id) {
 }
 
 // TODO deleteMobiliteById(id) - Supprimer une mobilité par son ID
+/**
+ * Supprimer une mobilité par son ID
+ * @param {string} id - UUID de la mobilité à supprimer
+ * @returns {Promise<Object>} Message de succès ou erreur
+ */
+export async function deleteMobiliteById(id) {
+  try {
+    return await authenticatedFetch(`${API_BASE}/mobilites/${id}`, {
+      method: "DELETE",
+    });
+  } catch (error) {
+    console.error(`Erreur lors de la suppression de la mobilité ${id}:`, error);
+    throw error;
+  }
+}
 
 /**
  * Créer une nouvelle mobilité
