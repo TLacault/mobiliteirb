@@ -1,8 +1,30 @@
 <script setup>
 import { MapPlus } from "lucide-vue-next";
 import PopupNewMobilityForm from "../popup/PopupNewMobilityForm.vue";
+import { createMobilite } from "../../utils/mobiliteAPI.js";
 
 const showForm = ref(false);
+const emit = defineEmits(["new-mobility-created"]);
+
+async function createNewMobilite(form) {
+  const mobilite = {
+    name: form.mobilite,
+    year: form.annee,
+    startLocation: form.depart,
+    endLocation: form.arrivee,
+    isPublic: form.visibilite,
+    isOriginal: true, // Par défault
+  };
+
+  try {
+    const uuid = await createMobilite(mobilite);
+    console.log("Mobilité créée :", uuid);
+    emit("new-mobility-created", uuid);
+  } catch (err) {
+    console.error("Erreur à la création de la mobilité", err);
+  }
+}
+
 </script>
 
 <template>
@@ -14,7 +36,7 @@ const showForm = ref(false);
       <div class="icon"><MapPlus color="var(--background)" /></div>
       <p>Nouvelle mobilité</p>
     </button>
-    <PopupNewMobilityForm v-model="showForm" />
+    <PopupNewMobilityForm v-model="showForm" @submit="createNewMobilite" />
   </div>
 </template>
 
