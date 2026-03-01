@@ -144,9 +144,63 @@ async function createMobilite(req, res) {
   }
 }
 
+/**
+ * PATCH /api/v1/mobilites/:id
+ * Met à jour une mobilité spécifique par son ID
+ */
+async function patchMobiliteById(req, res) {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+    const updates = req.body;
+
+    const mobilite = await prisma.mobility.findUnique({
+      where: { id },
+    });
+
+    if (!mobilite) {
+      return res.status(404).json({ error: "Mobilité introuvable" });
+    }
+
+    if (mobilite.userId !== userId) {
+      return res.status(403).json({ error: "Accès non autorisé" });
+    }
+
+    const allowedFields = [
+      "name",
+      "year",
+      "isPublic",
+      "startLocation",
+      "endLocation",
+    ];
+
+    const filteredUpdates = {};
+    for (const key of allowedFields) {
+      if (updates[key] !== undefined) {
+        filteredUpdates[key] = updates[key];
+      }
+    }
+
+    if (Object.keys(filteredUpdates).length === 0) {
+      return res.status(400).json({ error: "Aucun champ valide à mettre à jour" });
+    }
+
+    await prisma.mobility.update({
+      where: { id },
+      data: filteredUpdates,
+    });
+
+    res.json([filteredUpdates]);
+  } catch (error) {
+    console.error("Erreur lors de la mise à jour de la mobilité :", error);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+}
+
 module.exports = {
   getAllMobilites,
   getMobiliteById,
   createMobilite,
   deleteMobiliteById,
+  patchMobiliteById,
 };

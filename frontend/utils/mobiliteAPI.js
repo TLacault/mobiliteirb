@@ -70,3 +70,20 @@ export async function createMobilite(data) {
     throw error;
   }
 }
+
+/**
+ * Met à jour une mobilité spécifique par son UUID
+ */
+export async function patchMobilite(id, data) {
+  try {
+    const response = await authenticatedFetch(`${API_BASE}/mobilites/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    return response;
+  } catch (error) {
+    console.error(`Erreur lors de la mise à jour de la mobilité ${id}:`, error);
+    throw error;
+  }
+}

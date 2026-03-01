@@ -100,4 +100,23 @@ Production: https://mobilit.eirb.fr/api/v1
 }
 ```
 
-<!-- TODO PUT /mobilites/:id - modifier la visibilité d'une mobilité (publique/privée) -->
+#### PATCH /mobilites/:id
+
+**Fonction** : Met à jour une mobilité spécifique par son ID
+
+**Exemple** : PATCH /mobilites/123e4567-e89b-12d3-a456-426614174000
+
+**Paramètres URL** :
+
+- id (obligatoire) : UUID de la mobilité à modifier
+
+
+**Réponse** :
+
+```json
+[
+  {
+    "name": "Mobilité Erasmus Allemagne 2024"
+  }
+]
+```
