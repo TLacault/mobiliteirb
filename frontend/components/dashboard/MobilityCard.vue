@@ -15,6 +15,13 @@ import { deleteMobiliteById } from "../../utils/mobiliteAPI.js";
 const showForm = ref(false);
 const emit = defineEmits(["mobility-deleted"]);
 
+const { selectMobilite } = useMobiliteSession();
+
+const handleEdit = () => {
+  selectMobilite(props.uuid);
+  navigateTo(`/mobilite/${props.uuid}/synthese`);
+};
+
 const props = defineProps({
   uuid: {
     type: String,
@@ -111,7 +118,7 @@ async function deleteMobilite(uuid) {
     </div>
 
     <div class="footer-section">
-      <div class="modifier-section">
+      <div class="modifier-section" @click="handleEdit">
         <PencilRuler size="18" />
         <p>Modifier</p>
       </div>

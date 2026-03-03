@@ -34,6 +34,29 @@ import MobilityCardNew from "../components/dashboard/MobilityCardNew.vue";
 // API
 import { getMobiliteUuids } from "../utils/mobiliteAPI.js";
 
+// Protéger cette page avec le middleware d'authentification
+definePageMeta({
+  middleware: "auth",
+});
+
+const { user } = useAuth();
+const { selectedUuid, getLastTab } = useMobiliteSession();
+
+// Si une mobilité est encore sélectionnée (mode édition actif), redirige vers
+// le dernier onglet visité avant que le user ait quitté le mode édition.
+onMounted(() => {
+  if (selectedUuid.value) {
+    const tab = getLastTab(selectedUuid.value);
+    navigateTo(`/mobilite/${selectedUuid.value}/${tab}`);
+    return;
+  }
+  loadData();
+});
+
+useHead({
+  title: "Dashboard",
+});
+
 // State
 const mobilityIDs = ref([]);
 const loading = ref(false);
@@ -52,21 +75,6 @@ const loadData = async () => {
     loading.value = false;
   }
 };
-
-onMounted(() => {
-  loadData();
-});
-
-// Protéger cette page avec le middleware d'authentification
-definePageMeta({
-  middleware: "auth",
-});
-
-const { user } = useAuth();
-
-useHead({
-  title: "Dashboard",
-});
 
 // Ajouter une nouvelle mobilité à la liste après sa création
 const newMobilityCreated = (uuid) => {
