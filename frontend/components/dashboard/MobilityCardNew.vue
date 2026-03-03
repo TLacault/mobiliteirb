@@ -1,6 +1,6 @@
 <script setup>
 import { MapPlus } from "lucide-vue-next";
-import PopupNewMobilityForm from "../popup/PopupNewMobilityForm.vue";
+import CreateMobilityForm from "../dashboard/CreateMobilityForm.vue";
 import { createMobilite } from "../../utils/mobiliteAPI.js";
 
 const showForm = ref(false);
@@ -24,7 +24,6 @@ async function createNewMobilite(form) {
     console.error("Erreur à la création de la mobilité", err);
   }
 }
-
 </script>
 
 <template>
@@ -36,7 +35,7 @@ async function createNewMobilite(form) {
       <div class="icon"><MapPlus color="var(--background)" /></div>
       <p>Nouvelle mobilité</p>
     </button>
-    <PopupNewMobilityForm v-model="showForm" @submit="createNewMobilite" />
+    <CreateMobilityForm v-model="showForm" @submit="createNewMobilite" />
   </div>
 </template>
 
