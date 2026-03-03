@@ -4,20 +4,29 @@
       <PlaneTakeoff size="20" />
     </template>
 
-    <div class="popup-body">
+    <form
+      ref="formRef"
+      class="popup-body popup-form"
+      :class="{ submitted }"
+      novalidate
+      @submit.prevent
+    >
       <div class="popup-field">
-        <label class="popup-label" for="pm-destination">Destination</label>
+        <label class="popup-label" data-required for="pm-destination"
+          >Destination</label
+        >
         <input
           id="pm-destination"
           class="popup-input"
           type="text"
           placeholder="ex. Berlin, Allemagne"
           v-model="form.destination"
+          required
         />
       </div>
 
       <div class="popup-field">
-        <label class="popup-label" for="pm-university"
+        <label class="popup-label" data-optional for="pm-university"
           >Université d'accueil</label
         >
         <input
@@ -30,7 +39,9 @@
       </div>
 
       <div class="popup-field">
-        <label class="popup-label" for="pm-duration">Durée (mois)</label>
+        <label class="popup-label" data-optional for="pm-duration"
+          >Durée (mois)</label
+        >
         <input
           id="pm-duration"
           class="popup-input"
@@ -41,6 +52,10 @@
           v-model="form.duration"
         />
       </div>
+
+      <span v-if="!formValid" class="popup-form-error">
+        Veuillez remplir tous les champs obligatoires (marqués d'un *).
+      </span>
 
       <div class="popup-divider" />
 
@@ -54,7 +69,7 @@
           <span class="popup-toggle-track"></span>
         </label>
       </div>
-    </div>
+    </form>
 
     <div class="popup-actions">
       <button class="popup-btn popup-btn-secondary" @click="open = false">
@@ -68,6 +83,7 @@
 </template>
 
 <script setup>
+import { ref, reactive, watch } from "vue";
 import { PlaneTakeoff, Save } from "lucide-vue-next";
 
 const open = defineModel({ type: Boolean, default: false });
@@ -79,10 +95,36 @@ const form = reactive({
   erasmus: false,
 });
 
+const formRef = ref(null);
+const submitted = ref(false);
+const formValid = ref(true);
+
+watch(open, (newVal) => {
+  if (!newVal) {
+    submitted.value = false;
+    formValid.value = true;
+  }
+});
+
+// Re-evaluate validity live after first submit attempt
+watch(
+  form,
+  () => {
+    if (submitted.value) {
+      formValid.value = formRef.value?.checkValidity() ?? true;
+    }
+  },
+  { deep: true },
+);
+
 const emit = defineEmits(["submit"]);
 
 const submit = () => {
-  emit("submit", { ...form });
-  open.value = false;
+  submitted.value = true;
+  formValid.value = formRef.value.checkValidity();
+  if (formValid.value) {
+    emit("submit", { ...form });
+    open.value = false;
+  }
 };
 </script>

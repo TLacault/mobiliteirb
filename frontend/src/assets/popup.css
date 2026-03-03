@@ -301,3 +301,41 @@
   opacity: 0;
   transform: translateY(20px) scale(0.97);
 }
+
+/* ---------- Field validation ---------- */
+
+/* Required field — asterisk after the label */
+.popup-label[data-required]::after {
+  content: " *";
+  color: var(--danger);
+  font-weight: 700;
+}
+
+/* Optional field — subtle indicator after the label */
+.popup-label[data-optional]::after {
+  content: " — optionnel";
+  font-size: 0.78em;
+  font-weight: 400;
+  opacity: 0.45;
+}
+
+/* Highlight invalid inputs after the user has attempted to submit the form.
+   The .submitted class is added programmatically to .popup-form on submit. */
+.popup-form.submitted input:invalid,
+.popup-form.submitted select:invalid,
+.popup-form.submitted textarea:invalid {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px oklch(63.066% 0.194 29.425 / 0.15);
+}
+
+/* Generic error banner shown when the form has unfilled required fields */
+.popup-form-error {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--danger);
+  font-weight: 500;
+  padding: 0.4rem 0.7rem;
+  background: oklch(63.066% 0.194 29.425 / 0.08);
+  border-radius: 6px;
+  border-left: 3px solid var(--danger);
+}
