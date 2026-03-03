@@ -10,12 +10,10 @@
           <div v-if="modelValue" class="popup" role="dialog" aria-modal="true">
             <!-- Header -->
             <div class="popup-header">
-              <div class="popup-header-center">
-                <div class="popup-icon" :class="iconVariant">
-                  <slot name="icon" />
-                </div>
-                <h2 class="popup-title">{{ title }}</h2>
+              <div class="popup-icon" :class="iconVariant">
+                <slot name="icon" />
               </div>
+              <h2 class="popup-title">{{ title }}</h2>
               <button
                 class="popup-close"
                 @click="$emit('update:modelValue', false)"
