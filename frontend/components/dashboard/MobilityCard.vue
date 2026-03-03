@@ -9,6 +9,11 @@ import {
   CalendarCheck2,
 } from "lucide-vue-next";
 import { getMobiliteById } from "../../utils/mobiliteAPI.js";
+import PopupDelete from "../popup/PopupDelete.vue";
+import { deleteMobiliteById } from "../../utils/mobiliteAPI.js";
+
+const showForm = ref(false);
+const emit = defineEmits(["mobility-deleted"]);
 
 const props = defineProps({
   uuid: {
@@ -39,6 +44,15 @@ const formattedDate = computed(() => {
     year: "2-digit",
   });
 });
+
+async function deleteMobilite(uuid) {
+  try {
+    await deleteMobiliteById(uuid);
+    emit("mobility-deleted", uuid);
+  } catch (err) {
+    console.error("Erreur à la suppression de la mobilité", err);
+  }
+}
 </script>
 
 <template>
@@ -55,7 +69,10 @@ const formattedDate = computed(() => {
   <!-- Données -->
   <div v-else-if="mobility" class="card-container">
     <!-- Boutton-->
-    <div class="trash-button"><Trash2 color="red" /></div>
+    <div class="trash-button" @click="showForm = true">
+      <Trash2 color="red" />
+    </div>
+    <PopupDelete v-model="showForm" @confirm="deleteMobilite(props.uuid)" />
     <div class="card-title">
       <div class="icon"><Briefcase color="var(--primary)" /></div>
       <p>{{ mobility.name }}</p>

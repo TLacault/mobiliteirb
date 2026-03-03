@@ -14,6 +14,7 @@
             v-for="mobility in mobilityIDs"
             :key="mobility.uuid"
             :uuid="mobility.uuid"
+            @mobility-deleted="mobilityDeleted"
           />
           <MobilityCardNew @new-mobility-created="newMobilityCreated" />
         </div>
@@ -70,6 +71,13 @@ useHead({
 // Ajouter une nouvelle mobilité à la liste après sa création
 const newMobilityCreated = (uuid) => {
   mobilityIDs.value = [{ uuid }, ...mobilityIDs.value];
+};
+
+// Supprimer une mobilité de la liste après sa suppression
+const mobilityDeleted = (uuid) => {
+  mobilityIDs.value = mobilityIDs.value.filter(
+    (mobility) => mobility.uuid !== uuid,
+  );
 };
 </script>
 
