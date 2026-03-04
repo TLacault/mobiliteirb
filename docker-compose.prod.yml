@@ -20,7 +20,7 @@ services:
     image: registry.eirb.fr/mobiliteirb/backend:main
     environment:
       DATABASE_URL: postgres://user:${DB_PASSWORD}@db:5432/mobility_db
-      PORT: 3000
+      PORT: 3001
       FRONTEND_URL: https://mobilit.eirb.fr
       EIRB_CONNECT_CLIENT_ID: ${EIRB_CLIENT_ID}
       EIRB_CONNECT_CLIENT_SECRET: ${EIRB_CLIENT_SECRET}
