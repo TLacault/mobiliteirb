@@ -95,7 +95,7 @@ export const useAuth = () => {
       // Fournir un message plus explicite pour les erreurs réseau
       if (error instanceof TypeError && error.message === "Failed to fetch") {
         throw new Error(
-          "Impossible de contacter le serveur backend. Assurez-vous que le backend est démarré sur le port 3000.",
+          "Impossible de contacter le serveur backend. Assurez-vous que le backend est démarré sur le port 3001.",
         );
       }
 
