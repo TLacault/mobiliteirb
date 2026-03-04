@@ -79,15 +79,15 @@ async function deleteMobilite(uuid) {
     </div>
     <div class="stats-section">
       <div class="stat-section">
-        <div class="icon"><Leaf /></div>
+        <div class="icon"><Leaf size="18" /></div>
         <p>{{ mobility.stats.totalCarbon }} kg CO₂</p>
       </div>
       <div class="stat-section">
-        <div class="icon"><Timer /></div>
+        <div class="icon"><Timer size="18" /></div>
         <p>{{ mobility.stats.totalDistance }} km</p>
       </div>
       <div class="stat-section">
-        <div class="icon"><MapPin /></div>
+        <div class="icon"><MapPin size="18" /></div>
         <p>
           {{ mobility.stats.stepCount }} étape{{
             mobility.stats.stepCount !== 1 ? "s" : ""
@@ -111,13 +111,13 @@ async function deleteMobilite(uuid) {
     </div>
 
     <div class="footer-section">
-      <div class="modifier-section">
+      <div class="modifier-btn">
         <PencilRuler size="18" />
         <p>Modifier</p>
       </div>
       <div class="date-modification">
         <div class="text">
-          <div class="icon"><CalendarCheck2 size="12" /></div>
+          <div class="icon"><CalendarCheck2 size="10" /></div>
           <p>Dernière modification</p>
         </div>
         <div class="date-value">
@@ -146,7 +146,7 @@ async function deleteMobilite(uuid) {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.5rem;
   padding: 1.5rem;
   border-radius: 15px;
   background-color: white;
@@ -180,22 +180,23 @@ async function deleteMobilite(uuid) {
 .stats-section {
   display: flex;
   gap: 2rem;
-  margin-top: 1rem;
   flex: 1;
+  margin-bottom: -0.5rem;
 }
 
 .stat-section {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-
+  gap: 0.3rem;
+  font-size: 15px;
   color: #9ca3af;
 }
 
 .traject-section {
+  /* outline: 1px solid red; */
   display: flex;
   align-items: center;
-  gap: 1rem;
+  /* gap: 0.5rem; */
 }
 .etape {
   padding: 0.25rem 1rem;
@@ -215,10 +216,10 @@ async function deleteMobilite(uuid) {
 
 /* Le petit cercle au début */
 .start-dot {
-  width: 8px;
-  height: 8px;
+  width: 15px;
+  aspect-ratio: 1;
   background-color: white;
-  border: 2px solid currentColor;
+  border: 4px solid currentColor;
   border-radius: 50%;
   flex-shrink: 0;
   position: relative;
@@ -228,7 +229,7 @@ async function deleteMobilite(uuid) {
 /* La ligne horizontale */
 .line {
   height: 4px;
-  width: 60px;
+  width: 70px;
   background-color: currentColor;
   margin: 0 -4px;
   border-radius: 1.5rem;
@@ -246,7 +247,6 @@ async function deleteMobilite(uuid) {
 
   transform: rotate(45deg);
   margin-left: -8px;
-  flex-shrink: 0;
 }
 
 .footer-section {
@@ -255,17 +255,18 @@ async function deleteMobilite(uuid) {
   gap: 1rem;
 }
 
-.modifier-section {
+.modifier-btn {
   display: flex;
   padding: 0.2rem 1rem;
   min-width: 120px;
   text-align: center;
-  border-radius: 100px;
+  border-radius: 5px;
   color: white;
-  background-color: var(--primary);
+  background: var(--primary);
   align-items: center;
   gap: 0.5rem;
   cursor: pointer;
+
   transition: all 0.3s ease-in-out;
   &:hover {
     background-color: var(--tertiary);
@@ -273,9 +274,9 @@ async function deleteMobilite(uuid) {
 }
 
 .date-modification {
+  line-height: 1;
   color: #6b7280;
   font-size: 0.6rem;
-  margin-top: 0.5rem;
 }
 
 .text {
