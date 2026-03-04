@@ -7,57 +7,35 @@ const prisma = new PrismaClient();
 
 /**
  * GET /api/v1/mobilites
- * Récupère toutes les mobilités de l'utilisateur
+ * Récupérer la liste des uuid des mobilités de l'utilisateur connecté
  */
-const getAllMobilites = async (req, res) => {
+async function getAllMobilites(req, res) {
   try {
-    // TODO: Filtrer par user_id une fois l'authentification en place
+    const userId = req.user.id; // Récupérer l'ID de l'utilisateur connecté
     const mobilites = await prisma.mobility.findMany({
-      orderBy: {
-        lastEdit: "desc",
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            casLogin: true,
-            email: true,
-          },
-        },
-        trips: true,
-      },
+      where: { userId },
+      select: { id: true },
     });
-
-    res.json(mobilites);
+    // Renvoyer les IDs sous forme d'objets avec clé uuid pour compatibilité
+    res.json(mobilites.map((m) => ({ uuid: m.id })));
   } catch (error) {
-    console.error("Erreur lors de la récupération des mobilités:", error);
-    res.status(500).json({
-      error: "Erreur lors de la récupération des mobilités",
-      message: error.message,
-    });
+    console.error("Erreur lors de la récupération des mobilités :", error);
+    res.status(500).json({ error: "Erreur serveur" });
   }
-};
+}
 
 /**
  * GET /api/v1/mobilites/:id
- * Récupère une mobilité spécifique par son ID
+ * Récupérer une mobilité complète par son ID (avec stats agrégées)
  */
-const getMobiliteById = async (req, res) => {
+async function getMobiliteById(req, res) {
   try {
     const { id } = req.params;
+    const userId = req.user.id;
 
     const mobilite = await prisma.mobility.findUnique({
-      where: {
-        id: id,
-      },
+      where: { id },
       include: {
-        user: {
-          select: {
-            id: true,
-            casLogin: true,
-            email: true,
-          },
-        },
         trips: {
           include: {
             steps: true,
@@ -67,123 +45,166 @@ const getMobiliteById = async (req, res) => {
     });
 
     if (!mobilite) {
-      return res.status(404).json({
-        error: "Mobilité non trouvée",
-        id: id,
-      });
+      return res.status(404).json({ error: "Mobilité introuvable" });
     }
 
-    res.json(mobilite);
-  } catch (error) {
-    console.error("Erreur lors de la récupération de la mobilité:", error);
-    res.status(500).json({
-      error: "Erreur lors de la récupération de la mobilité",
-      message: error.message,
+    // Vérifier que la mobilité appartient à l'utilisateur connecté
+    if (mobilite.userId !== userId) {
+      return res.status(403).json({ error: "Accès non autorisé" });
+    }
+
+    // Calculer les stats agrégées depuis les steps
+    const allSteps = mobilite.trips.flatMap((t) => t.steps);
+    const totalCarbon = allSteps.reduce((sum, s) => sum + (s.carbon ?? 0), 0);
+    const totalDistance = allSteps.reduce(
+      (sum, s) => sum + (s.distance ?? 0),
+      0,
+    );
+    const stepCount = allSteps.length;
+
+    res.json({
+      id: mobilite.id,
+      name: mobilite.name,
+      year: mobilite.year,
+      isPublic: mobilite.isPublic,
+      isOriginal: mobilite.isOriginal,
+      lastEdit: mobilite.lastEdit,
+      startLocation: mobilite.startLocation,
+      endLocation: mobilite.endLocation,
+      stats: {
+        totalCarbon: Math.round(totalCarbon * 100) / 100, // kg CO2, arrondi 2 déc.
+        totalDistance: Math.round(totalDistance * 100) / 100, // km
+        stepCount,
+      },
+      trips: mobilite.trips,
     });
+  } catch (error) {
+    console.error("Erreur lors de la récupération de la mobilité :", error);
+    res.status(500).json({ error: "Erreur serveur" });
   }
-};
+}
+
+/**
+ * DELETE /api/v1/mobilites/:id
+ * Supprimer une mobilité par son ID (seulement si elle appartient à l'utilisateur)
+ */
+async function deleteMobiliteById(req, res) {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    const mobilite = await prisma.mobility.findUnique({
+      where: { id },
+    });
+
+    if (!mobilite) {
+      return res.status(404).json({ error: "Mobilité introuvable" });
+    }
+
+    if (mobilite.userId !== userId) {
+      return res.status(403).json({ error: "Accès non autorisé" });
+    }
+
+    await prisma.mobility.delete({
+      where: { id },
+    });
+
+    res.json({ message: "Mobilité supprimée avec succès", id: id });
+  } catch (error) {
+    console.error("Erreur lors de la suppression de la mobilité :", error);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+}
 
 /**
  * POST /api/v1/mobilites
- * Crée une nouvelle mobilité
+ * Créer une nouvelle mobilité
  */
-const createMobilite = async (req, res) => {
+async function createMobilite(req, res) {
   try {
-    const { name, start, end, is_public, year, userId } = req.body;
+    const userId = req.user.id;
+    const { name, year, isPublic, isOriginal, startLocation, endLocation } =
+      req.body;
 
-    // Validation des données
-    if (!name || !start || !end) {
-      return res.status(400).json({
-        error: "Données manquantes",
-        required: ["name", "start", "end"],
-      });
+    if (!name || !year || !startLocation || !endLocation) {
+      return res.status(400).json({ error: "Données incomplètes" });
     }
-
-    // TODO: Récupérer userId depuis le JWT une fois l'authentification en place
-    if (!userId) {
-      return res.status(400).json({
-        error: "userId requis (temporaire - sera extrait du JWT plus tard)",
-      });
-    }
-
-    // Définir l'année (par défaut l'année actuelle)
-    const mobilityYear = year ? new Date(year) : new Date();
 
     const newMobilite = await prisma.mobility.create({
       data: {
         name,
-        startLocation: start,
-        endLocation: end,
-        isPublic: is_public !== undefined ? is_public : true,
-        year: mobilityYear,
-        userId: userId,
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            casLogin: true,
-            email: true,
-          },
-        },
+        year: new Date(year),
+        isPublic,
+        isOriginal,
+        startLocation,
+        endLocation,
+        userId: req.user.id,
       },
     });
-
-    res.status(201).json(newMobilite);
+    res.status(201).json({ uuid: newMobilite.id });
   } catch (error) {
-    console.error("Erreur lors de la création de la mobilité:", error);
-    res.status(500).json({
-      error: "Erreur lors de la création de la mobilité",
-      message: error.message,
-    });
+    console.error("Erreur lors de la création de la mobilité :", error);
+    res.status(500).json({ error: "Erreur serveur" });
   }
-};
+}
 
 /**
- * DELETE /api/v1/mobilites/:id
- * Supprime une mobilité par son ID
+ * PATCH /api/v1/mobilites/:id
+ * Met à jour une mobilité spécifique par son ID
  */
-const deleteMobilite = async (req, res) => {
+async function patchMobiliteById(req, res) {
   try {
     const { id } = req.params;
+    const userId = req.user.id;
+    const updates = req.body;
 
-    // Vérifier si la mobilité existe
     const mobilite = await prisma.mobility.findUnique({
-      where: {
-        id: id,
-      },
+      where: { id },
     });
 
     if (!mobilite) {
-      return res.status(404).json({
-        error: "Mobilité non trouvée",
-        id: id,
-      });
+      return res.status(404).json({ error: "Mobilité introuvable" });
     }
 
-    // Supprimer la mobilité (les trajets et étapes seront supprimés en cascade grâce à onDelete: Cascade)
-    await prisma.mobility.delete({
-      where: {
-        id: id,
-      },
+    if (mobilite.userId !== userId) {
+      return res.status(403).json({ error: "Accès non autorisé" });
+    }
+
+    const allowedFields = [
+      "name",
+      "year",
+      "isPublic",
+      "startLocation",
+      "endLocation",
+    ];
+
+    const filteredUpdates = {};
+    for (const key of allowedFields) {
+      if (updates[key] !== undefined) {
+        filteredUpdates[key] = updates[key];
+      }
+    }
+
+    if (Object.keys(filteredUpdates).length === 0) {
+      return res.status(400).json({ error: "Aucun champ valide à mettre à jour" });
+    }
+
+    await prisma.mobility.update({
+      where: { id },
+      data: filteredUpdates,
     });
 
-    res.json({
-      message: "Mobilité supprimée avec succès",
-      id: id,
-    });
+    res.json([filteredUpdates]);
   } catch (error) {
-    console.error("Erreur lors de la suppression de la mobilité:", error);
-    res.status(500).json({
-      error: "Erreur lors de la suppression de la mobilité",
-      message: error.message,
-    });
+    console.error("Erreur lors de la mise à jour de la mobilité :", error);
+    res.status(500).json({ error: "Erreur serveur" });
   }
-};
+}
 
 module.exports = {
   getAllMobilites,
   getMobiliteById,
   createMobilite,
-  deleteMobilite,
+  deleteMobiliteById,
+  patchMobiliteById,
 };

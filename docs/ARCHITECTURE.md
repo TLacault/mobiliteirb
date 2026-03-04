@@ -38,8 +38,8 @@ L'environnement local est conçu pour être "clé en main". Il simule la prod to
 | `make clean` | **Attention** : Supprime tout (y compris la BDD) pour repartir de zéro. |
 
 ### Accès aux Services
-* **Application (Frontend)** : [http://localhost:5173](http://localhost:5173)
-* **API (Backend)** : [http://localhost:3000](http://localhost:3000)
+* **Application (Frontend)** : [http://localhost:8080](http://localhost:8080)
+* **API (Backend)** : [http://localhost:3001](http://localhost:3001)
 * **Prisma Studio (Admin DB)** : [http://localhost:5555](http://localhost:5555) (Interface graphique pour voir les données)
 * **Base de Données (Direct)** : Port `5433` (User: `user`, Pass: `password`, DB: `mobility_db`).
 

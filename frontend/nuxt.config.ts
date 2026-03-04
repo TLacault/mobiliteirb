@@ -6,18 +6,38 @@ export default defineNuxtConfig({
 
   // Configuration du serveur pour le développement
   devServer: {
-    port: 5137,
+    port: 8080,
     host: "0.0.0.0",
   },
 
   app: {
     baseURL: "/",
+    head: {
+      title: "Mobiliteirb",
+      link: [
+        {
+          rel: "icon",
+          type: "image/png",
+          href: "/favicon/favicon-96x96.png",
+          sizes: "96x96",
+        },
+        { rel: "icon", type: "image/svg+xml", href: "/favicon/favicon.svg" },
+        { rel: "shortcut icon", href: "/favicon/favicon.ico" },
+        {
+          rel: "apple-touch-icon",
+          sizes: "180x180",
+          href: "/favicon/apple-touch-icon.png",
+        },
+        { rel: "manifest", href: "/favicon/site.webmanifest" },
+      ],
+      meta: [{ name: "apple-mobile-web-app-title", content: "Mobiliteirb" }],
+    },
   },
 
   vite: {
     server: {
       hmr: {
-        clientPort: 5137,
+        clientPort: 8080,
       },
     },
   },
@@ -27,9 +47,9 @@ export default defineNuxtConfig({
     // Variables côté serveur uniquement
     public: {
       // Variables exposées côté client
-      // En dev: backend sur port 3000, en prod: proxy nginx
+      // En dev: backend sur port 3001, en prod: proxy nginx
       apiBase:
-        process.env.NUXT_PUBLIC_API_BASE || "http://localhost:3000/api/v1",
+        process.env.NUXT_PUBLIC_API_BASE || "http://localhost:3001/api/v1",
     },
   },
 

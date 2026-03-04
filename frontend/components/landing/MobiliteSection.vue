@@ -3,15 +3,15 @@
     <div class="content-wrapper">
       <!-- Zone texte -->
       <div class="text-zone">
-        <div class="title-row">
-          <Leaf :size="34" color="var(--primary)" />
-          <h1>Votre Mobilité Réinventée</h1>
+        <div class="title-container">
+          <Leaf :size="40" color="var(--primary)" />
+          <h1 class="section-title gradient-cta">Votre Mobilité Réinventée</h1>
         </div>
 
-        <p>
-          Dédiée aux étudiants de <strong>l’Enseirb</strong>, cette plateforme
+        <p class="body">
+          Dédiée aux étudiants de l'<strong>Enseirb</strong>, cette plateforme
           vous permet de <strong>planifier vos déplacements</strong> lors de
-          votre mobilité à l’étranger. Une interface intuitive pensée pour votre
+          votre mobilité à l'étranger. Une interface intuitive pensée pour votre
           vie étudiante. Rejoignez une <strong>communauté engagée</strong> pour
           une mobilité plus <strong>fluide</strong>,
           <strong>économique</strong> et <strong>responsable</strong>.
@@ -51,22 +51,11 @@ useHead({
   flex-wrap: wrap;
 }
 
-.title-row {
+.title-container {
   display: flex;
   align-items: center;
   gap: 12px;
   margin-bottom: 20px;
-}
-
-.title-row h1 {
-  font-family: var(--font-ubuntu);
-  font-size: 2.4rem;
-  font-weight: 700;
-  background: linear-gradient(to right, var(--primary), oklch(55% 0.12 160));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  margin: 0;
 }
 
 .text-zone {
@@ -84,6 +73,7 @@ useHead({
   color: var(--text);
   opacity: 0.85;
   margin-bottom: 12px;
+  line-height: 1.8;
 }
 
 .image-zone img {

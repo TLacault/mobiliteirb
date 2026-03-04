@@ -40,7 +40,7 @@ backend/
 
 #### Créer une mobilité
 ```bash
-curl -X POST http://localhost:3000/api/v1/mobilites \
+curl -X POST http://localhost:3001/api/v1/mobilites \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Vacances d'\''été",
@@ -54,17 +54,17 @@ curl -X POST http://localhost:3000/api/v1/mobilites \
 
 #### Récupérer toutes les mobilités
 ```bash
-curl http://localhost:3000/api/v1/mobilites
+curl http://localhost:3001/api/v1/mobilites
 ```
 
 #### Récupérer une mobilité par ID
 ```bash
-curl http://localhost:3000/api/v1/mobilites/abc-123-def
+curl http://localhost:3001/api/v1/mobilites/abc-123-def
 ```
 
 #### Supprimer une mobilité
 ```bash
-curl -X DELETE http://localhost:3000/api/v1/mobilites/abc-123-def
+curl -X DELETE http://localhost:3001/api/v1/mobilites/abc-123-def
 ```
 
 ## 📝 Modèle de Données (Prisma)

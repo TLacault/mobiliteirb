@@ -37,8 +37,8 @@ frontend/
 # Depuis la racine du projet
 docker compose up -d
 
-# Le frontend sera accessible sur http://localhost:5137
-# Le backend API sera sur http://localhost:3000
+# Le frontend sera accessible sur http://localhost:8080
+# Le backend API sera sur http://localhost:3001
 ```
 
 ### Développement sans Docker
@@ -49,7 +49,7 @@ npm install
 npm run dev
 ```
 
-Le serveur de développement démarre sur **http://localhost:3000** (ou un port disponible).
+Le serveur de développement démarre sur **http://localhost:8080** (ou un port disponible).
 
 ## 🔧 Configuration
 
@@ -58,7 +58,7 @@ Le serveur de développement démarre sur **http://localhost:3000** (ou un port 
 Les appels API utilisent une approche **client-only**. L'URL de l'API est définie directement dans les composants :
 
 ```javascript
-const API_BASE = 'http://localhost:3000/api/v1';
+const API_BASE = 'http://localhost:3001/api/v1';
 ```
 
 **Voir [API_GUIDE.md](./API_GUIDE.md) pour la documentation complète des appels API.** 📚
@@ -144,7 +144,7 @@ Les composants dans `/components` sont **auto-importés** :
 </template>
 
 <script setup>
-const API_BASE = 'http://localhost:3000/api/v1';
+const API_BASE = 'http://localhost:3001/api/v1';
 const items = ref([]);
 const loading = ref(false);
 const error = ref(null);
@@ -178,7 +178,7 @@ Voir [components/MobilitiesList.vue](./components/MobilitiesList.vue) comme exem
 
 Les DevTools Nuxt sont activés par défaut en dev. Accédez-y via :
 - L'icône Nuxt en bas de votre navigateur
-- Ou visitez `http://localhost:5137/__nuxt_devtools__/`
+- Ou visitez `http://localhost:8080/__nuxt_devtools__/`
 
 Fonctionnalités :
 - 📊 Visualisation des pages et routes
@@ -193,7 +193,7 @@ Le HMR est automatique - vos modifications sont reflétées instantanément.
 
 Le Dockerfile utilise un **multi-stage build** :
 - **Base** : Node 22 Alpine avec pnpm
-- **Dev** : Lance `pnpm dev` avec hot-reload sur port 3000 (mappé vers 5137)
+- **Dev** : Lance `pnpm dev` avec hot-reload sur port 3000 (mappé vers 8080)
 - **Production** : Build SPA et serveur avec Nginx
 
 ### Environnement de développement
@@ -202,7 +202,7 @@ Le Dockerfile utilise un **multi-stage build** :
 docker compose up -d
 ```
 
-Le frontend tourne sur http://localhost:5137 avec hot-reload activé.
+Le frontend tourne sur http://localhost:8080 avec hot-reload activé.
 
 ## 📚 Ressources
 
@@ -231,7 +231,7 @@ touch components/MyButton.vue  # Auto-importé partout
 
 ```vue
 <script setup>
-const API_BASE = 'http://localhost:3000/api/v1';
+const API_BASE = 'http://localhost:3001/api/v1';
 
 onMounted(async () => {
   const data = await $fetch(`${API_BASE}/mobilites`);
@@ -242,12 +242,12 @@ onMounted(async () => {
 ## 🚨 Troubleshooting
 
 ### Erreur CORS
-- Vérifiez que le backend autorise http://localhost:5137
+- Vérifiez que le backend autorise http://localhost:8080
 - Redémarrez le backend : `docker compose restart backend`
 
 ### Erreur 404 sur appels API
-- Vérifiez que l'URL de l'API est `http://localhost:3000/api/v1`
-- Testez avec curl : `curl http://localhost:3000/api/v1/mobilites`
+- Vérifiez que l'URL de l'API est `http://localhost:3001/api/v1`
+- Testez avec curl : `curl http://localhost:3001/api/v1/mobilites`
 
 ### Le composant ne se charge pas
 - Ouvrez la console navigateur (F12)
