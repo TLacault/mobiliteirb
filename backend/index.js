@@ -5,6 +5,7 @@ const { PrismaClient } = require("@prisma/client"); // Import Prisma
 // Import des routes
 const authRoutes = require("./routes/authRoutes");
 const mobiliteRoutes = require("./routes/mobiliteRoutes");
+const tripRoutes = require("./routes/tripRoutes");
 
 // Initialisation de l'application Express
 const app = express();
@@ -34,6 +35,7 @@ app.get("/", async (req, res) => {
 // Routes API v1
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/mobilites", mobiliteRoutes);
+app.use("/api/v1/trips", tripRoutes);
 
 // Démarrage du serveur
 app.listen(port, "0.0.0.0", () => {

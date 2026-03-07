@@ -110,13 +110,58 @@ Production: https://mobilit.eirb.fr/api/v1
 
 - id (obligatoire) : UUID de la mobilité à modifier
 
-
 **Réponse** :
 
 ```json
 [
   {
     "name": "Mobilité Erasmus Allemagne 2024"
+  }
+]
+```
+
+### Endpoints - Trajets
+
+#### GET /trips/:mobiliteId
+
+**Fonction** : Récupère les trajets d'une mobilité spécifique par son ID
+
+**Exemple** : GET /trips/123e4567-e89b-12d3-a456-426614174000
+
+**Paramètres URL** :
+
+- mobiliteId (obligatoire) : UUID de la mobilité dont on veut récupérer les trajets
+
+**Réponse** :
+
+```json
+[
+  {
+    "uuid": ["123e4567-e89b-12d3-a456-426614174000", "123e4567-e89b-12d3-a456-426614174001", "123e4567-e89b-12d3-a456-426614174002", ...]
+  }
+]
+```
+
+#### GET /trips/:tripId
+
+**Fonction** : Récupère les stats d'un trajet spécifique par son ID
+
+**Exemple** : GET /trips/123e4567-e89b-12d3-a456-426614174000
+
+**Paramètres URL** :
+
+- tripId (obligatoire) : UUID du trajet dont on veut récupérer les stats
+
+**Réponse** :
+
+```json
+[
+  {
+    "name": "Aller Paris-Berlin",
+    "isSelected": true,
+    "emissions": 150.5,
+    "distance": 120,
+    "steps": 10000
   }
 ]
 ```
