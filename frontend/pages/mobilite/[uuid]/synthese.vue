@@ -1,5 +1,6 @@
 <script setup>
 import MobiliteHeader from "../../../components/mobilite/MobiliteHeader.vue";
+import SyntheseStatsSection from "../../../components/mobilite/SyntheseStatsSection.vue";
 import { getMobiliteById } from "../../../utils/mobiliteAPI.js";
 
 definePageMeta({ middleware: "auth" });
@@ -56,6 +57,9 @@ const handleUpdated = (patch) => {
         :mobility="mobility"
         @updated="handleUpdated"
       />
+      <section class="scene-content">
+        <SyntheseStatsSection :stats="mobility?.stats" />
+      </section>
     </template>
   </div>
 </template>
