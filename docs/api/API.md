@@ -122,7 +122,7 @@ Production: https://mobilit.eirb.fr/api/v1
 
 ### Endpoints - Trajets
 
-#### GET /trips/:mobiliteId
+#### GET /trips/mobility/:mobiliteId
 
 **Fonction** : Récupère les trajets d'une mobilité spécifique par son ID
 
@@ -162,6 +162,45 @@ Production: https://mobilit.eirb.fr/api/v1
     "emissions": 150.5,
     "distance": 120,
     "steps": 10000
+  }
+]
+```
+
+#### PATCH /trips/:tripId
+
+**Fonction** : Met à jour un trajet spécifique par son ID
+
+**Exemple** : PATCH /trips/123e4567-e89b-12d3-a456-426614174000
+
+**Paramètres URL** :
+
+- tripId (obligatoire) : UUID du trajet à modifier
+
+**Réponse** :
+
+```json
+{
+  "isSelected": false
+}
+```
+
+#### DELETE /trips/:tripId
+
+**Fonction** : Supprime un trajet spécifique par son ID
+
+**Exemple** : DELETE /trips/123e4567-e89b-12d3-a456-426614174000
+
+**Paramètres URL** :
+
+- tripId (obligatoire) : UUID du trajet à supprimer
+
+**Réponse** :
+
+```json
+[
+  {
+    "message": "Trajet supprimé avec succès",
+    "id": 123e4567-e89b-12d3-a456-426614174000
   }
 ]
 ```

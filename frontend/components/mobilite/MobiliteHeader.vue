@@ -80,53 +80,6 @@ const handleDelete = async () => {
     console.error("Erreur suppression mobilité:", e);
   }
 };
-
-// --- Trajets (onglet) ---
-// 1. Importe les fonctions de l'API
-import { getTripUuids, getTripById } from "../../utils/tripAPI.js";
-
-const trajetsList = ref([]);
-const trajetsStats = ref({}); // Stocker les stats par UUID
-const loading = ref(false);
-
-// 2. Fonction pour appeler le backend
-const fetchTrajets = async () => {
-  if (!props.uuid) return;
-
-  loading.value = true;
-  try {
-    const data = await getTripUuids(props.uuid);
-    trajetsList.value = Array.isArray(data) ? data : data.trips || [];
-
-    // Récupérer les stats pour chaque trajet
-    for (const trajet of trajetsList.value) {
-      const tripId = trajet.id || trajet.uuid;
-      if (!tripId) continue;
-      try {
-        const stats = await getTripById(tripId);
-        trajetsStats.value[tripId] = stats;
-      } catch (e) {
-        console.error(`Erreur stats trajet ${tripId}:`, e);
-      }
-    }
-  } catch (e) {
-    console.error("Erreur lors de la récupération des trajets :", e);
-    trajetsList.value = [];
-  } finally {
-    loading.value = false;
-  }
-};
-
-// 3. Déclencher le chargement quand on arrive sur l'onglet trajets
-watch(
-  activeTab,
-  (newTab) => {
-    if (newTab === "trajets" && trajetsList.value.length === 0) {
-      fetchTrajets();
-    }
-  },
-  { immediate: true },
-);
 </script>
 
 <template>
@@ -188,39 +141,6 @@ watch(
 
     <PopupDelete v-model="showDeletePopup" @confirm="handleDelete" />
   </header>
-
-  <main class="content-body">
-    <div v-if="activeTab === 'synthese'" class="tab-content"></div>
-
-    <div v-else-if="activeTab === 'trajets'" class="tab-content">
-      <div class="trajets-header"></div>
-
-      <div v-if="loading" class="loader">Chargement des trajets...</div>
-
-      <div v-else-if="trajetsList.length > 0" class="trajets-list">
-        <div
-          v-for="trajet in trajetsList"
-          :key="trajet.id || trajet.uuid"
-          class="trajet-item"
-        >
-          <strong>{{ trajet.uuid }}</strong>
-          <div
-            v-if="trajetsStats[trajet.id || trajet.uuid]"
-            class="trajet-stats"
-          >
-            <span
-              >Distance:
-              {{ trajetsStats[trajet.id || trajet.uuid].distance }} km</span
-            >
-          </div>
-        </div>
-      </div>
-
-      <div v-else class="empty-state">
-        <p>Aucun trajet trouvé pour le moment.</p>
-      </div>
-    </div>
-  </main>
 </template>
 
 <style scoped>
