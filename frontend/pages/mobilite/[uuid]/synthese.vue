@@ -1,7 +1,14 @@
 <script setup>
 import MobiliteHeader from "../../../components/mobilite/MobiliteHeader.vue";
 import SyntheseStatsSection from "../../../components/mobilite/SyntheseStatsSection.vue";
+import TripCard from "../../../components/mobilite/TripCard.vue";
+import { Route } from "lucide-vue-next";
 import { getMobiliteById } from "../../../utils/mobiliteAPI.js";
+import {
+  getTripUuids,
+  getTripById,
+  updateTripStats,
+} from "../../../utils/tripAPI.js";
 
 definePageMeta({ middleware: "auth" });
 
@@ -45,6 +52,59 @@ const handleUpdated = (patch) => {
     Object.assign(mobility.value, patch);
   }
 };
+
+// Trips
+const tripList = ref([]);
+const tripLoading = ref(false);
+const tripError = ref(null);
+
+const fetchTrips = async () => {
+  if (!uuid.value) return;
+  tripLoading.value = true;
+  tripError.value = null;
+  try {
+    const data = await getTripUuids(uuid.value);
+    const uuids = Array.isArray(data) ? data : data.trips || [];
+    tripList.value = await Promise.all(
+      uuids.map(async (item) => {
+        const id = item.uuid;
+        try {
+          const stats = await getTripById(id);
+          return { id, ...stats };
+        } catch (e) {
+          console.error(`Erreur stats trip ${id}:`, e);
+          return {
+            id,
+            name: null,
+            emissions: 0,
+            distance: 0,
+            steps: 0,
+            from: null,
+            to: null,
+          };
+        }
+      }),
+    );
+  } catch (e) {
+    console.error("Erreur lors de la récupération des trips :", e);
+    tripError.value = "Impossible de charger les trips.";
+  } finally {
+    tripLoading.value = false;
+  }
+};
+
+const toggleTripSelected = async (trip, val) => {
+  const previous = trip.isSelected;
+  trip.isSelected = val;
+  try {
+    await updateTripStats(trip.id, { isSelected: val });
+  } catch (e) {
+    console.error("Erreur lors de la mise à jour de isSelected :", e);
+    trip.isSelected = previous;
+  }
+};
+
+onMounted(fetchTrips);
 </script>
 
 <template>
@@ -57,8 +117,32 @@ const handleUpdated = (patch) => {
         :mobility="mobility"
         @updated="handleUpdated"
       />
+
       <section class="scene-content">
         <SyntheseStatsSection :stats="mobility?.stats" />
+
+        <div class="trip-container">
+          <div class="trip-header">
+            <Route color="var(--primary)" size="var(--font-section-title)" />
+            <h3 class="section-title">Trajets</h3>
+          </div>
+          <p v-if="tripLoading" class="trips-state">Chargement...</p>
+          <p v-else-if="tripError" class="trips-state trips-error">
+            {{ tripError }}
+          </p>
+          <p v-else-if="tripList.length === 0" class="trips-state">
+            Aucun trip enregistré.
+          </p>
+          <div v-else class="trips-list">
+            <TripCard
+              v-for="(trip, index) in tripList"
+              :key="trip.id"
+              :trajet="trip"
+              :index="index"
+              @toggle="(val) => toggleTripSelected(trip, val)"
+            />
+          </div>
+        </div>
       </section>
     </template>
   </div>
@@ -77,7 +161,7 @@ const handleUpdated = (patch) => {
   max-width: 1400px;
   width: 100%;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 2rem 2rem;
 }
 
 .loading-state,
@@ -91,6 +175,35 @@ const handleUpdated = (patch) => {
 }
 
 .error-state {
+  color: #ef4444;
+}
+
+.trip-container {
+  padding: 3rem 0rem;
+}
+
+.trip-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 3rem 0rem;
+}
+
+.trips-list {
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 500px));
+  justify-content: center;
+}
+
+.trips-state {
+  color: #9ca3af;
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 2rem 0;
+}
+
+.trips-error {
   color: #ef4444;
 }
 </style>
