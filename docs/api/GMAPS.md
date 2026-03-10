@@ -1,6 +1,8 @@
 # Google Maps API
 
-### API KEY : `AIzaSyCXrs29Y_AdcezhtyHJ1l4QnZMunAnLSxw`
+### API KEY
+
+clé sockée dans `frontend/.env` : `GMAPS_API_KEY`
 
 ### QUERY
 
@@ -21,7 +23,7 @@ curl -X POST -d '{
     },
   "travelMode": "<travel_mode>"
   }' \
-  -H 'Content-Type: application/json' -H 'X-Goog-Api-Key: AIzaSyCXrs29Y_AdcezhtyHJ1l4QnZMunAnLSxw' \
+  -H 'Content-Type: application/json' -H 'X-Goog-Api-Key: {GMAPS_API_KEY}' \
   -H 'X-Goog-FieldMask: routes.duration,routes.distanceMeters' \
   'https://routes.googleapis.com/directions/v2:computeRoutes'
 ```
