@@ -181,7 +181,11 @@ async function patchMobiliteById(req, res) {
     const filteredUpdates = {};
     for (const key of allowedFields) {
       if (updates[key] !== undefined) {
-        filteredUpdates[key] = updates[key];
+        if (key === "year") {
+          filteredUpdates[key] = new Date(updates[key]);
+        } else {
+          filteredUpdates[key] = updates[key];
+        }
       }
     }
 
@@ -194,7 +198,7 @@ async function patchMobiliteById(req, res) {
       data: filteredUpdates,
     });
 
-    res.json([filteredUpdates]);
+    res.json(filteredUpdates);
   } catch (error) {
     console.error("Erreur lors de la mise à jour de la mobilité :", error);
     res.status(500).json({ error: "Erreur serveur" });

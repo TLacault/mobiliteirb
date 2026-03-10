@@ -21,6 +21,6 @@ router.delete("/:id", authenticateJWT, mobiliteController.deleteMobiliteById);
 router.post("/", authenticateJWT, mobiliteController.createMobilite);
 
 // PATCH /api/v1/mobilites/:id - Modifier une mobilité par son ID
-router.patch("/:id", authenticateJWT, mobiliteController.getMobiliteById);
+router.patch("/:id", authenticateJWT, mobiliteController.patchMobiliteById);
 
 module.exports = router;
