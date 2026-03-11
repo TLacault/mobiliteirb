@@ -1,6 +1,6 @@
 <script setup>
 import MobiliteHeader from "../../../components/mobilite/MobiliteHeader.vue";
-import { getMobiliteById } from "../../../utils/mobiliteAPI.js";
+import { getMobility } from "../../../utils/mobiliteAPI.js";
 
 definePageMeta({ middleware: "auth" });
 
@@ -24,7 +24,7 @@ const loadMobility = async () => {
   loading.value = true;
   error.value = null;
   try {
-    mobility.value = await getMobiliteById(uuid.value);
+    mobility.value = await getMobility(uuid.value);
   } catch (e) {
     error.value = e.message || "Erreur lors du chargement";
   } finally {

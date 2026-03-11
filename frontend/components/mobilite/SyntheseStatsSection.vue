@@ -1,5 +1,12 @@
 <script setup>
-import { Timer, Ruler, Leaf, MapPin, Eye, FileDown } from "lucide-vue-next";
+import {
+  Timer,
+  Ruler,
+  Leaf,
+  MapPin,
+  SquareKanban,
+  FileDown,
+} from "lucide-vue-next";
 
 defineProps({
   stats: {
@@ -18,7 +25,7 @@ const formatValue = (value) =>
   <section class="synthese">
     <div class="overview-header">
       <div class="overview-title">
-        <Eye class="icon" size="var(--font-section-title)" />
+        <SquareKanban class="icon" size="var(--font-section-title)" />
         <h2 class="section-title">Overview</h2>
       </div>
 

@@ -8,9 +8,8 @@ import {
   PencilRuler,
   CalendarCheck2,
 } from "lucide-vue-next";
-import { getMobiliteById } from "../../utils/mobiliteAPI.js";
+import { getMobility, deleteMobility } from "../../utils/mobiliteAPI.js";
 import PopupDelete from "../popup/PopupDelete.vue";
-import { deleteMobiliteById } from "../../utils/mobiliteAPI.js";
 
 const showForm = ref(false);
 const emit = defineEmits(["mobility-deleted"]);
@@ -35,7 +34,7 @@ const error = ref(null);
 
 onMounted(async () => {
   try {
-    mobility.value = await getMobiliteById(props.uuid);
+    mobility.value = await getMobility(props.uuid);
   } catch (e) {
     error.value = e.message || "Erreur lors du chargement";
   } finally {
@@ -54,7 +53,7 @@ const formattedDate = computed(() => {
 
 async function deleteMobilite(uuid) {
   try {
-    await deleteMobiliteById(uuid);
+    await deleteMobility(uuid);
     emit("mobility-deleted", uuid);
   } catch (err) {
     console.error("Erreur à la suppression de la mobilité", err);

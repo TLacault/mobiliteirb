@@ -32,7 +32,7 @@ import MobilityCard from "../components/dashboard/MobilityCard.vue";
 import MobilityCardNew from "../components/dashboard/MobilityCardNew.vue";
 
 // API
-import { getMobiliteUuids } from "../utils/mobiliteAPI.js";
+import { getMobilities } from "../utils/mobiliteAPI.js";
 
 // Protéger cette page avec le middleware d'authentification
 definePageMeta({
@@ -68,7 +68,7 @@ const loadData = async () => {
   error.value = null;
 
   try {
-    mobilityIDs.value = await getMobiliteUuids();
+    mobilityIDs.value = await getMobilities();
   } catch (e) {
     error.value = e.message || "Erreur lors du chargement";
   } finally {

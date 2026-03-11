@@ -3,12 +3,8 @@ import MobiliteHeader from "../../../components/mobilite/MobiliteHeader.vue";
 import SyntheseStatsSection from "../../../components/mobilite/SyntheseStatsSection.vue";
 import TripCard from "../../../components/mobilite/TripCard.vue";
 import { Route } from "lucide-vue-next";
-import { getMobiliteById } from "../../../utils/mobiliteAPI.js";
-import {
-  getTripUuids,
-  getTripById,
-  updateTripStats,
-} from "../../../utils/tripAPI.js";
+import { getMobility } from "../../../utils/mobiliteAPI.js";
+import { getTrips, getTrip, updateTrip } from "../../../utils/tripAPI.js";
 
 definePageMeta({ middleware: "auth" });
 
@@ -32,7 +28,7 @@ const loadMobility = async () => {
   loading.value = true;
   error.value = null;
   try {
-    mobility.value = await getMobiliteById(uuid.value);
+    mobility.value = await getMobility(uuid.value);
   } catch (e) {
     error.value = e.message || "Erreur lors du chargement";
   } finally {
@@ -63,13 +59,13 @@ const fetchTrips = async () => {
   tripLoading.value = true;
   tripError.value = null;
   try {
-    const data = await getTripUuids(uuid.value);
+    const data = await getTrips(uuid.value);
     const uuids = Array.isArray(data) ? data : data.trips || [];
     tripList.value = await Promise.all(
       uuids.map(async (item) => {
         const id = item.uuid;
         try {
-          const stats = await getTripById(id);
+          const stats = await getTrip(id);
           return { id, ...stats };
         } catch (e) {
           console.error(`Erreur stats trip ${id}:`, e);
@@ -97,7 +93,7 @@ const toggleTripSelected = async (trip, val) => {
   const previous = trip.isSelected;
   trip.isSelected = val;
   try {
-    await updateTripStats(trip.id, { isSelected: val });
+    await updateTrip(trip.id, { isSelected: val });
   } catch (e) {
     console.error("Erreur lors de la mise à jour de isSelected :", e);
     trip.isSelected = previous;

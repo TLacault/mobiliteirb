@@ -34,7 +34,7 @@ app.get("/", async (req, res) => {
 
 // Routes API v1
 app.use("/api/v1/auth", authRoutes);
-app.use("/api/v1/mobilites", mobiliteRoutes);
+app.use("/api/v1/mobilities", mobiliteRoutes);
 app.use("/api/v1/trips", tripRoutes);
 
 // Démarrage du serveur

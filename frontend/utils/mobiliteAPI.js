@@ -1,88 +1,87 @@
 /**
- * API utilities for mobilité endpoints
+ * API utilities for mobility endpoints
  */
 
 import { API_BASE, authenticatedFetch } from "./authFetch.js";
 
 /**
- * Récupère la liste des UUIDs des mobilités de l'utilisateur connecté
+ * Get the list of mobilities for the authenticated user
  * @returns {Promise<Array>}
  */
-export async function getMobiliteUuids() {
+export async function getMobilities() {
   try {
-    return await authenticatedFetch(`${API_BASE}/mobilites`);
+    return await authenticatedFetch(`${API_BASE}/mobilities`);
   } catch (error) {
-    console.error("Erreur lors de la récupération des mobilités:", error);
+    console.error("Error fetching mobilities:", error);
     throw error;
   }
 }
 
 /**
- * Récupère le détail d'une mobilité par son UUID
- * @param {string} id - UUID de la mobilité
- * @returns {Promise<Object>} Détail de la mobilité avec stats
+ * Get a mobility by its UUID
+ * @param {string} id - Mobility UUID
+ * @returns {Promise<Object>} Mobility detail with stats
  */
-export async function getMobiliteById(id) {
+export async function getMobility(id) {
   try {
-    return await authenticatedFetch(`${API_BASE}/mobilites/${id}`);
+    return await authenticatedFetch(`${API_BASE}/mobilities/${id}`);
   } catch (error) {
-    console.error(
-      `Erreur lors de la récupération de la mobilité ${id}:`,
-      error,
-    );
+    console.error(`Error fetching mobility ${id}:`, error);
     throw error;
   }
 }
 
-// TODO deleteMobiliteById(id) - Supprimer une mobilité par son ID
 /**
- * Supprimer une mobilité par son ID
- * @param {string} id - UUID de la mobilité à supprimer
- * @returns {Promise<Object>} Message de succès ou erreur
+ * Delete a mobility by its UUID
+ * @param {string} id - Mobility UUID to delete
+ * @returns {Promise<Object>} Success message or error
  */
-export async function deleteMobiliteById(id) {
+export async function deleteMobility(id) {
   try {
-    return await authenticatedFetch(`${API_BASE}/mobilites/${id}`, {
+    return await authenticatedFetch(`${API_BASE}/mobilities/${id}`, {
       method: "DELETE",
     });
   } catch (error) {
-    console.error(`Erreur lors de la suppression de la mobilité ${id}:`, error);
+    console.error(`Error deleting mobility ${id}:`, error);
     throw error;
   }
 }
 
 /**
- * Créer une nouvelle mobilité
- * @param {Object} data - Données de la mobilité à créer
- * @returns {Promise<string>} - UUID de la nouvelle mobilité créée
+ * Create a new mobility
+ * @param {Object} data - Mobility data
+ * @returns {Promise<string>} UUID of the newly created mobility
  */
-export async function createMobilite(data) {
+export async function createMobility(data) {
   try {
-    const response = await authenticatedFetch(`${API_BASE}/mobilites`, {
+    const response = await authenticatedFetch(`${API_BASE}/mobilities`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
     return response.uuid;
   } catch (error) {
-    console.error("Erreur lors de la création de la mobilité:", error);
+    console.error("Error creating mobility:", error);
     throw error;
   }
 }
 
 /**
- * Met à jour une mobilité spécifique par son UUID
+ * Update a mobility by its UUID
+ * @param {string} id - Mobility UUID
+ * @param {Object} data - Fields to update
+ * @returns {Promise<Object>}
  */
-export async function patchMobilite(id, data) {
+export async function updateMobility(id, data) {
   try {
-    const response = await authenticatedFetch(`${API_BASE}/mobilites/${id}`, {
+    const response = await authenticatedFetch(`${API_BASE}/mobilities/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
     return response;
   } catch (error) {
-    console.error(`Erreur lors de la mise à jour de la mobilité ${id}:`, error);
+    console.error(`Error updating mobility ${id}:`, error);
     throw error;
   }
 }

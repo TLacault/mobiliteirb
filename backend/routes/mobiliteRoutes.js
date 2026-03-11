@@ -1,26 +1,30 @@
 const express = require("express");
 const router = express.Router();
 const mobiliteController = require("../controllers/mobiliteController");
+const tripController = require("../controllers/tripController");
 const { authenticateJWT } = require("../middlewares/index");
 
 /**
- * Routes pour la ressource Mobilité
- * Base: /api/v1/mobilites
+ * Routes for the Mobility resource
+ * Base: /api/v1/mobilities
  */
 
-// GET /api/v1/mobilites - Récupère toutes les mobilités
+// GET /api/v1/mobilities - List all mobilities for the authenticated user
 router.get("/", authenticateJWT, mobiliteController.getAllMobilites);
 
-// GET /api/v1/mobilites/:id - Récupérer une mobilité par son ID
-router.get("/:id", authenticateJWT, mobiliteController.getMobiliteById);
-
-// TODO DELETE /api/v1/mobilites/:id - Supprimer une mobilité par son ID
-router.delete("/:id", authenticateJWT, mobiliteController.deleteMobiliteById);
-
-// TODO POST /api/v1/mobilites - Créer une nouvelle mobilité
+// POST /api/v1/mobilities - Create a new mobility
 router.post("/", authenticateJWT, mobiliteController.createMobilite);
 
-// PATCH /api/v1/mobilites/:id - Modifier une mobilité par son ID
+// GET /api/v1/mobilities/:id - Get a mobility by ID
+router.get("/:id", authenticateJWT, mobiliteController.getMobiliteById);
+
+// PATCH /api/v1/mobilities/:id - Update a mobility by ID
 router.patch("/:id", authenticateJWT, mobiliteController.patchMobiliteById);
+
+// DELETE /api/v1/mobilities/:id - Delete a mobility by ID
+router.delete("/:id", authenticateJWT, mobiliteController.deleteMobiliteById);
+
+// GET /api/v1/mobilities/:id/trips - List all trips for a mobility
+router.get("/:id/trips", authenticateJWT, tripController.getTrips);
 
 module.exports = router;

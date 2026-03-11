@@ -1,7 +1,7 @@
 <script setup>
 import { ArrowLeft, Trash2, FileText, Route } from "lucide-vue-next";
 import PopupDelete from "../popup/PopupDelete.vue";
-import { deleteMobiliteById, patchMobilite } from "../../utils/mobiliteAPI.js";
+import { deleteMobility, updateMobility } from "../../utils/mobiliteAPI.js";
 
 const props = defineProps({
   uuid: {
@@ -49,7 +49,7 @@ const saveField = async (field) => {
   if (field === "year" && localYear.value)
     payload.year = `${localYear.value}-01-01`;
   try {
-    await patchMobilite(props.uuid, payload);
+    await updateMobility(props.uuid, payload);
     emit("updated", payload);
   } catch (e) {
     console.error("Erreur mise à jour mobilité:", e);
@@ -72,7 +72,7 @@ const showDeletePopup = ref(false);
 
 const handleDelete = async () => {
   try {
-    await deleteMobiliteById(props.uuid);
+    await deleteMobility(props.uuid);
     clearMobilite();
     emit("deleted");
     navigateTo("/dashboard");
@@ -207,9 +207,7 @@ const handleDelete = async () => {
   font-family: inherit;
   background: #f8f9fa;
   color: var(--text);
-  transition:
-    border-color 0.2s,
-    background 0.2s;
+  transition: border-color 0.2s, background 0.2s;
   outline: none;
 
   &:focus {

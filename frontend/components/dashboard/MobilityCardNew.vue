@@ -1,7 +1,7 @@
 <script setup>
 import { MapPlus } from "lucide-vue-next";
 import CreateMobilityForm from "../dashboard/CreateMobilityForm.vue";
-import { createMobilite } from "../../utils/mobiliteAPI.js";
+import { createMobility } from "../../utils/mobiliteAPI.js";
 
 const showForm = ref(false);
 const emit = defineEmits(["new-mobility-created"]);
@@ -17,7 +17,7 @@ async function createNewMobilite(form) {
   };
 
   try {
-    const uuid = await createMobilite(mobilite);
+    const uuid = await createMobility(mobilite);
     console.log("Mobilité créée :", uuid);
     emit("new-mobility-created", uuid);
   } catch (err) {

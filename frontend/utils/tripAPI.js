@@ -1,57 +1,56 @@
 /**
- * API utilities for mobilité endpoints
+ * API utilities for trip endpoints
  */
 
 import { API_BASE, authenticatedFetch } from "./authFetch.js";
 
 /**
- * Récupère la liste des UUIDs des trajets d'une mobilité
+ * Get the list of trips for a mobility
+ * @param {string} mobilityId - Mobility UUID
  * @returns {Promise<Array>}
  */
-export async function getTripUuids(mobilityId) {
-    if (!mobilityId) {
-        throw new Error("mobilityId est requis pour récupérer les trajets");
-    }
+export async function getTrips(mobilityId) {
+  if (!mobilityId) {
+    throw new Error("mobilityId is required to fetch trips");
+  }
 
-    try {
-      return await authenticatedFetch(`${API_BASE}/trips/mobility/${mobilityId}`);
-    } catch (error) {
-        console.error("Erreur lors de la récupération des trajets:", error);
-        throw error;
-    }
+  try {
+    return await authenticatedFetch(
+      `${API_BASE}/mobilities/${mobilityId}/trips`,
+    );
+  } catch (error) {
+    console.error("Error fetching trips:", error);
+    throw error;
+  }
 }
 
 /**
- * Récupère le détail d'un trajet par son UUID
- * @param {string} id - UUID du trajet
- * @returns {Promise<Object>} Détail du trajet avec stats
+ * Get a trip by its UUID
+ * @param {string} id - Trip UUID
+ * @returns {Promise<Object>} Trip detail with stats
  */
-export async function getTripById(id) {
+export async function getTrip(id) {
   if (!id) {
-    throw new Error("id est requis pour récupérer un trajet");
+    throw new Error("id is required to fetch a trip");
   }
 
   try {
     return await authenticatedFetch(`${API_BASE}/trips/${id}`);
   } catch (error) {
-    console.error(
-      `Erreur lors de la récupération du trajet ${id}:`,
-      error,
-    );
+    console.error(`Error fetching trip ${id}:`, error);
     throw error;
   }
 }
 
-
 /**
- * Met à jour les stats d'un trajet spécifique
- * @param {string} id - UUID du trajet
- * @param {Object} stats - Objet contenant les stats à mettre à jour
- * @returns {Promise<Object>} Trajet mis à jour
+ * Update a trip by its UUID
+ * @param {string} id - Trip UUID
+ * @param {Object} data - Fields to update
+ * @returns {Promise<Object>} Updated trip
  */
-export async function updateTripStats(id, stats) {
+export async function updateTrip(id, data) {
   if (!id) {
-    throw new Error("id est requis pour mettre à jour un trajet");
+    throw new Error("id is required to update a trip");
   }
 
   try {
@@ -60,36 +59,30 @@ export async function updateTripStats(id, stats) {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(stats),
+      body: JSON.stringify(data),
     });
   } catch (error) {
-    console.error(
-      `Erreur lors de la mise à jour du trajet ${id}:`,
-      error,
-    );
+    console.error(`Error updating trip ${id}:`, error);
     throw error;
   }
 }
 
-/** * Supprime un trajet par son UUID
- * @param {string} id - UUID du trajet
- * @returns {Promise<Object>} Réponse de suppression
+/**
+ * Delete a trip by its UUID
+ * @param {string} id - Trip UUID
+ * @returns {Promise<Object>} Delete response
  */
 export async function deleteTrip(id) {
   if (!id) {
-    throw new Error("id est requis pour supprimer un trajet");
+    throw new Error("id is required to delete a trip");
   }
 
   try {
     return await authenticatedFetch(`${API_BASE}/trips/${id}`, {
       method: "DELETE",
     });
-
   } catch (error) {
-    console.error(
-      `Erreur lors de la suppression du trajet ${id}:`,
-      error,
-    );
+    console.error(`Error deleting trip ${id}:`, error);
     throw error;
   }
 }
