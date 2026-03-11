@@ -9,7 +9,7 @@ const prisma = new PrismaClient();
  * GET /api/v1/mobilites
  * Récupérer la liste des uuid des mobilités de l'utilisateur connecté
  */
-async function getAllMobilites(req, res) {
+async function getMobilities(req, res) {
   try {
     const userId = req.user.id; // Récupérer l'ID de l'utilisateur connecté
     const mobilites = await prisma.mobility.findMany({
@@ -28,7 +28,7 @@ async function getAllMobilites(req, res) {
  * GET /api/v1/mobilites/:id
  * Récupérer une mobilité complète par son ID (avec stats agrégées)
  */
-async function getMobiliteById(req, res) {
+async function getMobility(req, res) {
   try {
     const { id } = req.params;
     const userId = req.user.id;
@@ -88,7 +88,7 @@ async function getMobiliteById(req, res) {
  * DELETE /api/v1/mobilites/:id
  * Supprimer une mobilité par son ID (seulement si elle appartient à l'utilisateur)
  */
-async function deleteMobiliteById(req, res) {
+async function deleteMobility(req, res) {
   try {
     const { id } = req.params;
     const userId = req.user.id;
@@ -120,7 +120,7 @@ async function deleteMobiliteById(req, res) {
  * POST /api/v1/mobilites
  * Créer une nouvelle mobilité
  */
-async function createMobilite(req, res) {
+async function createMobility(req, res) {
   try {
     const userId = req.user.id;
     const { name, year, isPublic, isOriginal, startLocation, endLocation } =
@@ -152,7 +152,7 @@ async function createMobilite(req, res) {
  * PATCH /api/v1/mobilites/:id
  * Met à jour une mobilité spécifique par son ID
  */
-async function patchMobiliteById(req, res) {
+async function updateMobility(req, res) {
   try {
     const { id } = req.params;
     const userId = req.user.id;
@@ -181,12 +181,18 @@ async function patchMobiliteById(req, res) {
     const filteredUpdates = {};
     for (const key of allowedFields) {
       if (updates[key] !== undefined) {
-        filteredUpdates[key] = updates[key];
+        if (key === "year") {
+          filteredUpdates[key] = new Date(updates[key]);
+        } else {
+          filteredUpdates[key] = updates[key];
+        }
       }
     }
 
     if (Object.keys(filteredUpdates).length === 0) {
-      return res.status(400).json({ error: "Aucun champ valide à mettre à jour" });
+      return res
+        .status(400)
+        .json({ error: "Aucun champ valide à mettre à jour" });
     }
 
     await prisma.mobility.update({
@@ -194,7 +200,7 @@ async function patchMobiliteById(req, res) {
       data: filteredUpdates,
     });
 
-    res.json([filteredUpdates]);
+    res.json(filteredUpdates);
   } catch (error) {
     console.error("Erreur lors de la mise à jour de la mobilité :", error);
     res.status(500).json({ error: "Erreur serveur" });
@@ -202,9 +208,9 @@ async function patchMobiliteById(req, res) {
 }
 
 module.exports = {
-  getAllMobilites,
-  getMobiliteById,
-  createMobilite,
-  deleteMobiliteById,
-  patchMobiliteById,
+  getMobilities,
+  getMobility,
+  createMobility,
+  deleteMobility,
+  updateMobility,
 };

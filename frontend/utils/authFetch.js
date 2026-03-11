@@ -2,7 +2,7 @@
  * Auth utilities: token refresh and authenticated fetch wrapper
  */
 
-export const API_BASE = "http://localhost:3001/api/v1";
+export const API_BASE = "/api/v1";
 
 /**
  * Tente de rafraîchir l'access token via le refresh token.

@@ -32,7 +32,30 @@ import MobilityCard from "../components/dashboard/MobilityCard.vue";
 import MobilityCardNew from "../components/dashboard/MobilityCardNew.vue";
 
 // API
-import { getMobiliteUuids } from "../utils/mobiliteAPI.js";
+import { getMobilities } from "../utils/mobility_api.js";
+
+// Protéger cette page avec le middleware d'authentification
+definePageMeta({
+  middleware: "auth",
+});
+
+const { user } = useAuth();
+const { selectedUuid, getLastTab } = useMobiliteSession();
+
+// Si une mobilité est encore sélectionnée (mode édition actif), redirige vers
+// le dernier onglet visité avant que le user ait quitté le mode édition.
+onMounted(() => {
+  if (selectedUuid.value) {
+    const tab = getLastTab(selectedUuid.value);
+    navigateTo(`/mobilite/${selectedUuid.value}/${tab}`);
+    return;
+  }
+  loadData();
+});
+
+useHead({
+  title: "Dashboard",
+});
 
 // State
 const mobilityIDs = ref([]);
@@ -45,28 +68,13 @@ const loadData = async () => {
   error.value = null;
 
   try {
-    mobilityIDs.value = await getMobiliteUuids();
+    mobilityIDs.value = await getMobilities();
   } catch (e) {
     error.value = e.message || "Erreur lors du chargement";
   } finally {
     loading.value = false;
   }
 };
-
-onMounted(() => {
-  loadData();
-});
-
-// Protéger cette page avec le middleware d'authentification
-definePageMeta({
-  middleware: "auth",
-});
-
-const { user } = useAuth();
-
-useHead({
-  title: "Dashboard",
-});
 
 // Ajouter une nouvelle mobilité à la liste après sa création
 const newMobilityCreated = (uuid) => {

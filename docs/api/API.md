@@ -7,116 +7,198 @@ http://localhost:3001/api/v1
 Production: https://mobilit.eirb.fr/api/v1
 ```
 
-### Standards REST
+### REST Standards
 
-- Les endpoints suivent les conventions REST
-- Les méthodes HTTP indiquent l'action (GET=lire, POST=créer, PUT=modifier, DELETE=supprimer)
-- Les données de création/modification sont dans le body JSON
-- Les IDs de ressources uniques sont dans l'URL (path parameters)
+- Endpoints follow REST conventions with English resource names
+- HTTP methods express the action: `GET` = read, `POST` = create, `PATCH` = partial update, `DELETE` = remove
+- Create/update payloads go in the JSON body
+- Resource IDs are path parameters
+
+All endpoints require a Bearer token: `Authorization: Bearer <access_token>`
 
 ---
 
-### Endpoints - Mobilités
+### Endpoints — Mobilities
 
-#### `GET /mobilites`
+#### `GET /mobilities`
 
-**Fonction** : Récupérer la liste des uuid des mobilités de l'utilisateur connecté
+Returns the list of mobilities for the authenticated user.
 
-**Réponse** :
-
-```json
-[
-  {
-    "uuid": ["123e4567-e89b-12d3-a456-426614174000", "123e4567-e89b-12d3-a456-426614174001", "123e4567-e89b-12d3-a456-426614174002", ...]
-  }
-]
-```
-
-#### `GET /mobilites/:id`
-
-**Fonction** : Récupère des informations détaillées sur une mobilité spécifique par son ID
-
-**Exemple** : `GET /mobilites/123e4567-e89b-12d3-a456-426614174000`
-
-**Paramètres URL** :
-
-- `id` (obligatoire) : UUID de la mobilité à récupérer
-
-**Réponse** :
+**Response:**
 
 ```json
 [
-  {
-    "name": "Mobilité Erasmus 2024",
-    "startLocation": "Paris, France",
-    "endLocation": "Berlin, Germany",
-    "lastEdit": "2024",
-    "emissions": 150.5,
-    "time": 120,
-    "steps": 10000
-  }
+  { "uuid": "123e4567-e89b-12d3-a456-426614174000" },
+  { "uuid": "123e4567-e89b-12d3-a456-426614174001" }
 ]
 ```
 
-<!-- TODO DELETE /mobilites/:id - supprimer une mobilité par son ID -->
+---
 
-#### `DELETE /mobilites/:id`
+#### `POST /mobilities`
 
-**Fonction** : Supprime une mobilité spécifique par son ID
+Creates a new mobility.
 
-**Exemple** : `DELETE /mobilites/123e4567-e89b-12d3-a456-426614174000`
-
-**Paramètres URL** :
-
-- `id` (obligatoire) : UUID de la mobilité à supprimer
-
-**Réponse** :
-
-```json
-[
-  {
-    "message": "Mobilité supprimée avec succès",
-    "id": 123e4567-e89b-12d3-a456-426614174000
-  }
-]
-```
-
-<!-- TODO POST /mobilites - créer une nouvelle mobilité -->
-
-#### `POST /mobilites`
-
-**Fonction** : Crée une nouvelle mobilité
-
-**Exemple** : `POST /mobilites`
-**Réponse** :
+**Request body:**
 
 ```json
 {
-  "name": "Mobilité Erasmus 2024",
-  "year": "2024",
+  "name": "Erasmus 2024",
+  "year": "2024-01-01",
   "startLocation": "Paris, France",
   "endLocation": "Berlin, Germany",
-  "isPublic": true
+  "isPublic": true,
+  "isOriginal": true
 }
 ```
 
-#### PATCH /mobilites/:id
+**Response `201`:**
 
-**Fonction** : Met à jour une mobilité spécifique par son ID
+```json
+{ "uuid": "123e4567-e89b-12d3-a456-426614174000" }
+```
 
-**Exemple** : PATCH /mobilites/123e4567-e89b-12d3-a456-426614174000
+---
 
-**Paramètres URL** :
+#### `GET /mobilities/{id}`
 
-- id (obligatoire) : UUID de la mobilité à modifier
+Returns detailed information about a specific mobility, including aggregated stats.
 
+**Path parameter:** `id` — Mobility UUID
 
-**Réponse** :
+**Response:**
+
+```json
+{
+  "id": "123e4567-e89b-12d3-a456-426614174000",
+  "name": "Erasmus 2024",
+  "year": "2024-01-01T00:00:00.000Z",
+  "isPublic": true,
+  "isOriginal": true,
+  "lastEdit": "2024-06-01T12:00:00.000Z",
+  "startLocation": "Paris, France",
+  "endLocation": "Berlin, Germany",
+  "stats": {
+    "totalCarbon": 150.5,
+    "totalDistance": 1200.0,
+    "stepCount": 4
+  },
+  "trips": []
+}
+```
+
+---
+
+#### `PATCH /mobilities/{id}`
+
+Partially updates a mobility.
+
+**Path parameter:** `id` — Mobility UUID
+
+**Request body** (all fields optional):
+
+```json
+{
+  "name": "Erasmus Germany 2024",
+  "year": "2024-09-01",
+  "isPublic": false,
+  "startLocation": "Bordeaux, France",
+  "endLocation": "Munich, Germany"
+}
+```
+
+**Response:**
+
+```json
+{ "message": "Mobility updated", "id": "123e4567-e89b-12d3-a456-426614174000" }
+```
+
+---
+
+#### `DELETE /mobilities/{id}`
+
+Deletes a mobility.
+
+**Path parameter:** `id` — Mobility UUID
+
+**Response:**
+
+```json
+{ "message": "Mobility deleted successfully", "id": "123e4567-e89b-12d3-a456-426614174000" }
+```
+
+---
+
+### Endpoints — Trips
+
+#### `GET /mobilities/{id}/trips`
+
+Returns the list of trips belonging to a mobility.
+
+**Path parameter:** `id` — Mobility UUID
+
+**Response:**
 
 ```json
 [
-  {
-    "name": "Mobilité Erasmus Allemagne 2024"
-  }
+  { "uuid": "223e4567-e89b-12d3-a456-426614174000" },
+  { "uuid": "223e4567-e89b-12d3-a456-426614174001" }
 ]
+```
+
+---
+
+#### `GET /trips/{tripId}`
+
+Returns the details and stats of a specific trip.
+
+**Path parameter:** `tripId` — Trip UUID
+
+**Response:**
+
+```json
+{
+  "name": "Paris → Berlin",
+  "isSelected": true,
+  "emissions": 150.5,
+  "distance": 1200.0,
+  "steps": 4
+}
+```
+
+---
+
+#### `PATCH /trips/{tripId}`
+
+Partially updates a trip.
+
+**Path parameter:** `tripId` — Trip UUID
+
+**Request body** (all fields optional):
+
+```json
+{
+  "name": "Outbound flight",
+  "isSelected": false
+}
+```
+
+**Response:**
+
+```json
+{ "message": "Trip updated", "trip": { ... } }
+```
+
+---
+
+#### `DELETE /trips/{tripId}`
+
+Deletes a trip.
+
+**Path parameter:** `tripId` — Trip UUID
+
+**Response:**
+
+```json
+{ "message": "Trip deleted" }
 ```

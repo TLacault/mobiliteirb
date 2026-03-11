@@ -16,14 +16,16 @@
         "seed": "node prisma/seed.js"
     },
     "dependencies": {
+        "@prisma/client": "^5.x.x",
         "cors": "^2.8.5",
         "dotenv": "^16.4.5",
         "express": "^4.21.0",
         "pg": "^8.13.0",
-        "@prisma/client": "^5.x.x"
+        "swagger-jsdoc": "^6.2.8",
+        "swagger-ui-express": "^5.0.1"
     },
     "devDependencies": {
-        "prisma": "^5.x.x",
-        "@faker-js/faker": "^9.3.0"
+        "@faker-js/faker": "^9.3.0",
+        "prisma": "^5.x.x"
     }
 }
