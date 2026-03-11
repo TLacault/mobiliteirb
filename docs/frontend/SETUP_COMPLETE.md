@@ -23,7 +23,7 @@ pages/
 #### Approach B: **Services** (Classic Pattern)
 ```
 services/
-  └── mobilityService.js        ✅ mobilityAPI, tripAPI, stepAPI
+  └── mobilityService.js        ✅ mobilityAPI, trip_api, stepAPI
 
 components/
   └── MobilitiesListService.vue ✅ Uses service
@@ -185,9 +185,9 @@ await mobilityAPI.delete(id)
 ### Trips & Steps
 ```javascript
 // Available in services/mobilityService.js
-await tripAPI.getByMobility(mobilityId)
-await tripAPI.toggleSelect(id)
-await tripAPI.delete(id)
+await trip_api.getByMobility(mobilityId)
+await trip_api.toggleSelect(id)
+await trip_api.delete(id)
 
 await stepAPI.getByTrip(tripId)
 await stepAPI.create(tripId, data)

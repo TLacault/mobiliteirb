@@ -43,9 +43,9 @@ backend/
 │   ├── seed.js              # Seeding aléatoire
 │   └── migrations/          # Historique des migrations
 ├── controllers/
-│   └── mobiliteController.js # Logique CRUD pour Mobilité
+│   └── mobilityController.js # Logique CRUD pour Mobilité
 ├── routes/
-│   └── mobiliteRoutes.js     # Routes /api/v1/mobilites
+│   └── mobilityRoutes.js     # Routes /api/v1/mobilites
 └── middlewares/              # (vide pour l'instant)
 ```
 
@@ -367,6 +367,6 @@ docker compose restart backend
 Pour toute question sur l'architecture ou l'implémentation, consultez d'abord :
 1. Cette documentation
 2. [frontend/API_GUIDE.md](../frontend/API_GUIDE.md)
-3. Les fichiers de code existants (MobilitiesList.vue, mobiliteController.js)
+3. Les fichiers de code existants (MobilitiesList.vue, mobilityController.js)
 
 Équipe : voir [README.md](../README.md) pour les contacts

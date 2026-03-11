@@ -76,7 +76,7 @@ const {
 
 ### Avec Services
 ```javascript
-import { mobilityAPI, tripAPI, stepAPI } from '~/services/mobilityService';
+import { mobilityAPI, trip_api, stepAPI } from '~/services/mobilityService';
 
 // Mobilités
 await mobilityAPI.getAll()
@@ -85,7 +85,7 @@ await mobilityAPI.create(data)
 await mobilityAPI.delete(id)
 
 // Trajets
-await tripAPI.getByMobility(mobilityId)
+await trip_api.getByMobility(mobilityId)
 
 // Étapes
 await stepAPI.getByTrip(tripId)

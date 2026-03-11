@@ -5,9 +5,9 @@
 ```
 backend/
 ├── controllers/         # Logique métier des endpoints
-│   └── mobiliteController.js
+│   └── mobilityController.js
 ├── routes/             # Définition des routes
-│   └── mobiliteRoutes.js
+│   └── mobilityRoutes.js
 ├── middlewares/        # Middlewares (authentification, validation, etc.)
 ├── prisma/             # Schema et migrations de la base de données
 │   ├── schema.prisma

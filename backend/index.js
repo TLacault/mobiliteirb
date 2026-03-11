@@ -6,7 +6,7 @@ const swaggerSpec = require("./swagger");
 
 // Import des routes
 const authRoutes = require("./routes/authRoutes");
-const mobiliteRoutes = require("./routes/mobiliteRoutes");
+const mobilityRoutes = require("./routes/mobilityRoutes");
 const tripRoutes = require("./routes/tripRoutes");
 
 // Initialisation de l'application Express
@@ -40,7 +40,7 @@ app.get("/", async (req, res) => {
 
 // Routes API v1
 app.use("/api/v1/auth", authRoutes);
-app.use("/api/v1/mobilities", mobiliteRoutes);
+app.use("/api/v1/mobilities", mobilityRoutes);
 app.use("/api/v1/trips", tripRoutes);
 
 // Démarrage du serveur
