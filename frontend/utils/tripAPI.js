@@ -68,6 +68,38 @@ export async function updateTrip(id, data) {
 }
 
 /**
+ * Fetch all trips for a mobility with their full details.
+ * Returns an array of trip objects: { id, name, isSelected, emissions, distance, steps, ... }.
+ * Individual trip failures are caught and replaced with a default object so the rest of the list still renders.
+ * @param {string} mobilityId - Mobility UUID
+ * @returns {Promise<Array>}
+ */
+export async function getMobilityTrips(mobilityId) {
+  const data = await getTrips(mobilityId);
+  const items = Array.isArray(data) ? data : data.trips || [];
+  return Promise.all(
+    items.map(async (item) => {
+      const id = item.uuid;
+      try {
+        const stats = await getTrip(id);
+        return { id, ...stats };
+      } catch (e) {
+        console.error(`Error fetching trip details ${id}:`, e);
+        return {
+          id,
+          name: null,
+          emissions: 0,
+          distance: 0,
+          steps: 0,
+          from: null,
+          to: null,
+        };
+      }
+    }),
+  );
+}
+
+/**
  * Delete a trip by its UUID
  * @param {string} id - Trip UUID
  * @returns {Promise<Object>} Delete response

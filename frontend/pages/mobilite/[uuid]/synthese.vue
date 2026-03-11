@@ -4,7 +4,7 @@ import SyntheseStatsSection from "../../../components/mobilite/SyntheseStatsSect
 import TripCard from "../../../components/mobilite/TripCard.vue";
 import { Route } from "lucide-vue-next";
 import { getMobility } from "../../../utils/mobiliteAPI.js";
-import { getTrips, getTrip, updateTrip } from "../../../utils/tripAPI.js";
+import { getMobilityTrips, updateTrip } from "../../../utils/tripAPI.js";
 
 definePageMeta({ middleware: "auth" });
 
@@ -59,31 +59,10 @@ const fetchTrips = async () => {
   tripLoading.value = true;
   tripError.value = null;
   try {
-    const data = await getTrips(uuid.value);
-    const uuids = Array.isArray(data) ? data : data.trips || [];
-    tripList.value = await Promise.all(
-      uuids.map(async (item) => {
-        const id = item.uuid;
-        try {
-          const stats = await getTrip(id);
-          return { id, ...stats };
-        } catch (e) {
-          console.error(`Erreur stats trip ${id}:`, e);
-          return {
-            id,
-            name: null,
-            emissions: 0,
-            distance: 0,
-            steps: 0,
-            from: null,
-            to: null,
-          };
-        }
-      }),
-    );
+    tripList.value = await getMobilityTrips(uuid.value);
   } catch (e) {
-    console.error("Erreur lors de la récupération des trips :", e);
-    tripError.value = "Impossible de charger les trips.";
+    console.error("Error loading trips:", e);
+    tripError.value = "Failed to load trips.";
   } finally {
     tripLoading.value = false;
   }
