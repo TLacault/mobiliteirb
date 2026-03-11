@@ -1,6 +1,8 @@
 const express = require("express");
 const cors = require("cors");
 const { PrismaClient } = require("@prisma/client"); // Import Prisma
+const swaggerUi = require("swagger-ui-express");
+const swaggerSpec = require("./swagger");
 
 // Import des routes
 const authRoutes = require("./routes/authRoutes");
@@ -26,6 +28,10 @@ app.use(
 
 // Middleware pour lire le JSON
 app.use(express.json());
+
+// Swagger UI
+app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.get("/api/docs.json", (req, res) => res.json(swaggerSpec));
 
 // Route de base
 app.get("/", async (req, res) => {
