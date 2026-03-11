@@ -1,5 +1,11 @@
 <script setup>
-import { ArrowLeft, Trash2, FileText, Route } from "lucide-vue-next";
+import {
+  ArrowLeft,
+  Trash2,
+  FileText,
+  Route,
+  CheckCheck,
+} from "lucide-vue-next";
 import PopupDelete from "../popup/PopupDelete.vue";
 import { deleteMobility, updateMobility } from "../../utils/mobiliteAPI.js";
 
@@ -30,30 +36,76 @@ const localYear = ref(
   props.mobility?.year ? new Date(props.mobility.year).getFullYear() : "",
 );
 
+// Last committed values — used to skip saves when nothing changed
+const committedName = ref(localName.value);
+const committedYear = ref(localYear.value);
+
 // Synchronise si la prop change (premier chargement différé)
 watch(
   () => props.mobility,
   (m) => {
     if (m) {
       localName.value = m.name ?? "";
+      committedName.value = localName.value;
       localYear.value = m.year ? new Date(m.year).getFullYear() : "";
+      committedYear.value = localYear.value;
     }
   },
 );
 
-// Sauvegarde auto au blur d'un champ
-const saveField = async (field) => {
+// Flash-green state per field
+const savedField = ref(null);
+let savedTimer = null;
+
+const flashSaved = (field) => {
+  savedField.value = field;
+  clearTimeout(savedTimer);
+  savedTimer = setTimeout(() => {
+    savedField.value = null;
+  }, 2000);
+};
+
+// Debounce timers per field
+const debounceTimers = {};
+
+const isDirty = (field) => {
+  if (field === "name")
+    return localName.value.trim() !== committedName.value.trim();
+  if (field === "year")
+    return (
+      String(localYear.value).trim() !== String(committedYear.value).trim()
+    );
+  return false;
+};
+
+const saveField = async (field, inputEl = null) => {
   if (!props.mobility) return;
+  clearTimeout(debounceTimers[field]);
+  // Apply trim in-place before any comparison or save
+  if (field === "name") localName.value = localName.value.trim();
+  if (inputEl) inputEl.blur();
+  if (!isDirty(field)) return;
   const payload = {};
   if (field === "name") payload.name = localName.value;
   if (field === "year" && localYear.value)
     payload.year = `${localYear.value}-01-01`;
+  if (!Object.keys(payload).length) return;
   try {
     await updateMobility(props.uuid, payload);
+    // Commit the new values
+    if (field === "name") committedName.value = localName.value;
+    if (field === "year") committedYear.value = localYear.value;
     emit("updated", payload);
+    flashSaved(field);
   } catch (e) {
     console.error("Erreur mise à jour mobilité:", e);
   }
+};
+
+// Schedule a save after 1 s of inactivity
+const scheduleSave = (field) => {
+  clearTimeout(debounceTimers[field]);
+  debounceTimers[field] = setTimeout(() => saveField(field), 1000);
 };
 
 // Navigation
@@ -93,21 +145,44 @@ const handleDelete = async () => {
         </button>
 
         <div class="mobility-fields">
-          <input
-            v-model="localName"
-            class="field-input field-name"
-            placeholder="Nom de la mobilité"
-            @blur="saveField('name')"
-          />
-          <input
-            v-model="localYear"
-            class="field-input field-year"
-            placeholder="Année"
-            type="number"
-            min="2000"
-            max="2100"
-            @blur="saveField('year')"
-          />
+          <div class="field-wrap">
+            <Transition name="badge">
+              <span v-if="savedField === 'name'" class="saved-badge badge-left">
+                <CheckCheck size="13" />
+                saved
+              </span>
+            </Transition>
+            <input
+              v-model="localName"
+              class="field-input field-name"
+              placeholder="Nom de la mobilité"
+              @input="scheduleSave('name')"
+              @blur="saveField('name')"
+              @keydown.enter.prevent="(e) => saveField('name', e.target)"
+            />
+          </div>
+          <div class="field-wrap">
+            <input
+              v-model="localYear"
+              class="field-input field-year"
+              placeholder="Année"
+              type="number"
+              min="2000"
+              max="2100"
+              @input="scheduleSave('year')"
+              @blur="saveField('year')"
+              @keydown.enter.prevent="(e) => saveField('year', e.target)"
+            />
+            <Transition name="badge">
+              <span
+                v-if="savedField === 'year'"
+                class="saved-badge badge-right"
+              >
+                <CheckCheck size="13" />
+                saved
+              </span>
+            </Transition>
+          </div>
         </div>
 
         <button class="delete-btn" @click="showDeletePopup = true">
@@ -197,6 +272,45 @@ const handleDelete = async () => {
   gap: 0.75rem;
   align-items: center;
   justify-content: center;
+}
+
+.field-wrap {
+  position: relative;
+}
+
+.saved-badge {
+  position: absolute;
+  top: calc(100% + 6px);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #16a34a;
+  background: #dcfce7;
+  padding: 0.2rem 0.55rem;
+  border-radius: 100px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.badge-left {
+  left: 0;
+}
+
+.badge-right {
+  right: 0;
+}
+
+.badge-enter-active,
+.badge-leave-active {
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+.badge-enter-from,
+.badge-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
 }
 
 .field-input {
