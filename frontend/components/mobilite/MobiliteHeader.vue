@@ -178,7 +178,7 @@ const handleDelete = async () => {
                 v-if="savedField === 'year'"
                 class="saved-badge badge-right"
               >
-                <CheckCheck size="13" />
+                <CheckCheck size="13" color="var(--primary)" />
                 saved
               </span>
             </Transition>
@@ -286,13 +286,15 @@ const handleDelete = async () => {
   gap: 0.3rem;
   font-size: 0.75rem;
   font-weight: 600;
-  color: #16a34a;
+  color: var(--primary);
   background: #dcfce7;
   padding: 0.2rem 0.55rem;
   border-radius: 100px;
   white-space: nowrap;
   pointer-events: none;
   z-index: 10;
+  border: 1.5px solid var(--primary);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .badge-left {
