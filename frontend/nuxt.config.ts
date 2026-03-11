@@ -39,6 +39,10 @@ export default defineNuxtConfig({
       hmr: {
         clientPort: 8080,
       },
+      // En dev, proxie /api vers le backend local pour que les URLs relatives fonctionnent
+      proxy: {
+        "/api": "http://localhost:3001",
+      },
     },
   },
 
@@ -47,9 +51,8 @@ export default defineNuxtConfig({
     // Variables côté serveur uniquement
     public: {
       // Variables exposées côté client
-      // En dev: backend sur port 3001, en prod: proxy nginx
-      apiBase:
-        process.env.NUXT_PUBLIC_API_BASE || "http://localhost:3001/api/v1",
+      // URL relative : passe par nginx en prod, par le proxy Vite en dev
+      apiBase: process.env.NUXT_PUBLIC_API_BASE || "/api/v1",
     },
   },
 
