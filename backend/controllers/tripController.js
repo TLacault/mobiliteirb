@@ -47,7 +47,7 @@ async function getTrips(req, res) {
  * GET /api/v1/trips/:id
  * Récupérer les stats d'un trajet spécifique
  */
-async function getTripStats(req, res) {
+async function getTrip(req, res) {
   try {
     const { tripId } = req.params;
     const userId = req.user.id;
@@ -100,7 +100,7 @@ async function getTripStats(req, res) {
 /** * PATCH /api/v1/trips/:id
  * Mettre à jour les stats d'un trajet spécifique
  */
-async function updateTripStats(req, res) {
+async function updateTrip(req, res) {
   try {
     const { tripId } = req.params;
     const userId = req.user.id;
@@ -188,7 +188,7 @@ async function deleteTrip(req, res) {
 
 module.exports = {
   getTrips,
-  getTripStats,
-  updateTripStats,
+  getTrip,
+  updateTrip,
   deleteTrip,
 };

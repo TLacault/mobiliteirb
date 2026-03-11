@@ -38,7 +38,7 @@ const { authenticateJWT } = require("../middlewares/index");
  *       404:
  *         description: Trip not found
  */
-router.get("/:tripId", authenticateJWT, tripController.getTripStats);
+router.get("/:tripId", authenticateJWT, tripController.getTrip);
 
 /**
  * @openapi
@@ -85,7 +85,7 @@ router.get("/:tripId", authenticateJWT, tripController.getTripStats);
  *       404:
  *         description: Trip not found
  */
-router.patch("/:tripId", authenticateJWT, tripController.updateTripStats);
+router.patch("/:tripId", authenticateJWT, tripController.updateTrip);
 
 /**
  * @openapi

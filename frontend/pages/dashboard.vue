@@ -32,7 +32,7 @@ import MobilityCard from "../components/dashboard/MobilityCard.vue";
 import MobilityCardNew from "../components/dashboard/MobilityCardNew.vue";
 
 // API
-import { getMobilities } from "../utils/mobiliteAPI.js";
+import { getMobilities } from "../utils/mobility_api.js";
 
 // Protéger cette page avec le middleware d'authentification
 definePageMeta({

@@ -7,7 +7,7 @@ import {
   CheckCheck,
 } from "lucide-vue-next";
 import PopupDelete from "../popup/PopupDelete.vue";
-import { deleteMobility, updateMobility } from "../../utils/mobiliteAPI.js";
+import { deleteMobility, updateMobility } from "../../utils/mobility_api.js";
 
 const props = defineProps({
   uuid: {

@@ -31,7 +31,7 @@ const { authenticateJWT } = require("../middlewares/index");
  *       401:
  *         description: Unauthorized
  */
-router.get("/", authenticateJWT, mobiliteController.getAllMobilites);
+router.get("/", authenticateJWT, mobiliteController.getMobilities);
 
 /**
  * @openapi
@@ -76,7 +76,7 @@ router.get("/", authenticateJWT, mobiliteController.getAllMobilites);
  *       401:
  *         description: Unauthorized
  */
-router.post("/", authenticateJWT, mobiliteController.createMobilite);
+router.post("/", authenticateJWT, mobiliteController.createMobility);
 
 /**
  * @openapi
@@ -106,7 +106,7 @@ router.post("/", authenticateJWT, mobiliteController.createMobilite);
  *       404:
  *         description: Mobility not found
  */
-router.get("/:id", authenticateJWT, mobiliteController.getMobiliteById);
+router.get("/:id", authenticateJWT, mobiliteController.getMobility);
 
 /**
  * @openapi
@@ -154,7 +154,7 @@ router.get("/:id", authenticateJWT, mobiliteController.getMobiliteById);
  *       404:
  *         description: Mobility not found
  */
-router.patch("/:id", authenticateJWT, mobiliteController.patchMobiliteById);
+router.patch("/:id", authenticateJWT, mobiliteController.updateMobility);
 
 /**
  * @openapi
@@ -184,7 +184,7 @@ router.patch("/:id", authenticateJWT, mobiliteController.patchMobiliteById);
  *       404:
  *         description: Mobility not found
  */
-router.delete("/:id", authenticateJWT, mobiliteController.deleteMobiliteById);
+router.delete("/:id", authenticateJWT, mobiliteController.deleteMobility);
 
 /**
  * @openapi

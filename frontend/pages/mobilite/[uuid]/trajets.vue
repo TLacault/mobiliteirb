@@ -1,6 +1,6 @@
 <script setup>
 import MobiliteHeader from "../../../components/mobilite/MobiliteHeader.vue";
-import { getMobility } from "../../../utils/mobiliteAPI.js";
+import { getMobility } from "../../../utils/mobility_api.js";
 
 definePageMeta({ middleware: "auth" });
 

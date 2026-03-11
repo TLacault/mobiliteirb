@@ -3,8 +3,8 @@ import MobiliteHeader from "../../../components/mobilite/MobiliteHeader.vue";
 import SyntheseStatsSection from "../../../components/mobilite/SyntheseStatsSection.vue";
 import TripCard from "../../../components/mobilite/TripCard.vue";
 import { Route } from "lucide-vue-next";
-import { getMobility } from "../../../utils/mobiliteAPI.js";
-import { getMobilityTrips, updateTrip } from "../../../utils/tripAPI.js";
+import { getMobility } from "../../../utils/mobility_api.js";
+import { getMobilityTrips, updateTrip } from "../../../utils/trip_api.js";
 
 definePageMeta({ middleware: "auth" });
 

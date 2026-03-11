@@ -8,7 +8,7 @@ import {
   PencilRuler,
   CalendarCheck2,
 } from "lucide-vue-next";
-import { getMobility, deleteMobility } from "../../utils/mobiliteAPI.js";
+import { getMobility, deleteMobility } from "../../utils/mobility_api.js";
 import PopupDelete from "../popup/PopupDelete.vue";
 
 const showForm = ref(false);

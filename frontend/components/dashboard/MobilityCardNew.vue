@@ -1,7 +1,7 @@
 <script setup>
 import { MapPlus } from "lucide-vue-next";
 import CreateMobilityForm from "../dashboard/CreateMobilityForm.vue";
-import { createMobility } from "../../utils/mobiliteAPI.js";
+import { createMobility } from "../../utils/mobility_api.js";
 
 const showForm = ref(false);
 const emit = defineEmits(["new-mobility-created"]);
