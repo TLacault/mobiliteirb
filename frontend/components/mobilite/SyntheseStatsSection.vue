@@ -102,6 +102,13 @@ const formatValue = (value) =>
   color: white;
   line-height: 1;
   border-radius: 100px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  transition: all 0.3s ease-in-out;
+  &:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    transform: translateY(-3px);
+  }
 }
 
 .stats-cards {
