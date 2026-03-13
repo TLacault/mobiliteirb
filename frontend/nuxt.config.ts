@@ -8,6 +8,7 @@ export default defineNuxtConfig({
     "~/src/assets/reset.css",
     "~/src/assets/theme.css",
     "~/src/assets/popup.css",
+    "~/src/assets/animations.css",
   ],
 
   // Configuration du serveur pour le développement

@@ -3,12 +3,12 @@
     <div class="content-wrapper">
       <!-- Zone texte -->
       <div class="text-zone">
-        <div class="title-container">
+        <div class="title-container reveal-on-scroll reveal-right">
           <Leaf :size="40" color="var(--primary)" />
           <h1 class="section-title gradient-cta">Votre Mobilité Réinventée</h1>
         </div>
 
-        <p class="body">
+        <p class="body reveal-on-scroll reveal-up delay-1">
           Dédiée aux étudiants de l'<strong>Enseirb</strong>, cette plateforme
           vous permet de <strong>planifier vos déplacements</strong> lors de
           votre mobilité à l'étranger. Une interface intuitive pensée pour votre
@@ -19,7 +19,7 @@
       </div>
 
       <!-- Zone image -->
-      <div class="image-zone">
+      <div class="image-zone reveal-on-scroll reveal-left delay-2">
         <img
           src="/images/mobilite_illustration.png"
           alt="Illustration mobilité"

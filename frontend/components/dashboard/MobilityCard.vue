@@ -63,17 +63,23 @@ async function deleteMobilite(uuid) {
 
 <template>
   <!-- Chargement -->
-  <div v-if="loading" class="card-container card-loading">
+  <div
+    v-if="loading"
+    class="card-container card-loading reveal-on-scroll reveal-up"
+  >
     <p>Chargement...</p>
   </div>
 
   <!-- Erreur -->
-  <div v-else-if="error" class="card-container card-error">
+  <div
+    v-else-if="error"
+    class="card-container card-error reveal-on-scroll reveal-up"
+  >
     <p>{{ error }}</p>
   </div>
 
   <!-- Données -->
-  <div v-else-if="mobility" class="card-container">
+  <div v-else-if="mobility" class="card-container reveal-on-scroll reveal-up">
     <!-- Boutton-->
     <div class="trash-button" @click="showForm = true">
       <Trash2 color="red" />

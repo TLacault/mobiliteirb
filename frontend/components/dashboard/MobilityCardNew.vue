@@ -27,7 +27,7 @@ async function createNewMobilite(form) {
 </script>
 
 <template>
-  <div class="card-container">
+  <div class="card-container reveal-on-scroll reveal-up">
     <div class="card-title">
       <p>Démarrer un nouveau projet</p>
     </div>
