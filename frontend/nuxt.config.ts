@@ -41,7 +41,7 @@ export default defineNuxtConfig({
       },
       // En dev, proxie /api vers le backend local pour que les URLs relatives fonctionnent
       proxy: {
-        "/api": "http://localhost:3001",
+        "/api": process.env.NUXT_DEV_PROXY_TARGET || "http://localhost:3001",
       },
     },
   },

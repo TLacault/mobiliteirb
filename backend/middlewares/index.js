@@ -69,12 +69,10 @@ const authenticateJWT = async (req, res, next) => {
 
     const casLogin = payload.preferred_username;
     if (!casLogin) {
-      return res
-        .status(401)
-        .json({
-          error: "unauthorized",
-          message: "preferred_username absent du token",
-        });
+      return res.status(401).json({
+        error: "unauthorized",
+        message: "preferred_username absent du token",
+      });
     }
 
     // Vérification expiration
@@ -84,16 +82,20 @@ const authenticateJWT = async (req, res, next) => {
         .json({ error: "token_expired", message: "Token expiré" });
     }
 
-    // Charger l'utilisateur depuis la DB
-    const user = await prisma.user.findUnique({ where: { casLogin } });
-    if (!user) {
-      return res
-        .status(401)
-        .json({
-          error: "user_not_found",
-          message: "Utilisateur introuvable en base",
-        });
-    }
+    // Charger l'utilisateur depuis la DB.
+    // En dev, la base peut être recréée alors que le navigateur garde un token valide :
+    // on recrée l'utilisateur à la volée pour éviter un 401 bloquant.
+    const user = await prisma.user.upsert({
+      where: { casLogin },
+      update: {
+        ...(payload.email ? { email: payload.email } : {}),
+      },
+      create: {
+        casLogin,
+        email: payload.email || null,
+        role: "student",
+      },
+    });
 
     req.user = user; // { id, casLogin, email, role, createdAt }
     next();
