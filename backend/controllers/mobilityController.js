@@ -1,6 +1,22 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
+function parseMobilityYear(value) {
+  if (value === undefined || value === null || value === "") return null;
+
+  const strValue = String(value).trim();
+  const yearMatch = strValue.match(/^(\d{4})$/);
+  if (yearMatch) {
+    const yearNum = Number(yearMatch[1]);
+    if (yearNum < 1900 || yearNum > 2100) return null;
+    return new Date(`${yearMatch[1]}-01-01T00:00:00.000Z`);
+  }
+
+  const date = new Date(strValue);
+  if (Number.isNaN(date.getTime())) return null;
+  return date;
+}
+
 /**
  * Controller pour la gestion des mobilités
  */
@@ -130,10 +146,15 @@ async function createMobility(req, res) {
       return res.status(400).json({ error: "Données incomplètes" });
     }
 
+    const parsedYear = parseMobilityYear(year);
+    if (!parsedYear) {
+      return res.status(400).json({ error: "Année invalide" });
+    }
+
     const newMobilite = await prisma.mobility.create({
       data: {
         name,
-        year: new Date(year),
+        year: parsedYear,
         isPublic,
         isOriginal,
         startLocation,
@@ -182,7 +203,11 @@ async function updateMobility(req, res) {
     for (const key of allowedFields) {
       if (updates[key] !== undefined) {
         if (key === "year") {
-          filteredUpdates[key] = new Date(updates[key]);
+          const parsedYear = parseMobilityYear(updates[key]);
+          if (!parsedYear) {
+            return res.status(400).json({ error: "Année invalide" });
+          }
+          filteredUpdates[key] = parsedYear;
         } else {
           filteredUpdates[key] = updates[key];
         }
