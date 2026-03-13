@@ -50,9 +50,23 @@ onMounted(async () => {
     const code = String(route.query.code || "");
     const state = String(route.query.state || "");
     const errorParam = String(route.query.error || "");
+    const isSilentLogin =
+      sessionStorage.getItem("oauth_silent_login_pending") === "1";
 
     // Vérifier s'il y a une erreur dans les paramètres
     if (errorParam) {
+      // En silent login, login_required/interaction_required est normal
+      // si aucune session EirbConnect n'est active côté IdP.
+      if (
+        isSilentLogin &&
+        ["login_required", "interaction_required"].includes(errorParam)
+      ) {
+        sessionStorage.removeItem("oauth_silent_login_pending");
+        sessionStorage.setItem("oauth_silent_login_disabled", "1");
+        isLoading.value = false;
+        router.replace("/connexion");
+        return;
+      }
       throw new Error(`Erreur lors de l'authentification: ${errorParam}`);
     }
 
@@ -75,7 +89,10 @@ onMounted(async () => {
 
     // Rediriger vers la page de connexion après 1.5 secondes
     setTimeout(() => {
-      router.push("/connexion");
+      const redirectAfterLogin =
+        sessionStorage.getItem("redirect_after_login") || "/dashboard";
+      sessionStorage.removeItem("redirect_after_login");
+      router.push(redirectAfterLogin);
     }, 1500);
   } catch (err) {
     console.error("Callback error:", err);

@@ -10,11 +10,14 @@
  *   middleware: 'auth'
  * })
  */
-export default defineNuxtRouteMiddleware((to, from) => {
+export default defineNuxtRouteMiddleware(async (to, from) => {
   // Ne pas exécuter côté serveur
   if (process.server) return;
 
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, checkAuth } = useAuth();
+
+  // Revalider la session (token expiré / refresh) pour éviter les faux positifs
+  await checkAuth();
 
   // Vérifier si l'utilisateur est authentifié
   if (!isAuthenticated.value) {

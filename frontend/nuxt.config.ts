@@ -4,6 +4,12 @@ export default defineNuxtConfig({
   compatibilityDate: "2026-01-31",
   devtools: { enabled: true },
 
+  css: [
+    "~/src/assets/reset.css",
+    "~/src/assets/theme.css",
+    "~/src/assets/popup.css",
+  ],
+
   // Configuration du serveur pour le développement
   devServer: {
     port: 8080,

@@ -4,6 +4,12 @@
 
 export const API_BASE = "/api/v1";
 
+function clearClientAuthState() {
+  localStorage.removeItem("access_token");
+  localStorage.removeItem("refresh_token");
+  localStorage.removeItem("user");
+}
+
 /**
  * Tente de rafraîchir l'access token via le refresh token.
  * Met à jour localStorage si succès, sinon nettoie les tokens.
@@ -25,9 +31,7 @@ async function tryRefreshToken() {
     return data.access_token;
   } catch {
     // Refresh token invalide ou expiré → déconnecter l'utilisateur
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    localStorage.removeItem("user");
+    clearClientAuthState();
     return null;
   }
 }
@@ -57,7 +61,13 @@ export async function authenticatedFetch(url, options = {}) {
     // Sur 401, essayer de rafraîchir le token et relancer une fois
     if (err?.response?.status === 401) {
       const newToken = await tryRefreshToken();
-      if (!newToken) throw err; // Refresh échoué, propager l'erreur
+      if (!newToken) {
+        clearClientAuthState();
+        if (typeof window !== "undefined") {
+          window.location.href = "/connexion";
+        }
+        throw err;
+      }
       return await makeRequest(newToken);
     }
     throw err;
