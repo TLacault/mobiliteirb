@@ -66,4 +66,43 @@ router.get("/:stepId", authenticateJWT, stepController.getStep);
  */
 router.delete("/:stepId", authenticateJWT, stepController.deleteStep);
 
+/**
+ * @openapi
+ * /steps/{stepId}:
+ *   patch:
+ *     summary: Update a step's editable fields
+ *     tags: [Steps]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: stepId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               labelStart:
+ *                 type: string
+ *               labelEnd:
+ *                 type: string
+ *               transportMode:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Updated step
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Step not found
+ */
+router.patch("/:stepId", authenticateJWT, stepController.updateStep);
+
 module.exports = router;

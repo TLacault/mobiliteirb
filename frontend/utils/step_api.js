@@ -59,3 +59,26 @@ export async function deleteStep(stepId) {
     throw error;
   }
 }
+
+/**
+ * Update a step's editable fields
+ * @param {string} stepId - Step UUID
+ * @param {Object} data - Fields to update (labelStart, labelEnd, transportMode)
+ * @returns {Promise<Object>} Updated step
+ */
+export async function updateStep(stepId, data) {
+  if (!stepId) {
+    throw new Error("stepId is required to update a step");
+  }
+
+  try {
+    return await authenticatedFetch(`${API_BASE}/steps/${stepId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+  } catch (error) {
+    console.error(`Error updating step ${stepId}:`, error);
+    throw error;
+  }
+}

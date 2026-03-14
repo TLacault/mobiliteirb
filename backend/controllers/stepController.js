@@ -135,4 +135,59 @@ async function deleteStep(req, res) {
   }
 }
 
-module.exports = { getStepsByTrip, getStep, deleteStep };
+/**
+ * PATCH /api/v1/steps/:stepId
+ * Update editable fields of a step
+ */
+async function updateStep(req, res) {
+  try {
+    const { stepId } = req.params;
+    const userId = req.user.id;
+
+    const step = await prisma.step.findUnique({
+      where: { id: stepId },
+      include: {
+        trip: {
+          include: {
+            mobility: { select: { userId: true } },
+          },
+        },
+      },
+    });
+
+    if (!step) {
+      return res.status(404).json({ error: "Step introuvable" });
+    }
+
+    if (step.trip.mobility.userId !== userId) {
+      return res.status(403).json({ error: "Accès non autorisé" });
+    }
+
+    const { labelStart, labelEnd, transportMode } = req.body;
+
+    const updated = await prisma.step.update({
+      where: { id: stepId },
+      data: {
+        ...(labelStart !== undefined && { labelStart }),
+        ...(labelEnd !== undefined && { labelEnd }),
+        ...(transportMode !== undefined && { transportMode }),
+      },
+      select: {
+        id: true,
+        sequenceOrder: true,
+        transportMode: true,
+        carbon: true,
+        distance: true,
+        labelStart: true,
+        labelEnd: true,
+      },
+    });
+
+    res.json({ uuid: updated.id, ...updated });
+  } catch (error) {
+    console.error("Erreur lors de la mise à jour du step :", error);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+}
+
+module.exports = { getStepsByTrip, getStep, deleteStep, updateStep };

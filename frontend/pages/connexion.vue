@@ -162,6 +162,7 @@ h1 {
   border: none;
   border-radius: 100px;
   padding: 0.85rem 2rem;
+  margin-top: 1rem;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
