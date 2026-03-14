@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const tripController = require("../controllers/tripController");
+const stepController = require("../controllers/stepController");
 const { authenticateJWT } = require("../middlewares/index");
 
 /**
@@ -119,5 +120,33 @@ router.patch("/:tripId", authenticateJWT, tripController.updateTrip);
  *         description: Trip not found
  */
 router.delete("/:tripId", authenticateJWT, tripController.deleteTrip);
+
+/**
+ * @openapi
+ * /trips/{tripId}/steps:
+ *   get:
+ *     summary: List steps for a trip
+ *     tags: [Steps]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: tripId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Trip UUID
+ *     responses:
+ *       200:
+ *         description: List of steps
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Trip not found
+ */
+router.get("/:tripId/steps", authenticateJWT, stepController.getStepsByTrip);
 
 module.exports = router;

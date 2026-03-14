@@ -1,6 +1,8 @@
 <script setup>
 import MobiliteHeader from "../../../components/mobilite/MobiliteHeader.vue";
 import { getMobility } from "../../../utils/mobility_api.js";
+import { getTrips } from "../../../utils/trip_api.js";
+import { getStepsByTrip } from "../../../utils/step_api.js";
 
 definePageMeta({ middleware: "auth" });
 
@@ -20,6 +22,10 @@ const mobility = ref(null);
 const loading = ref(true);
 const error = ref(null);
 
+// Steps de tous les trajets
+const stepUuids = ref([]);
+const stepsLoading = ref(false);
+
 const loadMobility = async () => {
   loading.value = true;
   error.value = null;
@@ -32,7 +38,25 @@ const loadMobility = async () => {
   }
 };
 
-onMounted(loadMobility);
+const loadSteps = async () => {
+  stepsLoading.value = true;
+  try {
+    const trips = await getTrips(uuid.value);
+    const allSteps = await Promise.all(
+      trips.map((t) => getStepsByTrip(t.uuid)),
+    );
+    stepUuids.value = allSteps.flat().map((s) => s.uuid);
+  } catch (e) {
+    console.error("Erreur lors du chargement des steps :", e);
+  } finally {
+    stepsLoading.value = false;
+  }
+};
+
+onMounted(async () => {
+  await loadMobility();
+  await loadSteps();
+});
 
 useHead({
   title: computed(() => `Trajets — ${mobility.value?.name ?? "Mobilité"}`),
@@ -56,6 +80,22 @@ const handleUpdated = (patch) => {
         :mobility="mobility"
         @updated="handleUpdated"
       />
+      <div class="scene-content">
+        <div class="steps-section">
+          <h2 class="steps-title">Steps de cette mobilité</h2>
+          <div v-if="stepsLoading" class="loading-state">
+            Chargement des steps...
+          </div>
+          <div v-else-if="stepUuids.length === 0" class="empty-state">
+            Aucun step trouvé.
+          </div>
+          <ul v-else class="steps-list">
+            <li v-for="id in stepUuids" :key="id" class="step-uuid">
+              {{ id }}
+            </li>
+          </ul>
+        </div>
+      </div>
     </template>
   </div>
 </template>
@@ -88,5 +128,40 @@ const handleUpdated = (patch) => {
 
 .error-state {
   color: #ef4444;
+}
+
+.steps-section {
+  margin-top: 2rem;
+}
+
+.steps-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 1rem;
+}
+
+.steps-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.step-uuid {
+  font-family: monospace;
+  font-size: 0.875rem;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  color: #374151;
+}
+
+.empty-state {
+  color: #9ca3af;
+  font-size: 0.95rem;
 }
 </style>
