@@ -36,7 +36,7 @@ const formatValue = (value) =>
     </div>
 
     <div class="stats-cards">
-      <div class="stat-card">
+      <div class="stat-card reveal-on-scroll delay-2">
         <div class="title-row">
           <Leaf class="icon" size="25" />
           <h3 class="subtitle gradient-cta">Emissions</h3>
@@ -44,7 +44,7 @@ const formatValue = (value) =>
         <p class="body">{{ formatValue(stats?.totalCarbon) }} kg CO2</p>
       </div>
 
-      <div class="stat-card">
+      <div class="stat-card reveal-on-scroll delay-4">
         <div class="title-row">
           <MapPin class="icon" size="25" />
           <h3 class="subtitle gradient-cta">Etapes</h3>
@@ -52,7 +52,7 @@ const formatValue = (value) =>
         <p class="body">{{ formatValue(stats?.stepCount) }}</p>
       </div>
 
-      <div class="stat-card">
+      <div class="stat-card reveal-on-scroll delay-6">
         <div class="title-row">
           <Ruler class="icon" size="25" />
           <h3 class="subtitle gradient-cta">Distance</h3>
@@ -60,7 +60,7 @@ const formatValue = (value) =>
         <p class="body">{{ formatValue(stats?.totalDistance) }} km</p>
       </div>
 
-      <div class="stat-card">
+      <div class="stat-card reveal-on-scroll delay-8">
         <div class="title-row">
           <Timer class="icon" size="25" />
           <h3 class="subtitle gradient-cta">Temps</h3>

@@ -1,5 +1,6 @@
 # Colors
 GREEN=\033[0;32m
+BLUE=\033[0;34m
 NC=\033[0m
 
 .PHONY: help install up down clean logs seed seed-append db-reset erase-db
@@ -32,10 +33,11 @@ install:
 up:
 	@echo -e "${GREEN}=== Starting the environment ===${NC}"
 	docker compose up -d
-	@echo -e "${GREEN}Frontend available at : http://localhost:8080${NC}"
-	@echo -e "${GREEN}Backend available at  : http://localhost:3001${NC}"
-	@echo -e "${GREEN}Studio available at   : http://localhost:5555${NC}"
-
+	@echo -e ""
+	@echo -e " ${BLUE}➤  Frontend  http://localhost:8080${NC}"
+	@echo -e " ${BLUE}➤  Backend   http://localhost:3001${NC}"
+	@echo -e " ${BLUE}➤  Studio    http://localhost:5555${NC}"
+	@echo -e " ${BLUE}➤  Swagger   http://localhost:3001/api/docs${NC}"
 down:
 	docker compose down
 
