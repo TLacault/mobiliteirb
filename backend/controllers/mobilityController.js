@@ -30,6 +30,7 @@ async function getMobilities(req, res) {
     const userId = req.user.id; // Récupérer l'ID de l'utilisateur connecté
     const mobilites = await prisma.mobility.findMany({
       where: { userId },
+      orderBy: { lastEdit: "desc" },
       select: { id: true },
     });
     // Renvoyer les IDs sous forme d'objets avec clé uuid pour compatibilité
@@ -76,6 +77,7 @@ async function getMobility(req, res) {
       (sum, s) => sum + (s.distance ?? 0),
       0,
     );
+    const totalTime = allSteps.reduce((sum, s) => sum + (s.time ?? 0), 0);
     const stepCount = allSteps.length;
 
     res.json({
@@ -90,6 +92,7 @@ async function getMobility(req, res) {
       stats: {
         totalCarbon: Math.round(totalCarbon * 100) / 100, // kg CO2, arrondi 2 déc.
         totalDistance: Math.round(totalDistance * 100) / 100, // km
+        totalTime, // minutes
         stepCount,
       },
       trips: mobilite.trips,

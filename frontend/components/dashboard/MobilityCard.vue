@@ -96,7 +96,14 @@ async function deleteMobilite(uuid) {
       </div>
       <div class="stat-section">
         <div class="icon"><Timer size="18" /></div>
-        <p>{{ mobility.stats.totalDistance }} km</p>
+        <p>
+          {{
+            Math.floor(mobility.stats.totalTime / 60) > 0
+              ? Math.floor(mobility.stats.totalTime / 60) + "h "
+              : ""
+          }}
+          {{ mobility.stats.totalTime % 60 }} min
+        </p>
       </div>
       <div class="stat-section">
         <div class="icon"><MapPin size="18" /></div>

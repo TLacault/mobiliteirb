@@ -82,6 +82,7 @@ async function getTrip(req, res) {
       0,
     );
     const stepCount = trip.steps.length;
+    const totalTime = trip.steps.reduce((sum, s) => sum + (s.time ?? 0), 0);
 
     res.json({
       name: trip.name,
@@ -89,6 +90,7 @@ async function getTrip(req, res) {
       emissions: Math.round(totalCarbon * 100) / 100,
       distance: Math.round(totalDistance * 100) / 100,
       steps: stepCount,
+      time: totalTime,
       // A voir comment on récup les villes de départ et d'arrivée, peut-être à partir du premier et dernier step ?
     });
   } catch (error) {

@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from "vue";
-import { Trash2, Leaf, MapPin, Clock } from "lucide-vue-next";
+import { Trash2, Leaf, MapPin, Clock, Ruler } from "lucide-vue-next";
 import PopupDelete from "../popup/PopupDelete.vue";
 import { deleteStep, updateStep } from "../../utils/step_api.js";
 
@@ -110,14 +110,22 @@ async function handleDelete() {
         >
       </div>
       <div class="stat">
-        <MapPin size="13" class="stat-icon" />
+        <Ruler size="13" class="stat-icon" />
         <span
           >{{ step.distance != null ? step.distance.toFixed(0) : "—" }} km</span
         >
       </div>
       <div class="stat">
         <Clock size="13" class="stat-icon" />
-        <span>—</span>
+        <span>
+          <template v-if="step.time != null">
+            <template v-if="Math.floor(step.time / 60) > 0">
+              {{ Math.floor(step.time / 60) }}h
+            </template>
+            {{ (step.time % 60).toFixed(0) }}min
+          </template>
+          <template v-else> — </template>
+        </span>
       </div>
     </div>
 
@@ -172,7 +180,9 @@ async function handleDelete() {
   color: #9ca3af;
   padding: 0.25rem;
   border-radius: 6px;
-  transition: color 0.15s, background 0.15s;
+  transition:
+    color 0.15s,
+    background 0.15s;
 }
 
 .delete-btn:hover {
@@ -234,7 +244,9 @@ async function handleDelete() {
   color: var(--text);
   background: #f9fafb;
   outline: none;
-  transition: border-color 0.15s, background 0.15s;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
 }
 
 .location-input:focus {
@@ -258,7 +270,9 @@ async function handleDelete() {
   background: #f9fafb;
   outline: none;
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
   appearance: auto;
 }
 

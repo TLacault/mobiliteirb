@@ -42,6 +42,7 @@ async function getStepsByTrip(req, res) {
         transportMode: true,
         carbon: true,
         distance: true,
+        time: true,
         labelStart: true,
         labelEnd: true,
       },

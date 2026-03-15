@@ -76,6 +76,7 @@ model Step {
 
     carbon   Float?
     distance Float?
+    time     Int?
     metadata Json?
 
     // Transport mode

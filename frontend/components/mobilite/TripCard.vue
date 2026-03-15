@@ -1,5 +1,5 @@
 <script setup>
-import { Leaf, Timer, MapPin } from "lucide-vue-next";
+import { Leaf, Timer, MapPin, Ruler } from "lucide-vue-next";
 
 const props = defineProps({
   trajet: {
@@ -62,11 +62,22 @@ const emit = defineEmits(["toggle"]);
         </div>
         <div class="stat-section detail">
           <div class="icon"><Timer size="18" /></div>
-          <p>{{ trajet.time || "0" }}h {{ trajet.time || "0" }}m</p>
+          <p>
+            {{
+              Math.floor(trajet.time / 60) > 0
+                ? Math.floor(trajet.time / 60) + "h "
+                : ""
+            }}
+            {{ trajet.time % 60 }} min
+          </p>
         </div>
         <div class="stat-section detail">
           <div class="icon"><MapPin size="18" /></div>
           <p>{{ trajet.steps }} étape{{ trajet.steps !== 1 ? "s" : "" }}</p>
+        </div>
+        <div class="stat-section detail">
+          <div class="icon"><Ruler size="18" /></div>
+          <p>{{ trajet.distance }} km</p>
         </div>
       </div>
     </div>
