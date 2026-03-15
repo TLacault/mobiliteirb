@@ -35,7 +35,6 @@ Pour remplir la base de données avec des données de test aléatoires :
 
 ```bash
 make seed         # Efface et remplit la base avec des données aléatoires
-make seed-append  # Ajoute des données sans effacer l'existant
 make db-reset     # Réinitialise tout et reseed
 ```
 

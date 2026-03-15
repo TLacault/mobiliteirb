@@ -15,3 +15,5 @@ logs
 eirbconnect.php
 
 package-lock.json
+backend/backend.env
+frontend/frontend.env

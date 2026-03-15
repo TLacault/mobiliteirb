@@ -4,21 +4,20 @@
 
 | Command | Action | When to Use |
 |---------|--------|-------------|
-| `make seed` | Clear DB + Add 5-15 users | Fresh start, testing from scratch |
-| `make seed-append` | Keep existing + Add 3-8 users | Add more test data without losing current data |
+| `make seed` | Clear DB + Generate mobility data | Fresh start, testing from scratch |
 | `make db-reset` | Reset migrations + Seed | Schema changed, need clean slate |
 
 ## What Gets Generated
 
 Each run creates RANDOM amounts:
 
-  👥 5-15 Users (or 3-8 in append mode)
+  👤 0 User created by seed (uses an existing user account)
     ↓
-  🚗 1-5 Mobilities per user
+  🚗 3-8 Mobilities
     ↓
-  🛣️  1-4 Trips per mobility
+  🛣️  1-3 Trips per mobility
     ↓
-  📍 2-8 Steps per trip (each with one transport mode)
+  📍 2-5 Steps per trip (each with one transport mode)
 - Lyon → Berlin
 - Toulouse → Amsterdam
 
@@ -45,7 +44,6 @@ docker compose run --rm backend npx prisma db seed
 
 Edit these files:
 - `/backend/prisma/seed.js` - Main seed script (clears DB)
-- `/backend/prisma/seed-append.js` - Append script (keeps data)
 
 Common changes:
 ```javascript
@@ -73,12 +71,11 @@ CREATE EXTENSION IF NOT EXISTS postgis;
 ```
 
 ❌ **"Unique constraint violation"**
-→ Use `make seed` (clears first) instead of append
+→ Use `make seed` (clears first)
 
 ## Tips
 
 💡 Run `make seed` multiple times to see different data
-💡 Use `make seed-append` to build up a large dataset
 💡 Check generated data with Prisma Studio
 💡 Carbon emissions auto-calculated from distances
 
