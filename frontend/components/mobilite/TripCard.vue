@@ -17,7 +17,7 @@ const emit = defineEmits(["toggle"]);
 
 <template>
   <div
-    class="card-container reveal-on-scroll delay-2"
+    class="card-container"
     :class="{ 'card-unselected': !trajet.isSelected }"
   >
     <div class="card-header">
