@@ -112,7 +112,7 @@ onMounted(fetchTrips);
             <TripCard
               v-for="(trip, index) in tripList"
               :key="trip.id"
-              :trajet="trip"
+              :trip="trip"
               :index="index"
               @toggle="(val) => toggleTripSelected(trip, val)"
             />

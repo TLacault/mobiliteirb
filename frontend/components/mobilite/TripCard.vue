@@ -2,7 +2,7 @@
 import { Leaf, Timer, MapPin, Ruler } from "lucide-vue-next";
 
 const props = defineProps({
-  trajet: {
+  trip: {
     type: Object,
     required: true,
   },
@@ -18,22 +18,23 @@ const emit = defineEmits(["toggle"]);
 <template>
   <div
     class="card-container"
-    :class="{ 'card-unselected': !trajet.isSelected }"
+    :class="{ 'card-unselected': !trip.isSelected }"
+    @click="emit('toggle', !trip.isSelected)"
   >
     <div class="card-header">
       <div class="trip-title body">
         <div class="index body">{{ index + 1 }}.</div>
-        <p>"{{ trajet.name || "Trajet sans nom" }}"</p>
+        <p>"{{ trip.name || "Trajet sans nom" }}"</p>
       </div>
 
-      <label class="toggle">
+      <label class="toggle" @click.stop>
         <input
           type="checkbox"
-          :checked="trajet.isSelected"
+          :checked="trip.isSelected"
           @change="emit('toggle', $event.target.checked)"
         />
         <span class="toggle-track"></span>
-        <span class="toggle-label body">synthèse</span>
+        <span class="body">synthèse</span>
       </label>
     </div>
 
@@ -47,10 +48,10 @@ const emit = defineEmits(["toggle"]);
 
         <div class="route-detail">
           <div class="step">
-            <p>{{ trajet.from || "—" }}</p>
+            <p>{{ trip.from || "—" }}</p>
           </div>
           <div class="step">
-            <p>{{ trajet.to || "—" }}</p>
+            <p>{{ trip.to || "—" }}</p>
           </div>
         </div>
       </div>
@@ -58,26 +59,26 @@ const emit = defineEmits(["toggle"]);
       <div class="stats-section">
         <div class="stat-section detail">
           <div class="icon"><Leaf size="18" /></div>
-          <p>{{ trajet.emissions }} kg CO₂</p>
+          <p>{{ trip.emissions }} kg CO₂</p>
         </div>
         <div class="stat-section detail">
           <div class="icon"><Timer size="18" /></div>
           <p>
             {{
-              Math.floor(trajet.time / 60) > 0
-                ? Math.floor(trajet.time / 60) + "h "
+              Math.floor(trip.time / 60) > 0
+                ? Math.floor(trip.time / 60) + "h "
                 : ""
             }}
-            {{ trajet.time % 60 }} min
+            {{ trip.time % 60 }} min
           </p>
         </div>
         <div class="stat-section detail">
           <div class="icon"><MapPin size="18" /></div>
-          <p>{{ trajet.steps }} étape{{ trajet.steps !== 1 ? "s" : "" }}</p>
+          <p>{{ trip.steps }} étape{{ trip.steps !== 1 ? "s" : "" }}</p>
         </div>
         <div class="stat-section detail">
           <div class="icon"><Ruler size="18" /></div>
-          <p>{{ trajet.distance }} km</p>
+          <p>{{ trip.distance }} km</p>
         </div>
       </div>
     </div>
@@ -98,6 +99,7 @@ const emit = defineEmits(["toggle"]);
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   border: 1px solid var(--primary);
   align-items: center;
+  cursor: pointer;
 }
 
 .card-unselected {

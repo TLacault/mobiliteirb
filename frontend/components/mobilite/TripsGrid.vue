@@ -83,7 +83,7 @@ function handleStepUpdated(tripId, updated) {
       >
         <!-- Column header: TripCard -->
         <TripCard
-          :trajet="col.trip"
+          :trip="col.trip"
           :index="index"
           @toggle="(val) => handleToggle(col.trip.id, val)"
         />
