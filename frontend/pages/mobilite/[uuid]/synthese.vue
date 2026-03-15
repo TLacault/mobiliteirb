@@ -161,7 +161,7 @@ onMounted(fetchTrips);
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 3rem 0rem;
+  margin-bottom: 1.5rem;
 }
 
 .trips-list {

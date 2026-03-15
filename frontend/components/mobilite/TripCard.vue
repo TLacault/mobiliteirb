@@ -100,6 +100,12 @@ const emit = defineEmits(["toggle"]);
   border: 1px solid var(--primary);
   align-items: center;
   cursor: pointer;
+
+  transition: all 0.3s ease-in-out;
+  &:hover {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+  }
 }
 
 .card-unselected {
