@@ -132,12 +132,13 @@ function handleStepUpdated(tripId, updated) {
   align-items: flex-start;
 }
 
-/* One column per trip, width driven by TripCard (500px) */
+/* One column per trip, width driven by TripCard */
 .trip-column {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  width: 500px;
+  width: 100%;
+  max-width: 550px;
   flex-shrink: 0;
 }
 

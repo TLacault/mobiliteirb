@@ -88,7 +88,7 @@ const emit = defineEmits(["toggle"]);
 <style scoped>
 .card-container {
   flex-wrap: nowrap;
-  width: 500px;
+  width: 100%;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -132,13 +132,18 @@ const emit = defineEmits(["toggle"]);
 .card-content {
   display: flex;
   flex-direction: row;
-  gap: 1.5rem;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0rem 1.5rem;
 }
 
 .stats-section {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.5rem 2rem;
+  grid-template-columns: repeat(2, auto);
+  justify-content: space-between;
+  width: 60%;
+  margin-left: 1rem;
+  padding: 0rem 1rem;
 }
 
 .stat-section {
@@ -147,6 +152,7 @@ const emit = defineEmits(["toggle"]);
   gap: 0.3rem;
   color: var(--text);
   white-space: nowrap;
+  padding: 0rem 0.5rem;
 }
 
 .icon {
@@ -159,6 +165,7 @@ const emit = defineEmits(["toggle"]);
 .trip-section {
   display: flex;
   align-items: center;
+  margin-right: 1rem;
 }
 
 .step {

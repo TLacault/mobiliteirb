@@ -167,8 +167,7 @@ onMounted(fetchTrips);
 .trips-list {
   display: grid;
   gap: 2rem;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 500px));
-  justify-content: center;
+  grid-template-columns: repeat(auto-fit, minmax(550px, 1fr));
 }
 
 .trips-state {
