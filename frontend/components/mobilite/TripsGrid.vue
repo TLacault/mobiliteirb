@@ -3,10 +3,11 @@ import { ref, computed, onMounted, onUnmounted } from "vue";
 import {
   Route,
   Plus,
-  Clock,
-  History,
+  GripVertical,
   ArrowDownAZ,
   Leaf,
+  ListOrdered,
+  Timer,
   Ruler,
   ChevronDown,
   Check,
@@ -75,14 +76,15 @@ function handleStepUpdated(tripId, updated) {
   if (idx !== -1) col.steps.splice(idx, 1, { ...col.steps[idx], ...updated });
 }
 
-const sortOrder = ref("recent");
+const sortOrder = ref("manual");
 
 const sortOptions = [
-  { value: "recent", label: "Plus récent", icon: Clock },
-  { value: "oldest", label: "Plus ancien", icon: History },
-  { value: "alpha", label: "Alphabétique", icon: ArrowDownAZ },
+  { value: "manual", label: "Manuel", icon: GripVertical },
   { value: "emissions", label: "Émissions CO₂", icon: Leaf },
+  { value: "steps", label: "Nombre d'étapes", icon: ListOrdered },
+  { value: "duration", label: "Durée", icon: Timer },
   { value: "distance", label: "Distance", icon: Ruler },
+  { value: "alpha", label: "Alphabétique", icon: ArrowDownAZ },
 ];
 
 const selectedOption = computed(
@@ -236,15 +238,18 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.5rem 1.1rem;
+  height: 38px;
+  padding: 0 1.1rem;
   border-radius: 100px;
   border: 1.5px solid var(--primary);
   background-color: transparent;
   color: var(--primary);
   font-size: var(--font-body);
-  font-weight: 500;
+  font-weight: 400;
   cursor: pointer;
   transition: background-color 0.2s ease, color 0.2s ease;
+  margin-left: 1rem;
+  white-space: nowrap;
 }
 
 .btn-new-trip:hover {
@@ -267,7 +272,8 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 1rem;
+  height: 38px;
+  padding: 0 1rem;
   border-radius: 100px;
   border: 1.5px solid #e5e7eb;
   background-color: white;
