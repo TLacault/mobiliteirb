@@ -1,11 +1,11 @@
 <script setup>
 import { ref, watch, computed, onMounted, onUnmounted } from "vue";
 import {
-  GripVertical,
   Trash2,
   Leaf,
   Clock3,
   Ruler,
+  ChevronUp,
   ChevronDown,
   Check,
   PlaneTakeoff,
@@ -27,9 +27,17 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  canMoveUp: {
+    type: Boolean,
+    default: false,
+  },
+  canMoveDown: {
+    type: Boolean,
+    default: false,
+  },
 });
 
-const emit = defineEmits(["deleted", "updated"]);
+const emit = defineEmits(["deleted", "updated", "move"]);
 
 const TRANSPORT_MODES = [
   { value: "plane", label: "Avion", icon: Plane },
@@ -131,14 +139,26 @@ onUnmounted(() => {
   <div class="step-card">
     <div class="step-top">
       <div class="step-top-left">
-        <button
-          class="drag-handle"
-          type="button"
-          title="Réordonner l'étape (bientôt)"
-          @click.stop
-        >
-          <GripVertical size="14" />
-        </button>
+        <div class="reorder-control" aria-label="Réordonner l'étape">
+          <button
+            class="reorder-btn"
+            type="button"
+            title="Monter l'étape"
+            :disabled="!canMoveUp"
+            @click.stop="emit('move', 'up')"
+          >
+            <ChevronUp size="12" />
+          </button>
+          <button
+            class="reorder-btn"
+            type="button"
+            title="Descendre l'étape"
+            :disabled="!canMoveDown"
+            @click.stop="emit('move', 'down')"
+          >
+            <ChevronDown size="12" />
+          </button>
+        </div>
         <span class="step-order">Étape {{ step.sequenceOrder }}</span>
       </div>
 
@@ -300,30 +320,49 @@ onUnmounted(() => {
   gap: 0.35rem;
 }
 
-.drag-handle {
+.reorder-control {
   display: inline-flex;
-  align-items: center;
+  flex-direction: column;
   justify-content: center;
   width: 28px;
   height: 28px;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   background: #f8fafc;
-  color: #94a3b8;
-  cursor: grab;
-  padding: 0;
+  overflow: hidden;
 }
 
-.drag-handle:active {
-  cursor: grabbing;
+.reorder-btn {
+  width: 100%;
+  height: 50%;
+  border: none;
+  background: transparent;
+  padding: 0;
+  color: #94a3b8;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.reorder-btn:hover:not(:disabled) {
+  background: #eef2f7;
+  color: var(--primary);
+}
+
+.reorder-btn:disabled {
+  color: #cbd5e1;
+  cursor: not-allowed;
 }
 
 .step-order {
-  font-size: 0.72rem;
-  font-weight: 600;
+  font-size: 0.8rem;
+  font-weight: 650;
   color: var(--primary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  margin-left: 0.25rem;
 }
 
 .delete-btn {
@@ -363,8 +402,8 @@ onUnmounted(() => {
   height: 32px;
   padding: 0 0.5rem;
   border-radius: 999px;
-  border: 1px solid #e5e7eb;
-  background: #fbfcfd;
+  /* border: 1px solid #e5e7eb; */
+  /* background: #f4f5f6; */
   color: #64748b;
   font-size: 0.78rem;
   font-weight: 600;

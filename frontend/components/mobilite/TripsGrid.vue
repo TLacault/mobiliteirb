@@ -142,6 +142,36 @@ async function handleStepDeleted(tripId, stepId) {
   }
 }
 
+async function handleStepMove(tripId, stepId, direction) {
+  const col = columns.value.find((c) => c.trip.id === tripId);
+  if (!col) return;
+
+  const currentIndex = col.steps.findIndex((s) => s.uuid === stepId);
+  if (currentIndex === -1) return;
+
+  const targetIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
+  if (targetIndex < 0 || targetIndex >= col.steps.length) return;
+
+  const currentStep = col.steps[currentIndex];
+  const targetStep = col.steps[targetIndex];
+  const currentOrder = currentStep.sequenceOrder;
+  const targetOrder = targetStep.sequenceOrder;
+
+  try {
+    await Promise.all([
+      updateStep(currentStep.uuid, { sequenceOrder: targetOrder }),
+      updateStep(targetStep.uuid, { sequenceOrder: currentOrder }),
+    ]);
+
+    currentStep.sequenceOrder = targetOrder;
+    targetStep.sequenceOrder = currentOrder;
+
+    col.steps.sort((a, b) => a.sequenceOrder - b.sequenceOrder);
+  } catch (e) {
+    console.error("Erreur lors de l'échange des séquences d'étapes :", e);
+  }
+}
+
 function handleStepUpdated(tripId, updated) {
   const col = columns.value.find((c) => c.trip.id === tripId);
   if (!col) return;
@@ -383,11 +413,17 @@ onUnmounted(() => {
                 Aucune étape pour ce trajet.
               </p>
               <StepCard
-                v-for="step in col.steps"
+                v-for="(step, stepIndex) in col.steps"
                 :key="step.uuid"
                 :step="step"
+                :can-move-up="stepIndex > 0"
+                :can-move-down="stepIndex < col.steps.length - 1"
                 @deleted="(id) => handleStepDeleted(col.trip.id, id)"
                 @updated="(upd) => handleStepUpdated(col.trip.id, upd)"
+                @move="
+                  (direction) =>
+                    handleStepMove(col.trip.id, step.uuid, direction)
+                "
               />
             </div>
           </div>
@@ -404,10 +440,7 @@ onUnmounted(() => {
     </div>
 
     <!-- Popup create Trip -->
-    <PopupCreateTrip 
-      v-model="showNewTripPopup" 
-      @submit="handleTripSubmitted" 
-    />
+    <PopupCreateTrip v-model="showNewTripPopup" @submit="handleTripSubmitted" />
   </div>
 </template>
 
@@ -456,9 +489,7 @@ onUnmounted(() => {
   font-size: var(--font-body);
   font-weight: 400;
   cursor: pointer;
-  transition:
-    background-color 0.2s ease,
-    color 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease;
   margin-left: 1rem;
   white-space: nowrap;
 }
@@ -492,9 +523,7 @@ onUnmounted(() => {
   font-size: var(--font-body);
   font-weight: 400;
   cursor: pointer;
-  transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
   white-space: nowrap;
 }
 
@@ -574,9 +603,7 @@ onUnmounted(() => {
 /* dropdown open/close transition */
 .dropdown-enter-active,
 .dropdown-leave-active {
-  transition:
-    opacity 0.15s ease,
-    transform 0.15s ease;
+  transition: opacity 0.15s ease, transform 0.15s ease;
 }
 .dropdown-enter-from,
 .dropdown-leave-to {
@@ -600,7 +627,7 @@ onUnmounted(() => {
 /* ── Trips grid ─────────────────────────────────── */
 
 .trips-carousel-shell {
-  --trips-gap: 1.5rem;
+  --trips-gap: 3rem;
   --edge-offset: 78px;
   --edge-width: 64px;
   --nav-top-offset: 80px;

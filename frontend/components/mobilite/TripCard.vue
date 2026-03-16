@@ -270,7 +270,7 @@ function confirmDelete() {
   white-space: nowrap;
   padding: 0.5rem 0.65rem;
   border-radius: 999px;
-  border: 1px solid #e5e7eb;
+  /* border: 1px solid #e5e7eb; */
   background: #f9fafb;
   font-size: 0.9rem;
   font-weight: 500;
