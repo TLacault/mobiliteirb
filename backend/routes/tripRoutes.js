@@ -13,6 +13,39 @@ const { authenticateJWT } = require("../middlewares/index");
 
 /**
  * @openapi
+ * /trips:
+ *   post:
+ *     summary: Create a newly pre-selected trip for a mobility
+ *     tags: [Trips]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [mobilityId, name]
+ *             properties:
+ *               mobilityId:
+ *                 type: string
+ *                 format: uuid
+ *               name:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Trip created successfully
+ *       400:
+ *         description: Missing data
+ *       403:
+ *         description: Forbidden - Not the mobility owner
+ *       404:
+ *         description: Mobility not found
+ */
+router.post("/", authenticateJWT, tripController.createTrip);
+
+/**
+ * @openapi
  * /trips/{tripId}:
  *   get:
  *     summary: Get a trip by ID

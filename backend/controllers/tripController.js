@@ -99,6 +99,46 @@ async function getTrip(req, res) {
   }
 }
 
+/** POST /api/v1/trips
+ * Créer un nouveau trajet
+ */
+async function createTrip(req, res) {
+  try {
+    const { mobilityId, name } = req.body;
+    const userId = req.user.id;
+
+    if (!mobilityId || !name) {
+      return res.status(400).json({ error: "Données manquantes" });
+    }
+
+    const mobility = await prisma.mobility.findUnique({
+      where: { id: mobilityId },
+      select: { userId: true },
+    });
+
+    if (!mobility) {
+      return res.status(404).json({ error: "Mobilité introuvable" });
+    }
+
+    if (mobility.userId !== userId) {
+      return res.status(403).json({ error: "Accès non autorisé" });
+    }
+
+    const newTrip = await prisma.trip.create({
+      data: {
+        mobilityId,
+        name,
+        isSelected: true,
+      },
+    });
+
+    res.status(201).json({ message: "Trajet créé", trip: newTrip });
+  } catch (error) {
+    console.error("Erreur lors de la création du trajet :", error);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+}
+
 /** * PATCH /api/v1/trips/:id
  * Mettre à jour les stats d'un trajet spécifique
  */
@@ -191,6 +231,7 @@ async function deleteTrip(req, res) {
 module.exports = {
   getTrips,
   getTrip,
+  createTrip,
   updateTrip,
   deleteTrip,
 };
