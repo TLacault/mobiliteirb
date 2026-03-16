@@ -17,7 +17,7 @@ import {
 import TripCard from "./TripCard.vue";
 import StepCard from "./StepCard.vue";
 import { getMobilityTrips, updateTrip } from "../../utils/trip_api.js";
-import { getStepsByTrip } from "../../utils/step_api.js";
+import { getStepsByTrip, updateStep } from "../../utils/step_api.js";
 
 const props = defineProps({
   mobilityId: {
@@ -64,11 +64,36 @@ async function handleToggle(tripId, isSelected) {
   }
 }
 
-function handleStepDeleted(tripId, stepId) {
+async function handleStepDeleted(tripId, stepId) {
   const col = columns.value.find((c) => c.trip.id === tripId);
   if (!col) return;
-  col.steps = col.steps.filter((s) => s.uuid !== stepId);
+
+  const nextSteps = col.steps.filter((s) => s.uuid !== stepId);
+  if (nextSteps.length === col.steps.length) return;
+
+  const stepsToPatch = [];
+  col.steps = nextSteps.map((step, index) => {
+    const newSequenceOrder = index + 1;
+    if (step.sequenceOrder !== newSequenceOrder) {
+      stepsToPatch.push({ uuid: step.uuid, sequenceOrder: newSequenceOrder });
+    }
+    return {
+      ...step,
+      sequenceOrder: newSequenceOrder,
+    };
+  });
   col.trip.steps = col.steps.length;
+
+  for (const step of stepsToPatch) {
+    try {
+      await updateStep(step.uuid, { sequenceOrder: step.sequenceOrder });
+    } catch (e) {
+      console.error(
+        `Erreur lors de la mise à jour de l'ordre de l'étape ${step.uuid}:`,
+        e,
+      );
+    }
+  }
 }
 
 function handleStepUpdated(tripId, updated) {
