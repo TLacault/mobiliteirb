@@ -1,6 +1,7 @@
 <script setup>
 import { ref, watch, computed, onMounted, onUnmounted } from "vue";
 import {
+  GripVertical,
   Trash2,
   Leaf,
   Clock3,
@@ -129,14 +130,58 @@ onUnmounted(() => {
 <template>
   <div class="step-card">
     <div class="step-top">
-      <span class="step-order">Étape {{ step.sequenceOrder }}</span>
-      <button
-        class="delete-btn"
-        title="Supprimer l'étape"
-        @click="handleDelete"
-      >
-        <Trash2 size="15" />
-      </button>
+      <div class="step-top-left">
+        <button
+          class="drag-handle"
+          type="button"
+          title="Réordonner l'étape (bientôt)"
+          @click.stop
+        >
+          <GripVertical size="14" />
+        </button>
+        <span class="step-order">Étape {{ step.sequenceOrder }}</span>
+      </div>
+
+      <div class="step-top-right">
+        <div class="top-stats-row">
+          <div class="top-stat-badge">
+            <Leaf size="12" class="stat-icon" />
+            <span
+              >{{ step.carbon != null ? step.carbon.toFixed(1) : "—" }} kg
+              CO₂</span
+            >
+          </div>
+          <div class="top-stat-badge">
+            <Ruler size="12" class="stat-icon" />
+            <span
+              >{{
+                step.distance != null ? step.distance.toFixed(0) : "—"
+              }}
+              km</span
+            >
+          </div>
+          <div class="top-stat-badge">
+            <Clock3 size="12" class="stat-icon" />
+            <span>
+              <template v-if="step.time != null">
+                <template v-if="Math.floor(step.time / 60) > 0">
+                  {{ Math.floor(step.time / 60) }}h
+                </template>
+                {{ (step.time % 60).toFixed(0) }}min
+              </template>
+              <template v-else> — </template>
+            </span>
+          </div>
+        </div>
+
+        <button
+          class="delete-btn"
+          title="Supprimer l'étape"
+          @click="handleDelete"
+        >
+          <Trash2 size="15" />
+        </button>
+      </div>
     </div>
 
     <div class="route-block">
@@ -167,68 +212,48 @@ onUnmounted(() => {
             @blur="saveField('labelEnd', labelEnd)"
           />
         </label>
-      </div>
-    </div>
 
-    <div ref="transportDropdownRef" class="transport-dropdown">
-      <button
-        class="transport-trigger"
-        @click.stop="transportMenuOpen = !transportMenuOpen"
-      >
-        <span class="transport-trigger-main">
-          <component :is="selectedTransport.icon" size="16" />
-          <span>{{ selectedTransport.label }}</span>
-        </span>
-        <ChevronDown
-          size="15"
-          class="trigger-chevron"
-          :class="{ open: transportMenuOpen }"
-        />
-      </button>
+        <label class="location-row transport-row">
+          <span class="location-label">
+            <Plane size="16" />
+            Transport
+          </span>
 
-      <Transition name="transport-menu">
-        <div v-if="transportMenuOpen" class="transport-menu">
-          <button
-            v-for="mode in TRANSPORT_MODES"
-            :key="mode.value"
-            class="transport-option"
-            :class="{ active: transportMode === mode.value }"
-            @click="selectTransportMode(mode)"
-          >
-            <span class="transport-option-main">
-              <component :is="mode.icon" size="16" />
-              <span>{{ mode.label }}</span>
-            </span>
-            <Check v-if="transportMode === mode.value" size="14" />
-          </button>
-        </div>
-      </Transition>
-    </div>
+          <div ref="transportDropdownRef" class="transport-dropdown">
+            <button
+              class="transport-trigger"
+              @click.stop="transportMenuOpen = !transportMenuOpen"
+            >
+              <span class="transport-trigger-main">
+                <component :is="selectedTransport.icon" size="16" />
+                <span>{{ selectedTransport.label }}</span>
+              </span>
+              <ChevronDown
+                size="15"
+                class="trigger-chevron"
+                :class="{ open: transportMenuOpen }"
+              />
+            </button>
 
-    <div class="stats-row">
-      <div class="stat">
-        <Leaf size="13" class="stat-icon" />
-        <span
-          >{{ step.carbon != null ? step.carbon.toFixed(1) : "—" }} kg CO₂</span
-        >
-      </div>
-      <div class="stat">
-        <Ruler size="13" class="stat-icon" />
-        <span
-          >{{ step.distance != null ? step.distance.toFixed(0) : "—" }} km</span
-        >
-      </div>
-      <div class="stat">
-        <Clock3 size="13" class="stat-icon" />
-        <span>
-          <template v-if="step.time != null">
-            <template v-if="Math.floor(step.time / 60) > 0">
-              {{ Math.floor(step.time / 60) }}h
-            </template>
-            {{ (step.time % 60).toFixed(0) }}min
-          </template>
-          <template v-else> — </template>
-        </span>
+            <Transition name="transport-menu">
+              <div v-if="transportMenuOpen" class="transport-menu">
+                <button
+                  v-for="mode in TRANSPORT_MODES"
+                  :key="mode.value"
+                  class="transport-option"
+                  :class="{ active: transportMode === mode.value }"
+                  @click="selectTransportMode(mode)"
+                >
+                  <span class="transport-option-main">
+                    <component :is="mode.icon" size="16" />
+                    <span>{{ mode.label }}</span>
+                  </span>
+                  <Check v-if="transportMode === mode.value" size="14" />
+                </button>
+              </div>
+            </Transition>
+          </div>
+        </label>
       </div>
     </div>
   </div>
@@ -239,10 +264,10 @@ onUnmounted(() => {
   background: #ffffff;
   border: 1px solid #e5e7eb;
   border-radius: 16px;
-  padding: 1rem 1rem 1.1rem;
+  padding: 0.75rem 0.8rem;
   display: flex;
   flex-direction: column;
-  gap: 0.9rem;
+  gap: 0.65rem;
   width: 100%;
   box-sizing: border-box;
   transition: box-shadow 0.15s ease, border-color 0.15s ease;
@@ -256,12 +281,45 @@ onUnmounted(() => {
 /* ── Top row: order label + delete ── */
 .step-top {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.step-top-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.step-top-right {
+  margin-left: auto;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.drag-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #94a3b8;
+  cursor: grab;
+  padding: 0;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
 }
 
 .step-order {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 600;
   color: var(--primary);
   text-transform: uppercase;
@@ -279,6 +337,7 @@ onUnmounted(() => {
   cursor: pointer;
   color: #9ca3af;
   padding: 0;
+  margin-left: 0.5rem;
   border-radius: 999px;
   transition: color 0.15s, background 0.15s, border-color 0.15s;
 }
@@ -289,6 +348,30 @@ onUnmounted(() => {
   background: oklch(63.066% 0.194 29.425 / 0.08);
 }
 
+.top-stats-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+}
+
+.top-stat-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  height: 32px;
+  padding: 0 0.5rem;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #fbfcfd;
+  color: #64748b;
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
 /* ── Route inputs ── */
 .route-block {
   display: block;
@@ -297,13 +380,14 @@ onUnmounted(() => {
 .route-inputs {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.45rem;
 }
 
 .location-row {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  align-items: center;
+  gap: 0.45rem;
 }
 
 .location-label {
@@ -311,10 +395,12 @@ onUnmounted(() => {
   align-items: center;
   gap: 0.45rem;
   color: #64748b;
-  font-size: 0.76rem;
+  font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  width: 88px;
+  flex-shrink: 0;
 }
 
 .location-label :deep(svg) {
@@ -323,12 +409,13 @@ onUnmounted(() => {
 }
 
 .location-input {
-  width: 100%;
+  width: 95%;
+  margin-left: 5%;
   box-sizing: border-box;
   border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 0.7rem 0.85rem;
-  font-size: 0.92rem;
+  border-radius: 10px;
+  padding: 0.42rem 0.6rem;
+  font-size: 0.82rem;
   font-family: var(--font-inter);
   color: var(--text);
   background: #f8fafc;
@@ -346,9 +433,17 @@ onUnmounted(() => {
   color: #9ca3af;
 }
 
+.transport-row {
+  align-items: stretch;
+}
+
 /* ── Transport dropdown ── */
 .transport-dropdown {
   position: relative;
+  width: 95%;
+  margin-left: 5%;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .transport-trigger {
@@ -358,9 +453,9 @@ onUnmounted(() => {
   justify-content: space-between;
   gap: 0.75rem;
   border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 0.78rem 0.85rem;
-  font-size: 0.92rem;
+  border-radius: 10px;
+  padding: 0.42rem 0.6rem;
+  font-size: 0.82rem;
   font-family: var(--font-inter);
   color: var(--text);
   background: #f8fafc;
@@ -418,11 +513,11 @@ onUnmounted(() => {
   justify-content: space-between;
   gap: 0.75rem;
   border: none;
-  border-radius: 10px;
+  border-radius: 8px;
   background: transparent;
   color: #334155;
-  padding: 0.65rem 0.7rem;
-  font-size: 0.9rem;
+  padding: 0.5rem 0.58rem;
+  font-size: 0.84rem;
   font-family: var(--font-inter);
   cursor: pointer;
   transition: background-color 0.15s ease, color 0.15s ease;
@@ -453,37 +548,35 @@ onUnmounted(() => {
   transform: translateY(-4px);
 }
 
-/* ── Stats row ── */
-.stats-row {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.75rem;
-  align-items: stretch;
-}
-
-.stat {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.35rem;
-  text-align: center;
-  font-size: 0.78rem;
-  color: #6b7280;
-  padding: 0.7rem 0.5rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  background: #fbfcfd;
-}
-
 .stat-icon {
   flex-shrink: 0;
   color: var(--primary);
 }
 
-@media (max-width: 560px) {
-  .stats-row {
+@media (max-width: 900px) {
+  .step-top {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .step-top-right {
+    margin-left: 0;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .top-stats-row {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .location-row {
     grid-template-columns: 1fr;
+    align-items: flex-start;
+  }
+
+  .location-label {
+    width: auto;
   }
 }
 </style>
