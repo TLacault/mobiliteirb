@@ -182,4 +182,32 @@ router.delete("/:tripId", authenticateJWT, tripController.deleteTrip);
  */
 router.get("/:tripId/steps", authenticateJWT, stepController.getStepsByTrip);
 
+/**
+ * @openapi
+ * /trips/{tripId}/steps:
+ *   post:
+ *     summary: Create a new step for a trip
+ *     tags: [Steps]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: tripId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Trip UUID
+ *     responses:
+ *       201:
+ *         description: Step created
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Trip not found
+ */
+router.post("/:tripId/steps", authenticateJWT, stepController.createStepByTrip);
+
 module.exports = router;

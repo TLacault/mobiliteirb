@@ -23,6 +23,26 @@ export async function getStepsByTrip(tripId) {
 }
 
 /**
+ * Create a new step for a trip
+ * @param {string} tripId - Trip UUID
+ * @returns {Promise<Object>} Created step
+ */
+export async function createStep(tripId) {
+  if (!tripId) {
+    throw new Error("tripId is required to create a step");
+  }
+
+  try {
+    return await authenticatedFetch(`${API_BASE}/trips/${tripId}/steps`, {
+      method: "POST",
+    });
+  } catch (error) {
+    console.error(`Error creating step for trip ${tripId}:`, error);
+    throw error;
+  }
+}
+
+/**
  * Get a step by its UUID
  * @param {string} stepId - Step UUID
  * @returns {Promise<Object>}

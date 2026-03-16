@@ -23,7 +23,11 @@ import {
   updateTrip,
   deleteTrip,
 } from "../../utils/trip_api.js";
-import { getStepsByTrip, updateStep } from "../../utils/step_api.js";
+import {
+  getStepsByTrip,
+  updateStep,
+  createStep,
+} from "../../utils/step_api.js";
 
 const props = defineProps({
   mobilityId: {
@@ -36,6 +40,7 @@ const loading = ref(true);
 const error = ref(null);
 
 const showNewTripPopup = ref(false);
+const creatingStepTripIds = ref(new Set());
 
 // Each column: { trip: { id, name, isSelected, emissions, distance, steps, from, to }, steps: [...] }
 const columns = ref([]);
@@ -177,6 +182,26 @@ function handleStepUpdated(tripId, updated) {
   if (!col) return;
   const idx = col.steps.findIndex((s) => s.uuid === updated.uuid);
   if (idx !== -1) col.steps.splice(idx, 1, { ...col.steps[idx], ...updated });
+}
+
+async function handleCreateStep(tripId) {
+  if (creatingStepTripIds.value.has(tripId)) return;
+
+  const col = columns.value.find((c) => c.trip.id === tripId);
+  if (!col) return;
+
+  creatingStepTripIds.value.add(tripId);
+  try {
+    const created = await createStep(tripId);
+    col.steps.push(created);
+    col.steps.sort((a, b) => a.sequenceOrder - b.sequenceOrder);
+    col.trip.steps = col.steps.length;
+  } catch (e) {
+    console.error("Erreur lors de la création d'une étape :", e);
+    alert("Erreur lors de la création de l'étape");
+  } finally {
+    creatingStepTripIds.value.delete(tripId);
+  }
 }
 
 const sortOrder = ref("manual");
@@ -425,6 +450,19 @@ onUnmounted(() => {
                     handleStepMove(col.trip.id, step.uuid, direction)
                 "
               />
+
+              <button
+                class="btn-add-step"
+                :disabled="creatingStepTripIds.has(col.trip.id)"
+                @click="handleCreateStep(col.trip.id)"
+              >
+                <Plus size="15" />
+                {{
+                  creatingStepTripIds.has(col.trip.id)
+                    ? "Ajout..."
+                    : "Ajouter une étape"
+                }}
+              </button>
             </div>
           </div>
         </div>
@@ -755,6 +793,35 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
+}
+
+.btn-add-step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: 100%;
+  min-height: 38px;
+  border-radius: 10px;
+  border: 1.5px dashed #cbd5e1;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.btn-add-step:hover:not(:disabled) {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: #ffffff;
+}
+
+.btn-add-step:disabled {
+  opacity: 0.7;
+  cursor: wait;
 }
 
 .no-steps {
