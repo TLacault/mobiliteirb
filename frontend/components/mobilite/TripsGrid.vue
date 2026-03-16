@@ -16,8 +16,10 @@ import {
 } from "lucide-vue-next";
 import TripCard from "./TripCard.vue";
 import StepCard from "./StepCard.vue";
+import PopupCreateTrip from "../popup/PopupCreateTrip.vue";
 import {
   getMobilityTrips,
+  createTrip,
   updateTrip,
   deleteTrip,
 } from "../../utils/trip_api.js";
@@ -32,6 +34,8 @@ const props = defineProps({
 
 const loading = ref(true);
 const error = ref(null);
+
+const showNewTripPopup = ref(false);
 
 // Each column: { trip: { id, name, isSelected, emissions, distance, steps, from, to }, steps: [...] }
 const columns = ref([]);
@@ -55,6 +59,22 @@ async function loadData() {
     error.value = e.message || "Erreur lors du chargement des trajets";
   } finally {
     loading.value = false;
+  }
+}
+
+async function handleCreateTrip() {
+  showNewTripPopup.value = true;
+}
+
+async function handleTripSubmitted(tripName) {
+  try {
+    await createTrip(props.mobilityId, tripName);
+    await loadData();
+    await nextTick();
+    updateScrollState();
+  } catch (e) {
+    console.error("Erreur lors de la création du trajet :", e);
+    alert("Erreur lors de la création du trajet");
   }
 }
 
@@ -257,7 +277,7 @@ onUnmounted(() => {
         <div class="section-header-left">
           <Route size="40" class="section-icon" />
           <h2 class="section-title gradient-cta">Trajets</h2>
-          <button class="btn-new-trip">
+          <button class="btn-new-trip" @click="handleCreateTrip">
             <Plus size="16" />
             Nouveau trajet
           </button>
@@ -382,6 +402,12 @@ onUnmounted(() => {
         </button>
       </div>
     </div>
+
+    <!-- Popup create Trip -->
+    <PopupCreateTrip 
+      v-model="showNewTripPopup" 
+      @submit="handleTripSubmitted" 
+    />
   </div>
 </template>
 
@@ -430,7 +456,9 @@ onUnmounted(() => {
   font-size: var(--font-body);
   font-weight: 400;
   cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
   margin-left: 1rem;
   white-space: nowrap;
 }
@@ -464,7 +492,9 @@ onUnmounted(() => {
   font-size: var(--font-body);
   font-weight: 400;
   cursor: pointer;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
   white-space: nowrap;
 }
 
@@ -544,7 +574,9 @@ onUnmounted(() => {
 /* dropdown open/close transition */
 .dropdown-enter-active,
 .dropdown-leave-active {
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
 }
 .dropdown-enter-from,
 .dropdown-leave-to {

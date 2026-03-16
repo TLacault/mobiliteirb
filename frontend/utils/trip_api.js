@@ -43,6 +43,31 @@ export async function getTrip(id) {
 }
 
 /**
+ * Create a new trip
+ * @param {string} mobilityId - Mobility UUID
+ * @param {Object} name - Trip name
+ * @returns {Promise<Object>} Created trip
+ */
+export async function createTrip(mobilityId, name) {
+  if (!mobilityId) {
+    throw new Error("mobilityId is required to create a trip");
+  }
+
+  try {
+    return await authenticatedFetch(`${API_BASE}/trips`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ mobilityId, name }),
+    });
+  } catch (error) {
+    console.error(`Error creating trip for mobility ${mobilityId}:`, error);
+    throw error;
+  }
+}
+
+/**
  * Update a trip by its UUID
  * @param {string} id - Trip UUID
  * @param {Object} data - Fields to update
