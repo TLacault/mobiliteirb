@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from "vue";
+import { ref, computed, nextTick, watch, onMounted, onUnmounted } from "vue";
 import {
   Route,
   Plus,
@@ -10,6 +10,8 @@ import {
   Timer,
   Ruler,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Check,
 } from "lucide-vue-next";
 import TripCard from "./TripCard.vue";
@@ -93,6 +95,76 @@ const selectedOption = computed(
 
 const isDropdownOpen = ref(false);
 const dropdownRef = ref(null);
+const tripsTrackRef = ref(null);
+const canScrollLeft = ref(false);
+const canScrollRight = ref(false);
+const visibleTripIndexes = ref([]);
+
+const SCROLL_TOLERANCE = 4;
+
+function updateScrollState() {
+  const track = tripsTrackRef.value;
+  if (!track) return;
+
+  const maxScrollLeft = Math.max(0, track.scrollWidth - track.clientWidth);
+
+  canScrollLeft.value = track.scrollLeft > SCROLL_TOLERANCE;
+  canScrollRight.value = track.scrollLeft < maxScrollLeft - SCROLL_TOLERANCE;
+
+  const cards = Array.from(track.querySelectorAll(".trip-column"));
+  visibleTripIndexes.value = cards
+    .map((card, index) => {
+      const left = card.offsetLeft - track.scrollLeft;
+      const right = left + card.clientWidth;
+      const isVisible = left < track.clientWidth - 1 && right > 1;
+      return isVisible ? index : -1;
+    })
+    .filter((index) => index !== -1);
+}
+
+function scrollToAdjacentTrip(direction) {
+  const track = tripsTrackRef.value;
+  if (!track) return;
+
+  const cards = Array.from(track.querySelectorAll(".trip-column"));
+  const cardOffsets = cards.map((card) => card.offsetLeft);
+  const current = track.scrollLeft;
+  const maxScrollLeft = Math.max(0, track.scrollWidth - track.clientWidth);
+
+  let target = current;
+  if (direction === "right") {
+    target =
+      cardOffsets.find((offset) => offset > current + SCROLL_TOLERANCE) ??
+      current + track.clientWidth / 3;
+  } else {
+    const previousOffsets = cardOffsets.filter(
+      (offset) => offset < current - SCROLL_TOLERANCE,
+    );
+    target =
+      previousOffsets[previousOffsets.length - 1] ??
+      Math.max(0, current - track.clientWidth / 3);
+  }
+
+  target = Math.max(0, Math.min(target, maxScrollLeft));
+
+  track.scrollTo({ left: target, behavior: "smooth" });
+}
+
+function scrollToTrip(index) {
+  const track = tripsTrackRef.value;
+  if (!track) return;
+
+  const cards = Array.from(track.querySelectorAll(".trip-column"));
+  const card = cards[index];
+  if (!card) return;
+
+  const maxScrollLeft = Math.max(0, track.scrollWidth - track.clientWidth);
+  const centeredTarget =
+    card.offsetLeft - (track.clientWidth - card.clientWidth) / 2;
+  const target = Math.max(0, Math.min(centeredTarget, maxScrollLeft));
+
+  track.scrollTo({ left: target, behavior: "smooth" });
+}
 
 const closeDropdown = (e) => {
   if (dropdownRef.value && !dropdownRef.value.contains(e.target)) {
@@ -100,13 +172,29 @@ const closeDropdown = (e) => {
   }
 };
 
+const onTrackScroll = () => updateScrollState();
+
+watch(
+  () => columns.value.length,
+  async () => {
+    await nextTick();
+    updateScrollState();
+  },
+);
+
 onMounted(() => {
   loadData();
   document.addEventListener("click", closeDropdown);
+  window.addEventListener("resize", updateScrollState);
+
+  nextTick(() => {
+    updateScrollState();
+  });
 });
 
 onUnmounted(() => {
   document.removeEventListener("click", closeDropdown);
+  window.removeEventListener("resize", updateScrollState);
 });
 </script>
 
@@ -172,31 +260,75 @@ onUnmounted(() => {
         Aucun trajet pour cette mobilité.
       </div>
 
-      <div v-else class="trips-grid">
-        <div
+      <div
+        v-if="!loading && !error && columns.length > 0"
+        class="trips-indicator"
+        aria-label="Indicateur de trajets"
+      >
+        <button
           v-for="(col, index) in columns"
-          :key="col.trip.id"
-          class="trip-column"
-        >
-          <TripCard
-            :trip="col.trip"
-            :index="index"
-            @toggle="(val) => handleToggle(col.trip.id, val)"
-          />
+          :key="`dot-${col.trip.id}`"
+          class="indicator-dot"
+          :class="{ active: visibleTripIndexes.includes(index) }"
+          :aria-label="`Aller au trajet ${index + 1}`"
+          @click="scrollToTrip(index)"
+        ></button>
+      </div>
 
-          <div class="steps-stack">
-            <p v-if="col.steps.length === 0" class="no-steps">
-              Aucune étape pour ce trajet.
-            </p>
-            <StepCard
-              v-for="step in col.steps"
-              :key="step.uuid"
-              :step="step"
-              @deleted="(id) => handleStepDeleted(col.trip.id, id)"
-              @updated="(upd) => handleStepUpdated(col.trip.id, upd)"
+      <div
+        v-if="!loading && !error && columns.length > 0"
+        class="trips-carousel-shell"
+      >
+        <button
+          class="scroll-nav left"
+          :disabled="!canScrollLeft"
+          @click="scrollToAdjacentTrip('left')"
+        >
+          <ChevronLeft size="20" />
+        </button>
+
+        <div class="edge-fade left" :class="{ visible: canScrollLeft }"></div>
+
+        <div
+          ref="tripsTrackRef"
+          class="trips-grid"
+          @scroll.passive="onTrackScroll"
+        >
+          <div
+            v-for="(col, index) in columns"
+            :key="col.trip.id"
+            class="trip-column"
+          >
+            <TripCard
+              :trip="col.trip"
+              :index="index"
+              @toggle="(val) => handleToggle(col.trip.id, val)"
             />
+
+            <div class="steps-stack">
+              <p v-if="col.steps.length === 0" class="no-steps">
+                Aucune étape pour ce trajet.
+              </p>
+              <StepCard
+                v-for="step in col.steps"
+                :key="step.uuid"
+                :step="step"
+                @deleted="(id) => handleStepDeleted(col.trip.id, id)"
+                @updated="(upd) => handleStepUpdated(col.trip.id, upd)"
+              />
+            </div>
           </div>
         </div>
+
+        <div class="edge-fade right" :class="{ visible: canScrollRight }"></div>
+
+        <button
+          class="scroll-nav right"
+          :disabled="!canScrollRight"
+          @click="scrollToAdjacentTrip('right')"
+        >
+          <ChevronRight size="20" />
+        </button>
       </div>
     </div>
   </div>
@@ -384,21 +516,129 @@ onUnmounted(() => {
 
 /* ── Trips grid ─────────────────────────────────── */
 
+.trips-carousel-shell {
+  --trips-gap: 1.5rem;
+  --edge-offset: 78px;
+  --edge-width: 64px;
+  --nav-top-offset: 80px;
+  position: relative;
+}
+
+.trips-indicator {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.7rem;
+  margin-bottom: 1.5rem;
+  margin-top: -3.5rem;
+  /* outline: 1px solid red; */
+}
+
+.indicator-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  border: 2px solid #d1d5db;
+  background: #e5e7eb;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.indicator-dot:hover {
+  border-color: var(--primary);
+}
+
+.indicator-dot.active {
+  border-color: var(--primary);
+  background: var(--primary);
+}
+
+.edge-fade {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: var(--edge-width);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 2;
+}
+
+.edge-fade.visible {
+  opacity: 1;
+}
+
+.edge-fade.left {
+  left: calc(-1 * var(--edge-offset));
+  background: linear-gradient(to right, #f8f9fa 12%, rgba(248, 249, 250, 0));
+}
+
+.edge-fade.right {
+  right: calc(-1 * var(--edge-offset));
+  background: linear-gradient(to left, #f8f9fa 12%, rgba(248, 249, 250, 0));
+}
+
+.scroll-nav {
+  position: absolute;
+  top: var(--nav-top-offset);
+  width: 42px;
+  height: 42px;
+  border: 1.5px solid #dbe3ec;
+  border-radius: 999px;
+  background-color: white;
+  color: #5f6a79;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 3;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease;
+}
+
+.scroll-nav.left {
+  left: -60px;
+}
+
+.scroll-nav.right {
+  right: -60px;
+}
+
+.scroll-nav:hover:not(:disabled) {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.scroll-nav:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .trips-grid {
   display: flex;
   flex-direction: row;
-  gap: 1.5rem;
+  gap: var(--trips-gap);
+  padding-top: 10px;
   padding-bottom: 1.5rem;
   align-items: flex-start;
+  overflow-x: auto;
+  overflow-y: visible;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.trips-grid::-webkit-scrollbar {
+  display: none;
 }
 
 .trip-column {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  width: 100%;
-  max-width: 550px;
-  flex-shrink: 0;
+  flex: 0 0 calc((100% - (2 * var(--trips-gap))) / 3);
+  min-width: 320px;
+  scroll-snap-align: start;
 }
 
 .steps-stack {
@@ -414,5 +654,23 @@ onUnmounted(() => {
   padding: 1rem;
   border: 1px dashed #e5e7eb;
   border-radius: 10px;
+}
+
+@media (max-width: 1300px) {
+  .trip-column {
+    flex-basis: calc((100% - var(--trips-gap)) / 2);
+  }
+}
+
+@media (max-width: 900px) {
+  .scroll-nav,
+  .edge-fade {
+    display: none;
+  }
+
+  .trip-column {
+    flex-basis: 100%;
+    min-width: 280px;
+  }
 }
 </style>
