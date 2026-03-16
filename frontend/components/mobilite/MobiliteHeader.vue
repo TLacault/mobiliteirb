@@ -5,6 +5,7 @@ import {
   FileText,
   Route,
   CheckCheck,
+  HatGlasses,
 } from "lucide-vue-next";
 import PopupDelete from "../popup/PopupDelete.vue";
 import { deleteMobility, updateMobility } from "../../utils/mobility_api.js";
@@ -35,10 +36,12 @@ const localName = ref(props.mobility?.name ?? "");
 const localYear = ref(
   props.mobility?.year ? new Date(props.mobility.year).getFullYear() : "",
 );
+const localAnonymous = ref(!Boolean(props.mobility?.isPublic));
 
 // Last committed values — used to skip saves when nothing changed
 const committedName = ref(localName.value);
 const committedYear = ref(localYear.value);
+const committedAnonymous = ref(localAnonymous.value);
 
 // Synchronise si la prop change (premier chargement différé)
 watch(
@@ -49,6 +52,8 @@ watch(
       committedName.value = localName.value;
       localYear.value = m.year ? new Date(m.year).getFullYear() : "";
       committedYear.value = localYear.value;
+      localAnonymous.value = !Boolean(m.isPublic);
+      committedAnonymous.value = localAnonymous.value;
     }
   },
 );
@@ -75,6 +80,8 @@ const isDirty = (field) => {
     return (
       String(localYear.value).trim() !== String(committedYear.value).trim()
     );
+  if (field === "anonymous")
+    return localAnonymous.value !== committedAnonymous.value;
   return false;
 };
 
@@ -89,12 +96,14 @@ const saveField = async (field, inputEl = null) => {
   if (field === "name") payload.name = localName.value;
   if (field === "year" && localYear.value)
     payload.year = `${localYear.value}-01-01`;
+  if (field === "anonymous") payload.isPublic = !localAnonymous.value;
   if (!Object.keys(payload).length) return;
   try {
     await updateMobility(props.uuid, payload);
     // Commit the new values
     if (field === "name") committedName.value = localName.value;
     if (field === "year") committedYear.value = localYear.value;
+    if (field === "anonymous") committedAnonymous.value = localAnonymous.value;
     emit("updated", payload);
     flashSaved(field);
   } catch (e) {
@@ -183,6 +192,30 @@ const handleDelete = async () => {
               </span>
             </Transition>
           </div>
+
+          <div class="field-wrap">
+            <label class="anonymous-toggle" title="Mode anonyme">
+              <span class="anonymous-label">
+                <HatGlasses size="13" />
+                <span class="anonymous-text"> Anonyme </span>
+              </span>
+              <input
+                v-model="localAnonymous"
+                type="checkbox"
+                @change="saveField('anonymous')"
+              />
+              <span class="anonymous-track"></span>
+            </label>
+            <Transition name="badge">
+              <span
+                v-if="savedField === 'anonymous'"
+                class="saved-badge badge-right"
+              >
+                <CheckCheck size="13" color="var(--primary)" />
+                saved
+              </span>
+            </Transition>
+          </div>
         </div>
 
         <button class="delete-btn" @click="showDeletePopup = true">
@@ -219,10 +252,6 @@ const handleDelete = async () => {
 </template>
 
 <style scoped>
-.mobilite-header {
-  /* pas de background ici : chaque niveau gère le sien */
-}
-
 /* --- Container commun (limite la largeur) --- */
 .header-container {
   max-width: 1400px;
@@ -339,6 +368,56 @@ const handleDelete = async () => {
 
 .field-year {
   width: 90px;
+}
+
+.anonymous-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #64748b;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.anonymous-toggle input {
+  display: none;
+}
+
+.anonymous-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.anonymous-track {
+  width: 36px;
+  height: 20px;
+  border-radius: 100px;
+  background: #d1d5db;
+  position: relative;
+  transition: background-color 0.2s ease;
+}
+
+.anonymous-track::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #ffffff;
+  transition: transform 0.2s ease;
+}
+
+.anonymous-toggle input:checked + .anonymous-track {
+  background: var(--primary);
+}
+
+.anonymous-toggle input:checked + .anonymous-track::after {
+  transform: translateX(16px);
 }
 
 .delete-btn {
