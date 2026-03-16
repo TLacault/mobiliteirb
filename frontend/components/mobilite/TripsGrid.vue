@@ -16,7 +16,11 @@ import {
 } from "lucide-vue-next";
 import TripCard from "./TripCard.vue";
 import StepCard from "./StepCard.vue";
-import { getMobilityTrips, updateTrip } from "../../utils/trip_api.js";
+import {
+  getMobilityTrips,
+  updateTrip,
+  deleteTrip,
+} from "../../utils/trip_api.js";
 import { getStepsByTrip, updateStep } from "../../utils/step_api.js";
 
 const props = defineProps({
@@ -61,6 +65,28 @@ async function handleToggle(tripId, isSelected) {
     if (col) col.trip.isSelected = isSelected;
   } catch (e) {
     console.error("Erreur lors de la mise à jour du trajet :", e);
+  }
+}
+
+async function handleTripUpdated(tripId, patch) {
+  try {
+    const updated = await updateTrip(tripId, patch);
+    const col = columns.value.find((c) => c.trip.id === tripId);
+    if (!col) return;
+    col.trip = { ...col.trip, ...patch, ...(updated || {}) };
+  } catch (e) {
+    console.error("Erreur lors de la mise à jour du trajet :", e);
+  }
+}
+
+async function handleTripDeleted(tripId) {
+  try {
+    await deleteTrip(tripId);
+    columns.value = columns.value.filter((c) => c.trip.id !== tripId);
+    await nextTick();
+    updateScrollState();
+  } catch (e) {
+    console.error("Erreur lors de la suppression du trajet :", e);
   }
 }
 
@@ -312,8 +338,6 @@ onUnmounted(() => {
           <ChevronLeft size="20" />
         </button>
 
-        <div class="edge-fade left" :class="{ visible: canScrollLeft }"></div>
-
         <div
           ref="tripsTrackRef"
           class="trips-grid"
@@ -327,7 +351,11 @@ onUnmounted(() => {
             <TripCard
               :trip="col.trip"
               :index="index"
+              :show-toggle="false"
+              :show-delete="true"
               @toggle="(val) => handleToggle(col.trip.id, val)"
+              @updated="(patch) => handleTripUpdated(col.trip.id, patch)"
+              @deleted="() => handleTripDeleted(col.trip.id)"
             />
 
             <div class="steps-stack">
@@ -344,8 +372,6 @@ onUnmounted(() => {
             </div>
           </div>
         </div>
-
-        <div class="edge-fade right" :class="{ visible: canScrollRight }"></div>
 
         <button
           class="scroll-nav right"

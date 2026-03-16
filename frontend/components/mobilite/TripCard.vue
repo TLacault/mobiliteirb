@@ -1,5 +1,7 @@
 <script setup>
-import { Leaf, Timer, MapPin, Ruler } from "lucide-vue-next";
+import { ref, watch, computed } from "vue";
+import { Leaf, Timer, MapPin, Ruler, Trash2, Pencil } from "lucide-vue-next";
+import PopupDelete from "../popup/PopupDelete.vue";
 
 const props = defineProps({
   trip: {
@@ -10,24 +12,83 @@ const props = defineProps({
     type: Number,
     required: true,
   },
+  showToggle: {
+    type: Boolean,
+    default: true,
+  },
+  showDelete: {
+    type: Boolean,
+    default: false,
+  },
 });
 
-const emit = defineEmits(["toggle"]);
+const emit = defineEmits(["toggle", "updated", "deleted"]);
+
+const tripName = ref(props.trip.name ?? "");
+const showDeletePopup = ref(false);
+
+watch(
+  () => props.trip.name,
+  (newName) => {
+    tripName.value = newName ?? "";
+  },
+);
+
+const formattedDuration = computed(() => {
+  const minutes = Number(props.trip.time ?? 0);
+  const hours = Math.floor(minutes / 60);
+  const mins = Math.floor(minutes % 60);
+  return `${hours > 0 ? `${hours}h ` : ""}${mins} min`;
+});
+
+function commitTripName() {
+  const nextName = tripName.value.trim();
+  const currentName = (props.trip.name ?? "").trim();
+  if (nextName === currentName) return;
+  emit("updated", { name: nextName || null });
+}
+
+function handleCardClick() {
+  if (!props.showToggle) return;
+  emit("toggle", !props.trip.isSelected);
+}
+
+function confirmDelete() {
+  emit("deleted", props.trip.id);
+}
 </script>
 
 <template>
   <div
     class="card-container"
-    :class="{ 'card-unselected': !trip.isSelected }"
-    @click="emit('toggle', !trip.isSelected)"
+    :class="{
+      'card-unselected': showToggle && !trip.isSelected,
+      'card-clickable': showToggle,
+    }"
+    @click="handleCardClick"
   >
     <div class="card-header">
       <div class="trip-title body">
         <div class="index body">{{ index + 1 }}.</div>
-        <p>"{{ trip.name || "Trajet sans nom" }}"</p>
+        <div class="trip-name-field">
+          <input
+            v-model="tripName"
+            class="trip-name-input"
+            type="text"
+            placeholder="Trajet sans nom"
+            title="Cliquer pour renommer"
+            @click.stop
+            @keydown.enter.prevent="$event.target.blur()"
+            @blur="commitTripName"
+          />
+          <span class="edit-hint" aria-hidden="true">
+            <Pencil size="13" />
+            Modifier
+          </span>
+        </div>
       </div>
 
-      <label class="toggle" @click.stop>
+      <label v-if="showToggle" class="toggle" @click.stop>
         <input
           type="checkbox"
           :checked="trip.isSelected"
@@ -36,52 +97,43 @@ const emit = defineEmits(["toggle"]);
         <span class="toggle-track"></span>
         <span class="body">synthèse</span>
       </label>
+
+      <button
+        v-if="showDelete"
+        class="delete-btn"
+        title="Supprimer le trajet"
+        @click.stop="showDeletePopup = true"
+      >
+        <Trash2 size="16" />
+      </button>
     </div>
 
-    <div class="card-content">
-      <div class="trip-section">
-        <div class="route-visual">
-          <div class="start-dot"></div>
-          <div class="line"></div>
-          <div class="end-dot"></div>
-        </div>
-
-        <div class="route-detail">
-          <div class="step">
-            <p>{{ trip.from || "—" }}</p>
-          </div>
-          <div class="step">
-            <p>{{ trip.to || "—" }}</p>
-          </div>
-        </div>
+    <div class="stats-section">
+      <div class="stat-badge">
+        <Leaf size="16" />
+        <span>{{ Number(trip.emissions ?? 0).toFixed(1) }} kg CO₂</span>
       </div>
-
-      <div class="stats-section">
-        <div class="stat-section detail">
-          <div class="icon"><Leaf size="18" /></div>
-          <p>{{ trip.emissions }} kg CO₂</p>
-        </div>
-        <div class="stat-section detail">
-          <div class="icon"><Timer size="18" /></div>
-          <p>
-            {{
-              Math.floor(trip.time / 60) > 0
-                ? Math.floor(trip.time / 60) + "h "
-                : ""
-            }}
-            {{ trip.time % 60 }} min
-          </p>
-        </div>
-        <div class="stat-section detail">
-          <div class="icon"><MapPin size="18" /></div>
-          <p>{{ trip.steps }} étape{{ trip.steps !== 1 ? "s" : "" }}</p>
-        </div>
-        <div class="stat-section detail">
-          <div class="icon"><Ruler size="18" /></div>
-          <p>{{ trip.distance }} km</p>
-        </div>
+      <div class="stat-badge">
+        <Timer size="16" />
+        <span>{{ formattedDuration }}</span>
+      </div>
+      <div class="stat-badge">
+        <MapPin size="16" />
+        <span
+          >{{ trip.steps ?? 0 }} étape{{ trip.steps !== 1 ? "s" : "" }}</span
+        >
+      </div>
+      <div class="stat-badge">
+        <Ruler size="16" />
+        <span>{{ Number(trip.distance ?? 0).toFixed(1) }} km</span>
       </div>
     </div>
+
+    <PopupDelete
+      v-model="showDeletePopup"
+      :item-name="trip.name || 'ce trajet'"
+      @confirm="confirmDelete"
+    />
   </div>
 </template>
 
@@ -92,14 +144,14 @@ const emit = defineEmits(["toggle"]);
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
   padding: 1.5rem 1rem;
   border-radius: 15px;
   background-color: white;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   border: 1px solid var(--primary);
-  align-items: center;
-  cursor: pointer;
+  align-items: stretch;
+  cursor: default;
 
   transition: all 0.3s ease-in-out;
   &:hover {
@@ -108,15 +160,20 @@ const emit = defineEmits(["toggle"]);
   }
 }
 
+.card-clickable {
+  cursor: pointer;
+}
+
 .card-unselected {
   border-style: dashed;
 }
 
 .card-header {
-  padding: 0rem 1rem;
+  padding: 0rem 0.75rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.75rem;
   width: 100%;
 }
 
@@ -124,6 +181,8 @@ const emit = defineEmits(["toggle"]);
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
 }
 
 .index {
@@ -135,99 +194,91 @@ const emit = defineEmits(["toggle"]);
   font-weight: 600;
 }
 
-.card-content {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
+.trip-name-input {
   width: 100%;
-  padding: 0rem 1.5rem;
+  min-width: 0;
+  border: 1px dashed transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.2;
+  padding: 0.38rem 0.55rem;
+  padding-right: 5.6rem;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+  cursor: text;
+}
+
+.trip-name-input::placeholder {
+  color: #9ca3af;
+  font-weight: 600;
+}
+
+.trip-title:hover .trip-name-input {
+  border-color: #c9d3e2;
+  background-color: #f8fafc;
+}
+
+.trip-name-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  background-color: #f3fdf8;
+}
+
+.trip-name-field {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+.edit-hint {
+  position: absolute;
+  right: 0.55rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: #94a3b8;
+  font-size: 0.72rem;
+  font-weight: 600;
+  pointer-events: none;
+  opacity: 0.85;
+  transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+.trip-title:hover .edit-hint,
+.trip-name-input:focus + .edit-hint {
+  color: var(--primary);
+  opacity: 1;
 }
 
 .stats-section {
   display: grid;
-  grid-template-columns: repeat(2, auto);
-  justify-content: space-between;
-  width: 60%;
-  margin-left: 1rem;
-  padding: 0rem 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+  width: 100%;
+  padding: 0rem 0.75rem;
 }
 
-.stat-section {
+.stat-badge {
   display: flex;
   align-items: center;
-  gap: 0.3rem;
-  color: var(--text);
+  gap: 0.45rem;
+  color: #374151;
   white-space: nowrap;
-  padding: 0rem 0.5rem;
+  padding: 0.5rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  font-size: 0.9rem;
+  font-weight: 500;
 }
 
-.icon {
-  display: flex;
-  align-items: center;
-  width: 18px;
-  height: 18px;
-}
-
-.trip-section {
-  display: flex;
-  align-items: center;
-  margin-right: 1rem;
-}
-
-.step {
-  padding: 0.25rem 1rem;
-  min-width: 120px;
-  text-align: center;
-  border-radius: 100px;
-  color: white;
-  background-color: var(--accent);
-}
-
-.route-visual {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  color: #7299cf;
-  margin: 0 1rem;
-}
-
-.route-detail {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-/* Le petit cercle au départ */
-.start-dot {
-  width: 15px;
-  aspect-ratio: 1;
-  background-color: white;
-  border: 4px solid currentColor;
-  border-radius: 50%;
+.stat-badge :deep(svg) {
+  color: var(--primary);
   flex-shrink: 0;
-  position: relative;
-  z-index: 1;
-}
-
-/* La ligne verticale */
-.line {
-  height: 50px;
-  width: 4px;
-  background-color: currentColor;
-  margin: -4px 0;
-  border-radius: 1.5rem;
-}
-
-/* Le petit cercle à la fin */
-.end-dot {
-  width: 15px;
-  aspect-ratio: 1;
-  background-color: white;
-  border: 4px solid currentColor;
-  border-radius: 50%;
-  flex-shrink: 0;
-  position: relative;
-  z-index: 1;
 }
 
 .toggle {
@@ -238,6 +289,7 @@ const emit = defineEmits(["toggle"]);
   font-size: 1rem;
   font-weight: 400;
   color: #6b7280;
+  flex-shrink: 0;
 }
 
 .toggle input {
@@ -272,5 +324,25 @@ const emit = defineEmits(["toggle"]);
 
 .toggle input:checked ~ .toggle-track::after {
   transform: translateX(16px);
+}
+
+.delete-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #9ca3af;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.delete-btn:hover {
+  color: var(--danger);
+  border-color: oklch(63.066% 0.194 29.425 / 45%);
+  background: oklch(63.066% 0.194 29.425 / 8%);
 }
 </style>
