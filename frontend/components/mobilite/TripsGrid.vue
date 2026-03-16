@@ -3,7 +3,7 @@ import { ref, computed, nextTick, watch, onMounted, onUnmounted } from "vue";
 import {
   Route,
   Plus,
-  GripVertical,
+  History,
   ArrowDownAZ,
   Leaf,
   ListOrdered,
@@ -204,19 +204,26 @@ async function handleCreateStep(tripId) {
   }
 }
 
-const sortOrder = ref("manual");
+const sortOrder = ref("createdAt");
 
-const sortOptions = [
-  { value: "manual", label: "Manuel", icon: GripVertical },
-  { value: "emissions", label: "Émissions CO₂", icon: Leaf },
-  { value: "steps", label: "Nombre d'étapes", icon: ListOrdered },
-  { value: "duration", label: "Durée", icon: Timer },
-  { value: "distance", label: "Distance", icon: Ruler },
+const baseSortOptions = [
+  { value: "createdAt", label: "Date création", icon: History },
   { value: "alpha", label: "Alphabétique", icon: ArrowDownAZ },
 ];
 
+const statsSortOptions = [
+  { value: "emissions", label: "Émissions CO₂", icon: Leaf },
+  { value: "duration", label: "Temps", icon: Timer },
+  { value: "distance", label: "Distance", icon: Ruler },
+  { value: "steps", label: "Nombre d'étapes", icon: ListOrdered },
+];
+
+const allSortOptions = [...baseSortOptions, ...statsSortOptions];
+
 const selectedOption = computed(
-  () => sortOptions.find((o) => o.value === sortOrder.value) ?? sortOptions[0],
+  () =>
+    allSortOptions.find((o) => o.value === sortOrder.value) ??
+    allSortOptions[0],
 );
 
 const isDropdownOpen = ref(false);
@@ -356,7 +363,30 @@ onUnmounted(() => {
             <Transition name="dropdown">
               <div v-if="isDropdownOpen" class="sort-menu">
                 <button
-                  v-for="opt in sortOptions"
+                  v-for="opt in baseSortOptions"
+                  :key="opt.value"
+                  class="sort-option"
+                  :class="{ active: sortOrder === opt.value }"
+                  @click="
+                    sortOrder = opt.value;
+                    isDropdownOpen = false;
+                  "
+                >
+                  <component :is="opt.icon" size="16" class="opt-icon" />
+                  <span>{{ opt.label }}</span>
+                  <Check
+                    v-if="sortOrder === opt.value"
+                    size="14"
+                    class="check-icon"
+                  />
+                </button>
+
+                <div class="sort-separator">
+                  <span class="sort-separator-label">Stats</span>
+                </div>
+
+                <button
+                  v-for="opt in statsSortOptions"
                   :key="opt.value"
                   class="sort-option"
                   :class="{ active: sortOrder === opt.value }"
@@ -611,6 +641,23 @@ onUnmounted(() => {
 
 .sort-option:not(:last-child) {
   border-bottom: 1px solid #f3f4f6;
+}
+
+.sort-separator {
+  display: flex;
+  align-items: center;
+  padding: 0.45rem 1rem 0.4rem;
+  border-top: 1px solid #e5e7eb;
+  border-bottom: 1px solid #f3f4f6;
+  background: #fbfcfd;
+}
+
+.sort-separator-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #94a3b8;
 }
 
 .sort-option:hover {
