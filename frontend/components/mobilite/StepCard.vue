@@ -19,6 +19,8 @@ import {
   Ship,
   Bike,
   Footprints,
+  NotebookPen,
+  CheckCheck,
 } from "lucide-vue-next";
 import { deleteStep, updateStep } from "../../utils/step_api.js";
 
@@ -58,6 +60,14 @@ const transportMode = ref(props.step.transportMode ?? "");
 const transportMenuOpen = ref(false);
 const transportDropdownRef = ref(null);
 
+// Notes management
+const showNotes = ref(false);
+const localNotes = ref(props.step.metadata?.notes ?? "");
+const committedNotes = ref(props.step.metadata?.notes ?? "");
+const savedNotes = ref(false);
+let notessavedTimer = null;
+const debounceTimers = {};
+
 watch(
   () => props.step.labelStart,
   (value) => {
@@ -76,6 +86,14 @@ watch(
   () => props.step.transportMode,
   (value) => {
     transportMode.value = value ?? "";
+  },
+);
+
+watch(
+  () => props.step.metadata?.notes,
+  (value) => {
+    localNotes.value = value ?? "";
+    committedNotes.value = value ?? "";
   },
 );
 
@@ -116,6 +134,42 @@ async function selectTransportMode(mode) {
   transportMenuOpen.value = false;
   await saveField("transportMode", mode.value);
 }
+
+const isDirtyNotes = () => {
+  return localNotes.value.trim() !== committedNotes.value.trim();
+};
+
+const flashSavedNotes = () => {
+  savedNotes.value = true;
+  clearTimeout(notessavedTimer);
+  notessavedTimer = setTimeout(() => {
+    savedNotes.value = false;
+  }, 2000);
+};
+
+const saveNotes = async () => {
+  clearTimeout(debounceTimers.notes);
+  localNotes.value = localNotes.value.trim();
+  if (!isDirtyNotes()) return;
+
+  try {
+    const metadata = {
+      ...props.step.metadata,
+      notes: localNotes.value,
+    };
+    const updated = await updateStep(props.step.uuid, { metadata });
+    committedNotes.value = localNotes.value;
+    emit("updated", updated);
+    flashSavedNotes();
+  } catch (e) {
+    console.error("Erreur lors de la mise à jour des notes:", e);
+  }
+};
+
+const scheduleSaveNotes = () => {
+  clearTimeout(debounceTimers.notes);
+  debounceTimers.notes = setTimeout(() => saveNotes(), 1000);
+};
 
 function closeTransportMenu(event) {
   if (
@@ -275,6 +329,42 @@ onUnmounted(() => {
           </div>
         </label>
       </div>
+    </div>
+
+    <div class="notes-section">
+      <button
+        class="notes-toggle"
+        @click="showNotes = !showNotes"
+        :title="showNotes ? 'Masquer les notes' : 'Afficher les notes'"
+      >
+        <NotebookPen size="14" />
+        <span>Notes</span>
+        <ChevronDown
+          size="14"
+          class="notes-chevron"
+          :class="{ open: showNotes }"
+        />
+      </button>
+
+      <Transition name="notes-expand">
+        <div v-if="showNotes" class="notes-content">
+          <div class="notes-input-wrapper">
+            <textarea
+              v-model="localNotes"
+              placeholder="Ajouter des notes sur cette étape..."
+              class="notes-textarea"
+              @input="scheduleSaveNotes"
+              @blur="saveNotes"
+            ></textarea>
+            <Transition name="badge">
+              <span v-if="savedNotes" class="saved-badge notes-badge">
+                <CheckCheck size="13" />
+                saved
+              </span>
+            </Transition>
+          </div>
+        </div>
+      </Transition>
     </div>
   </div>
 </template>
@@ -617,5 +707,130 @@ onUnmounted(() => {
   .location-label {
     width: auto;
   }
+}
+
+/* ── Notes section ── */
+.notes-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 0.6rem;
+}
+
+.notes-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: transparent;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  transition: color 0.15s ease;
+}
+
+.notes-toggle:hover {
+  color: var(--primary);
+}
+
+.notes-toggle :deep(svg) {
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.notes-chevron {
+  margin-left: auto;
+  transition: transform 0.2s ease;
+  color: #94a3b8;
+}
+
+.notes-chevron.open {
+  transform: rotate(180deg);
+}
+
+.notes-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.notes-input-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.notes-textarea {
+  width: 100%;
+  min-height: 100px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 0.6rem;
+  font-size: 0.82rem;
+  font-family: var(--font-inter);
+  color: var(--text);
+  background: #f8fafc;
+  outline: none;
+  resize: vertical;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+}
+
+.notes-textarea:focus {
+  border-color: var(--primary);
+  background: #ffffff;
+  box-shadow: 0 0 0 3px oklch(70.62% 0.139 158.37 / 0.1);
+}
+
+.notes-textarea::placeholder {
+  color: #9ca3af;
+}
+
+.saved-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--primary);
+  background: #dcfce7;
+  padding: 0.2rem 0.55rem;
+  border-radius: 100px;
+  white-space: nowrap;
+  pointer-events: none;
+  border: 1.5px solid var(--primary);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.notes-badge {
+  position: absolute;
+  bottom: 0.5rem;
+  right: 0.5rem;
+}
+
+.notes-expand-enter-active,
+.notes-expand-leave-active {
+  transition: opacity 0.2s ease, max-height 0.2s ease;
+}
+
+.notes-expand-enter-from,
+.notes-expand-leave-to {
+  opacity: 0;
+  max-height: 0;
+}
+
+.badge-enter-active,
+.badge-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.badge-enter-from,
+.badge-leave-to {
+  opacity: 0;
 }
 </style>

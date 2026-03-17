@@ -45,6 +45,7 @@ async function getStepsByTrip(req, res) {
         time: true,
         labelStart: true,
         labelEnd: true,
+        metadata: true,
       },
     });
 
@@ -105,6 +106,7 @@ async function createStepByTrip(req, res) {
         time: true,
         labelStart: true,
         labelEnd: true,
+        metadata: true,
       },
     });
 
@@ -224,7 +226,8 @@ async function updateStep(req, res) {
       return res.status(403).json({ error: "Accès non autorisé" });
     }
 
-    const { labelStart, labelEnd, transportMode, sequenceOrder } = req.body;
+    const { labelStart, labelEnd, transportMode, sequenceOrder, metadata } =
+      req.body;
 
     const updated = await prisma.step.update({
       where: { id: stepId },
@@ -233,6 +236,7 @@ async function updateStep(req, res) {
         ...(labelEnd !== undefined && { labelEnd }),
         ...(transportMode !== undefined && { transportMode }),
         ...(sequenceOrder !== undefined && { sequenceOrder }),
+        ...(metadata !== undefined && { metadata }),
       },
       select: {
         id: true,
@@ -242,6 +246,7 @@ async function updateStep(req, res) {
         distance: true,
         labelStart: true,
         labelEnd: true,
+        metadata: true,
       },
     });
 

@@ -206,15 +206,6 @@ const handleDelete = async () => {
               />
               <span class="anonymous-track"></span>
             </label>
-            <Transition name="badge">
-              <span
-                v-if="savedField === 'anonymous'"
-                class="saved-badge badge-right"
-              >
-                <CheckCheck size="13" color="var(--primary)" />
-                saved
-              </span>
-            </Transition>
           </div>
         </div>
 
