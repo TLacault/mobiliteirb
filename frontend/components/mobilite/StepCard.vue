@@ -758,6 +758,8 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
+  overflow: hidden;
+  transform-origin: top;
 }
 
 .notes-input-wrapper {
@@ -815,13 +817,23 @@ onUnmounted(() => {
 
 .notes-expand-enter-active,
 .notes-expand-leave-active {
-  transition: opacity 0.2s ease, max-height 0.2s ease;
+  overflow: hidden;
+  transition: max-height 0.32s ease-in-out, opacity 0.24s ease-in-out,
+    transform 0.32s ease-in-out;
 }
 
 .notes-expand-enter-from,
 .notes-expand-leave-to {
   opacity: 0;
   max-height: 0;
+  transform: translateY(-6px) scaleY(0.96);
+}
+
+.notes-expand-enter-to,
+.notes-expand-leave-from {
+  opacity: 1;
+  max-height: 180px;
+  transform: translateY(0) scaleY(1);
 }
 
 .badge-enter-active,
