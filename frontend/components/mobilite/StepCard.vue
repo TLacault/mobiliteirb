@@ -40,6 +40,7 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["deleted", "updated", "move"]);
+const stepId = computed(() => props.step?.id ?? props.step?.uuid);
 
 const TRANSPORT_MODES = [
   { value: "plane", label: "Avion", icon: Plane },
@@ -108,7 +109,7 @@ const selectedTransport = computed(
 
 async function saveField(field, value) {
   try {
-    const updated = await updateStep(props.step.uuid, { [field]: value });
+    const updated = await updateStep(stepId.value, { [field]: value });
     emit("updated", updated);
   } catch (e) {
     console.error(`Erreur lors de la mise à jour du step (${field}):`, e);
@@ -117,8 +118,8 @@ async function saveField(field, value) {
 
 async function handleDelete() {
   try {
-    await deleteStep(props.step.uuid);
-    emit("deleted", props.step.uuid);
+    await deleteStep(stepId.value);
+    emit("deleted", stepId.value);
   } catch (e) {
     console.error("Erreur lors de la suppression du step:", e);
   }
@@ -157,7 +158,7 @@ const saveNotes = async () => {
       ...props.step.metadata,
       notes: localNotes.value,
     };
-    const updated = await updateStep(props.step.uuid, { metadata });
+    const updated = await updateStep(stepId.value, { metadata });
     committedNotes.value = localNotes.value;
     emit("updated", updated);
     flashSavedNotes();

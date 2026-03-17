@@ -8,7 +8,11 @@ import {
   PencilRuler,
   CalendarCheck2,
 } from "lucide-vue-next";
-import { getMobility, deleteMobility } from "../../utils/mobility_api.js";
+import {
+  getMobility,
+  getMobilityStats,
+  deleteMobility,
+} from "../../utils/mobility_api.js";
 import PopupDelete from "../popup/PopupDelete.vue";
 
 const showForm = ref(false);
@@ -34,7 +38,14 @@ const error = ref(null);
 
 onMounted(async () => {
   try {
-    mobility.value = await getMobility(props.uuid);
+    const [details, stats] = await Promise.all([
+      getMobility(props.uuid),
+      getMobilityStats(props.uuid),
+    ]);
+    mobility.value = {
+      ...details,
+      stats,
+    };
   } catch (e) {
     error.value = e.message || "Erreur lors du chargement";
   } finally {

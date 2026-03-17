@@ -26,7 +26,7 @@ const formatValue = (value) =>
     <div class="overview-header">
       <div class="overview-title">
         <SquareKanban class="icon" size="var(--font-section-title)" />
-        <h2 class="section-title">Overview</h2>
+        <h2 class="section-title gradient-cta">Statistiques</h2>
       </div>
 
       <button class="btn">

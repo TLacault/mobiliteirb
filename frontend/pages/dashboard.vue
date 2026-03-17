@@ -68,7 +68,12 @@ const loadData = async () => {
   error.value = null;
 
   try {
-    mobilityIDs.value = await getMobilities();
+    const mobilities = await getMobilities();
+    mobilityIDs.value = (Array.isArray(mobilities) ? mobilities : []).map(
+      (mobility) => ({
+        uuid: mobility?.uuid ?? mobility?.id,
+      }),
+    );
   } catch (e) {
     error.value = e.message || "Erreur lors du chargement";
   } finally {

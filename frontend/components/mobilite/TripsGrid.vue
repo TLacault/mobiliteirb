@@ -23,11 +23,7 @@ import {
   updateTrip,
   deleteTrip,
 } from "../../utils/trip_api.js";
-import {
-  getStepsByTrip,
-  updateStep,
-  createStep,
-} from "../../utils/step_api.js";
+import { getSteps, updateStep, createStep } from "../../utils/step_api.js";
 
 const props = defineProps({
   mobilityId: {
@@ -45,6 +41,8 @@ const creatingStepTripIds = ref(new Set());
 // Each column: { trip: { id, name, isSelected, emissions, distance, steps, from, to }, steps: [...] }
 const columns = ref([]);
 
+const getStepId = (step) => step?.id ?? step?.uuid;
+
 async function loadData() {
   loading.value = true;
   error.value = null;
@@ -52,7 +50,7 @@ async function loadData() {
     const trips = await getMobilityTrips(props.mobilityId, orderQuery.value);
     const withSteps = await Promise.all(
       trips.map(async (trip) => {
-        const steps = await getStepsByTrip(trip.id);
+        const steps = await getSteps(trip.id);
         const sorted = [...steps].sort(
           (a, b) => a.sequenceOrder - b.sequenceOrder,
         );
@@ -119,14 +117,17 @@ async function handleStepDeleted(tripId, stepId) {
   const col = columns.value.find((c) => c.trip.id === tripId);
   if (!col) return;
 
-  const nextSteps = col.steps.filter((s) => s.uuid !== stepId);
+  const nextSteps = col.steps.filter((s) => getStepId(s) !== stepId);
   if (nextSteps.length === col.steps.length) return;
 
   const stepsToPatch = [];
   col.steps = nextSteps.map((step, index) => {
     const newSequenceOrder = index + 1;
     if (step.sequenceOrder !== newSequenceOrder) {
-      stepsToPatch.push({ uuid: step.uuid, sequenceOrder: newSequenceOrder });
+      stepsToPatch.push({
+        id: getStepId(step),
+        sequenceOrder: newSequenceOrder,
+      });
     }
     return {
       ...step,
@@ -137,10 +138,10 @@ async function handleStepDeleted(tripId, stepId) {
 
   for (const step of stepsToPatch) {
     try {
-      await updateStep(step.uuid, { sequenceOrder: step.sequenceOrder });
+      await updateStep(step.id, { sequenceOrder: step.sequenceOrder });
     } catch (e) {
       console.error(
-        `Erreur lors de la mise à jour de l'ordre de l'étape ${step.uuid}:`,
+        `Erreur lors de la mise à jour de l'ordre de l'étape ${step.id}:`,
         e,
       );
     }
@@ -151,7 +152,7 @@ async function handleStepMove(tripId, stepId, direction) {
   const col = columns.value.find((c) => c.trip.id === tripId);
   if (!col) return;
 
-  const currentIndex = col.steps.findIndex((s) => s.uuid === stepId);
+  const currentIndex = col.steps.findIndex((s) => getStepId(s) === stepId);
   if (currentIndex === -1) return;
 
   const targetIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
@@ -164,8 +165,8 @@ async function handleStepMove(tripId, stepId, direction) {
 
   try {
     await Promise.all([
-      updateStep(currentStep.uuid, { sequenceOrder: targetOrder }),
-      updateStep(targetStep.uuid, { sequenceOrder: currentOrder }),
+      updateStep(getStepId(currentStep), { sequenceOrder: targetOrder }),
+      updateStep(getStepId(targetStep), { sequenceOrder: currentOrder }),
     ]);
 
     currentStep.sequenceOrder = targetOrder;
@@ -180,7 +181,8 @@ async function handleStepMove(tripId, stepId, direction) {
 function handleStepUpdated(tripId, updated) {
   const col = columns.value.find((c) => c.trip.id === tripId);
   if (!col) return;
-  const idx = col.steps.findIndex((s) => s.uuid === updated.uuid);
+  const updatedId = getStepId(updated);
+  const idx = col.steps.findIndex((s) => getStepId(s) === updatedId);
   if (idx !== -1) col.steps.splice(idx, 1, { ...col.steps[idx], ...updated });
 }
 
@@ -208,7 +210,7 @@ const sortField = ref(null);
 const sortDirection = ref(null);
 
 const baseSortOptions = [
-  { value: "createdAt", label: "Date création", icon: History },
+  { value: "createdAt", label: "Date Création", icon: History },
   { value: "alpha", label: "Alphabétique", icon: ArrowDownAZ },
 ];
 
@@ -410,10 +412,10 @@ onUnmounted(() => {
       <div class="section-header">
         <div class="section-header-left">
           <Route size="40" class="section-icon" />
-          <h2 class="section-title gradient-cta">Trajets</h2>
+          <h2 class="section-title gradient-cta">Gestion des Trajets</h2>
           <button class="btn-new-trip" @click="handleCreateTrip">
             <Plus size="16" />
-            Nouveau trajet
+            Nouveau Trajet
           </button>
         </div>
 
@@ -555,7 +557,7 @@ onUnmounted(() => {
               </p>
               <StepCard
                 v-for="(step, stepIndex) in col.steps"
-                :key="step.uuid"
+                :key="step.id ?? step.uuid"
                 :step="step"
                 :can-move-up="stepIndex > 0"
                 :can-move-down="stepIndex < col.steps.length - 1"
@@ -563,7 +565,7 @@ onUnmounted(() => {
                 @updated="(upd) => handleStepUpdated(col.trip.id, upd)"
                 @move="
                   (direction) =>
-                    handleStepMove(col.trip.id, step.uuid, direction)
+                    handleStepMove(col.trip.id, step.id ?? step.uuid, direction)
                 "
               />
 

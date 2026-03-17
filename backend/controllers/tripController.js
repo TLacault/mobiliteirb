@@ -1,17 +1,15 @@
 const { PrismaClient } = require("@prisma/client");
+const { calculateStepsStats } = require("../utils/stats");
+
 const prisma = new PrismaClient();
 
 /**
- * Controller pour la gestion des trips
- */
-
-/**
- * GET /api/v1/mobilities/:id/trips
+ * GET /api/v1/mobilities/{mobilityId}/trips
  * Get the list of trips for a mobility
  */
 async function getTrips(req, res) {
   try {
-    const mobiliteId = req.params.id;
+    const mobilityId = req.params.id;
     const userId = req.user.id;
     const requestedOrder =
       typeof req.query.order === "string" ? req.query.order : "createdAt";
@@ -33,25 +31,25 @@ async function getTrips(req, res) {
       ? requestedOrder
       : "createdAt";
 
-    if (!mobiliteId) {
-      return res.status(400).json({ error: "ID mobilité manquant" });
+    if (!mobilityId) {
+      return res.status(400).json({ error: "Mobility ID is required" });
     }
 
-    const mobilite = await prisma.mobility.findUnique({
-      where: { id: mobiliteId },
+    const mobility = await prisma.mobility.findUnique({
+      where: { id: mobilityId },
       select: { id: true, userId: true },
     });
 
-    if (!mobilite) {
-      return res.status(404).json({ error: "Mobilité introuvable" });
+    if (!mobility) {
+      return res.status(404).json({ error: "Mobility not found" });
     }
 
-    if (mobilite.userId !== userId) {
-      return res.status(403).json({ error: "Accès non autorisé" });
+    if (mobility.userId !== userId) {
+      return res.status(403).json({ error: "Forbidden" });
     }
 
     const trips = await prisma.trip.findMany({
-      where: { mobilityId: mobiliteId },
+      where: { mobilityId: mobilityId },
       select: {
         id: true,
         name: true,
@@ -97,17 +95,16 @@ async function getTrips(req, res) {
       trips.sort((a, b) => (a.steps.length - b.steps.length) * directionFactor);
     }
 
-    // Renvoyer les IDs sous forme d'objets avec clé uuid pour compatibilité
-    res.json(trips.map((m) => ({ uuid: m.id })));
+    res.json(trips.map((m) => ({ id: m.id })));
   } catch (error) {
-    console.error("Erreur lors de la récupération des trajets :", error);
-    res.status(500).json({ error: "Erreur serveur" });
+    console.error("Error fetching trips:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 }
 
 /**
- * GET /api/v1/trips/:id
- * Récupérer les stats d'un trajet spécifique
+ * GET /api/v1/trips/{id}
+ * Get trip properties only
  */
 async function getTrip(req, res) {
   try {
@@ -115,7 +112,7 @@ async function getTrip(req, res) {
     const userId = req.user.id;
 
     if (!tripId) {
-      return res.status(400).json({ error: "ID trajet manquant" });
+      return res.status(400).json({ error: "Trip ID is required" });
     }
 
     const trip = await prisma.trip.findUnique({
@@ -124,53 +121,87 @@ async function getTrip(req, res) {
         mobility: {
           select: { userId: true },
         },
-        steps: true,
       },
     });
 
     if (!trip) {
-      return res.status(404).json({ error: "Trajet introuvable" });
+      return res.status(404).json({ error: "Trip not found" });
     }
 
-    // Vérifier que le trajet appartient à l'utilisateur connecté
     if (trip.mobility.userId !== userId) {
-      return res.status(403).json({ error: "Accès non autorisé" });
+      return res.status(403).json({ error: "Forbidden" });
     }
-
-    // Calculer les stats depuis les steps du trajet
-    const totalCarbon = trip.steps.reduce((sum, s) => sum + (s.carbon ?? 0), 0);
-    const totalDistance = trip.steps.reduce(
-      (sum, s) => sum + (s.distance ?? 0),
-      0,
-    );
-    const stepCount = trip.steps.length;
-    const totalTime = trip.steps.reduce((sum, s) => sum + (s.time ?? 0), 0);
 
     res.json({
+      id: trip.id,
       name: trip.name,
       isSelected: trip.isSelected,
-      emissions: Math.round(totalCarbon * 100) / 100,
-      distance: Math.round(totalDistance * 100) / 100,
-      steps: stepCount,
-      time: totalTime,
-      // A voir comment on récup les villes de départ et d'arrivée, peut-être à partir du premier et dernier step ?
+      mobilityId: trip.mobilityId,
     });
   } catch (error) {
-    console.error("Erreur lors de la récupération du trajet :", error);
-    res.status(500).json({ error: "Erreur serveur" });
+    console.error("Error fetching trip:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 }
 
-/** POST /api/v1/trips
- * Créer un nouveau trajet
+/**
+ * GET /api/v1/trips/{id}/stats
+ * Get aggregated statistics for a trip
+ */
+async function getTripStatsHandler(req, res) {
+  try {
+    const { tripId } = req.params;
+    const userId = req.user.id;
+
+    if (!tripId) {
+      return res.status(400).json({ error: "Trip ID is required" });
+    }
+
+    const trip = await prisma.trip.findUnique({
+      where: { id: tripId },
+      include: {
+        mobility: {
+          select: { userId: true },
+        },
+        steps: {
+          select: {
+            carbon: true,
+            distance: true,
+            time: true,
+          },
+        },
+      },
+    });
+
+    if (!trip) {
+      return res.status(404).json({ error: "Trip not found" });
+    }
+
+    if (trip.mobility.userId !== userId) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    const stats = calculateStepsStats(trip.steps);
+
+    res.json(stats);
+  } catch (error) {
+    console.error("Error fetching trip stats:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+}
+
+/**
+ * POST /api/v1/mobilities/{mobilityId}/trips
+ * Create a new trip
  */
 async function createTrip(req, res) {
   try {
-    const { mobilityId, name } = req.body;
+    const mobilityId = req.params.mobilityId ?? req.params.id;
+    const { name } = req.body;
     const userId = req.user.id;
 
     if (!mobilityId || !name) {
-      return res.status(400).json({ error: "Données manquantes" });
+      return res.status(400).json({ error: "Missing required fields" });
     }
 
     const mobility = await prisma.mobility.findUnique({
@@ -179,11 +210,11 @@ async function createTrip(req, res) {
     });
 
     if (!mobility) {
-      return res.status(404).json({ error: "Mobilité introuvable" });
+      return res.status(404).json({ error: "Mobility not found" });
     }
 
     if (mobility.userId !== userId) {
-      return res.status(403).json({ error: "Accès non autorisé" });
+      return res.status(403).json({ error: "Forbidden" });
     }
 
     const newTrip = await prisma.trip.create({
@@ -194,15 +225,15 @@ async function createTrip(req, res) {
       },
     });
 
-    res.status(201).json({ message: "Trajet créé", trip: newTrip });
+    res.status(201).json({ id: newTrip.id });
   } catch (error) {
-    console.error("Erreur lors de la création du trajet :", error);
-    res.status(500).json({ error: "Erreur serveur" });
+    console.error("Error creating trip:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 }
-
-/** * PATCH /api/v1/trips/:id
- * Mettre à jour les stats d'un trajet spécifique
+/**
+ * PATCH /api/v1/trips/{id}
+ * Update a trip
  */
 async function updateTrip(req, res) {
   try {
@@ -211,7 +242,7 @@ async function updateTrip(req, res) {
     const { name, isSelected } = req.body;
 
     if (!tripId) {
-      return res.status(400).json({ error: "ID trajet manquant" });
+      return res.status(400).json({ error: "Trip ID is required" });
     }
 
     const trip = await prisma.trip.findUnique({
@@ -224,33 +255,31 @@ async function updateTrip(req, res) {
     });
 
     if (!trip) {
-      return res.status(404).json({ error: "Trajet introuvable" });
+      return res.status(404).json({ error: "Trip not found" });
     }
 
-    // Vérifier que le trajet appartient à l'utilisateur connecté
     if (trip.mobility.userId !== userId) {
-      return res.status(403).json({ error: "Accès non autorisé" });
+      return res.status(403).json({ error: "Forbidden" });
     }
 
-    // Mettre à jour les champs modifiables
     const updatedTrip = await prisma.trip.update({
       where: { id: tripId },
       data: {
-        name: name ?? trip.name,
-        isSelected: isSelected ?? trip.isSelected,
+        ...(name !== undefined && { name }),
+        ...(isSelected !== undefined && { isSelected }),
       },
     });
 
-    res.json({ message: "Trajet mis à jour", trip: updatedTrip });
+    res.json(updatedTrip);
   } catch (error) {
-    console.error("Erreur lors de la mise à jour du trajet :", error);
-    res.status(500).json({ error: "Erreur serveur" });
+    console.error("Error updating trip:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 }
 
 /**
- * DELETE /api/v1/trips/:id
- * Supprimer un trajet par son ID
+ * DELETE /api/v1/trips/{id}
+ * Delete a trip
  */
 async function deleteTrip(req, res) {
   try {
@@ -258,7 +287,7 @@ async function deleteTrip(req, res) {
     const userId = req.user.id;
 
     if (!tripId) {
-      return res.status(400).json({ error: "ID trajet manquant" });
+      return res.status(400).json({ error: "Trip ID is required" });
     }
 
     const trip = await prisma.trip.findUnique({
@@ -271,28 +300,28 @@ async function deleteTrip(req, res) {
     });
 
     if (!trip) {
-      return res.status(404).json({ error: "Trajet introuvable" });
+      return res.status(404).json({ error: "Trip not found" });
     }
 
-    // Vérifier que le trajet appartient à l'utilisateur connecté
     if (trip.mobility.userId !== userId) {
-      return res.status(403).json({ error: "Accès non autorisé" });
+      return res.status(403).json({ error: "Forbidden" });
     }
 
     await prisma.trip.delete({
       where: { id: tripId },
     });
 
-    res.json({ message: "Trajet supprimé" });
+    res.status(204).send();
   } catch (error) {
-    console.error("Erreur lors de la suppression du trajet :", error);
-    res.status(500).json({ error: "Erreur serveur" });
+    console.error("Error deleting trip:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 }
 
 module.exports = {
   getTrips,
   getTrip,
+  getTripStatsHandler,
   createTrip,
   updateTrip,
   deleteTrip,

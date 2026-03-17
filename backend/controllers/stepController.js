@@ -2,20 +2,16 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
 /**
- * Controller pour la gestion des steps
- */
-
-/**
- * GET /api/v1/trips/:tripId/steps
+ * GET /api/v1/trips/{tripId}/steps
  * Get the list of steps for a trip
  */
-async function getStepsByTrip(req, res) {
+async function getSteps(req, res) {
   try {
     const { tripId } = req.params;
     const userId = req.user.id;
 
     if (!tripId) {
-      return res.status(400).json({ error: "ID trajet manquant" });
+      return res.status(400).json({ error: "Trip ID is required" });
     }
 
     const trip = await prisma.trip.findUnique({
@@ -26,11 +22,11 @@ async function getStepsByTrip(req, res) {
     });
 
     if (!trip) {
-      return res.status(404).json({ error: "Trajet introuvable" });
+      return res.status(404).json({ error: "Trip not found" });
     }
 
     if (trip.mobility.userId !== userId) {
-      return res.status(403).json({ error: "Accès non autorisé" });
+      return res.status(403).json({ error: "Forbidden" });
     }
 
     const steps = await prisma.step.findMany({
@@ -49,24 +45,24 @@ async function getStepsByTrip(req, res) {
       },
     });
 
-    res.json(steps.map((s) => ({ uuid: s.id, ...s })));
+    res.json(steps.map((s) => ({ id: s.id, ...s })));
   } catch (error) {
-    console.error("Erreur lors de la récupération des steps :", error);
-    res.status(500).json({ error: "Erreur serveur" });
+    console.error("Error fetching steps:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 }
 
 /**
- * POST /api/v1/trips/:tripId/steps
+ * POST /api/v1/trips/{tripId}/steps
  * Create a new step for a trip (no request body required)
  */
-async function createStepByTrip(req, res) {
+async function createStep(req, res) {
   try {
     const { tripId } = req.params;
     const userId = req.user.id;
 
     if (!tripId) {
-      return res.status(400).json({ error: "ID trajet manquant" });
+      return res.status(400).json({ error: "Trip ID is required" });
     }
 
     const trip = await prisma.trip.findUnique({
@@ -77,11 +73,11 @@ async function createStepByTrip(req, res) {
     });
 
     if (!trip) {
-      return res.status(404).json({ error: "Trajet introuvable" });
+      return res.status(404).json({ error: "Trip not found" });
     }
 
     if (trip.mobility.userId !== userId) {
-      return res.status(403).json({ error: "Accès non autorisé" });
+      return res.status(403).json({ error: "Forbidden" });
     }
 
     const lastStep = await prisma.step.findFirst({
@@ -110,15 +106,15 @@ async function createStepByTrip(req, res) {
       },
     });
 
-    res.status(201).json({ uuid: created.id, ...created });
+    res.status(201).json({ id: created.id, ...created });
   } catch (error) {
-    console.error("Erreur lors de la création du step :", error);
-    res.status(500).json({ error: "Erreur serveur" });
+    console.error("Error creating step:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 }
 
 /**
- * GET /api/v1/steps/:stepId
+ * GET /api/v1/steps/{id}
  * Get a step by ID
  */
 async function getStep(req, res) {
@@ -127,7 +123,7 @@ async function getStep(req, res) {
     const userId = req.user.id;
 
     if (!stepId) {
-      return res.status(400).json({ error: "ID step manquant" });
+      return res.status(400).json({ error: "Step ID is required" });
     }
 
     const step = await prisma.step.findUnique({
@@ -142,23 +138,23 @@ async function getStep(req, res) {
     });
 
     if (!step) {
-      return res.status(404).json({ error: "Step introuvable" });
+      return res.status(404).json({ error: "Step not found" });
     }
 
     if (step.trip.mobility.userId !== userId) {
-      return res.status(403).json({ error: "Accès non autorisé" });
+      return res.status(403).json({ error: "Forbidden" });
     }
 
     const { trip, ...stepData } = step;
-    res.json({ uuid: stepData.id, ...stepData });
+    res.json({ id: stepData.id, ...stepData });
   } catch (error) {
-    console.error("Erreur lors de la récupération du step :", error);
-    res.status(500).json({ error: "Erreur serveur" });
+    console.error("Error fetching step:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 }
 
 /**
- * DELETE /api/v1/steps/:stepId
+ * DELETE /api/v1/steps/{id}
  * Delete a step by ID
  */
 async function deleteStep(req, res) {
@@ -167,7 +163,7 @@ async function deleteStep(req, res) {
     const userId = req.user.id;
 
     if (!stepId) {
-      return res.status(400).json({ error: "ID step manquant" });
+      return res.status(400).json({ error: "Step ID is required" });
     }
 
     const step = await prisma.step.findUnique({
@@ -182,24 +178,24 @@ async function deleteStep(req, res) {
     });
 
     if (!step) {
-      return res.status(404).json({ error: "Step introuvable" });
+      return res.status(404).json({ error: "Step not found" });
     }
 
     if (step.trip.mobility.userId !== userId) {
-      return res.status(403).json({ error: "Accès non autorisé" });
+      return res.status(403).json({ error: "Forbidden" });
     }
 
     await prisma.step.delete({ where: { id: stepId } });
 
     res.status(204).send();
   } catch (error) {
-    console.error("Erreur lors de la suppression du step :", error);
-    res.status(500).json({ error: "Erreur serveur" });
+    console.error("Error deleting step:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 }
 
 /**
- * PATCH /api/v1/steps/:stepId
+ * PATCH /api/v1/steps/{id}
  * Update editable fields of a step
  */
 async function updateStep(req, res) {
@@ -219,11 +215,11 @@ async function updateStep(req, res) {
     });
 
     if (!step) {
-      return res.status(404).json({ error: "Step introuvable" });
+      return res.status(404).json({ error: "Step not found" });
     }
 
     if (step.trip.mobility.userId !== userId) {
-      return res.status(403).json({ error: "Accès non autorisé" });
+      return res.status(403).json({ error: "Forbidden" });
     }
 
     const { labelStart, labelEnd, transportMode, sequenceOrder, metadata } =
@@ -250,16 +246,16 @@ async function updateStep(req, res) {
       },
     });
 
-    res.json({ uuid: updated.id, ...updated });
+    res.json({ id: updated.id, ...updated });
   } catch (error) {
-    console.error("Erreur lors de la mise à jour du step :", error);
-    res.status(500).json({ error: "Erreur serveur" });
+    console.error("Error updating step:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 }
 
 module.exports = {
-  getStepsByTrip,
-  createStepByTrip,
+  getSteps,
+  createStep,
   getStep,
   deleteStep,
   updateStep,

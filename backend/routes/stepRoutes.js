@@ -12,7 +12,7 @@ const { authenticateJWT } = require("../middlewares/index");
 
 /**
  * @openapi
- * /steps/{stepId}:
+ * /steps/{id}:
  *   get:
  *     summary: Get a step by ID
  *     tags: [Steps]
@@ -20,7 +20,7 @@ const { authenticateJWT } = require("../middlewares/index");
  *       - bearerAuth: []
  *     parameters:
  *       - in: path
- *         name: stepId
+ *         name: id
  *         required: true
  *         schema:
  *           type: string
@@ -29,6 +29,27 @@ const { authenticateJWT } = require("../middlewares/index");
  *     responses:
  *       200:
  *         description: Step details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                 sequenceOrder:
+ *                   type: number
+ *                 transportMode:
+ *                   type: string
+ *                 carbon:
+ *                   type: number
+ *                 distance:
+ *                   type: number
+ *                 time:
+ *                   type: number
+ *                 labelStart:
+ *                   type: string
+ *                 labelEnd:
+ *                   type: string
  *       401:
  *         description: Unauthorized
  *       403:
@@ -40,7 +61,7 @@ router.get("/:stepId", authenticateJWT, stepController.getStep);
 
 /**
  * @openapi
- * /steps/{stepId}:
+ * /steps/{id}:
  *   delete:
  *     summary: Delete a step by ID
  *     tags: [Steps]
@@ -48,7 +69,7 @@ router.get("/:stepId", authenticateJWT, stepController.getStep);
  *       - bearerAuth: []
  *     parameters:
  *       - in: path
- *         name: stepId
+ *         name: id
  *         required: true
  *         schema:
  *           type: string
@@ -68,7 +89,7 @@ router.delete("/:stepId", authenticateJWT, stepController.deleteStep);
 
 /**
  * @openapi
- * /steps/{stepId}:
+ * /steps/{id}:
  *   patch:
  *     summary: Update a step's editable fields
  *     tags: [Steps]
@@ -76,11 +97,12 @@ router.delete("/:stepId", authenticateJWT, stepController.deleteStep);
  *       - bearerAuth: []
  *     parameters:
  *       - in: path
- *         name: stepId
+ *         name: id
  *         required: true
  *         schema:
  *           type: string
  *           format: uuid
+ *         description: Step UUID
  *     requestBody:
  *       content:
  *         application/json:
@@ -93,6 +115,10 @@ router.delete("/:stepId", authenticateJWT, stepController.deleteStep);
  *                 type: string
  *               transportMode:
  *                 type: string
+ *               sequenceOrder:
+ *                 type: number
+ *               metadata:
+ *                 type: object
  *     responses:
  *       200:
  *         description: Updated step

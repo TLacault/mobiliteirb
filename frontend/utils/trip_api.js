@@ -6,7 +6,7 @@ import { API_BASE, authenticatedFetch } from "./authFetch.js";
 
 /**
  * Get the list of trips for a mobility
- * @param {string} mobilityId - Mobility UUID
+ * @param {string} mobilityId - Mobility ID
  * @param {string} order - Sort order
  * @returns {Promise<Array>}
  */
@@ -28,9 +28,9 @@ export async function getTrips(mobilityId, order = "createdAt") {
 }
 
 /**
- * Get a trip by its UUID
- * @param {string} id - Trip UUID
- * @returns {Promise<Object>} Trip detail with stats
+ * Get a trip by its ID (properties only)
+ * @param {string} id - Trip ID
+ * @returns {Promise<Object>} Trip properties
  */
 export async function getTrip(id) {
   if (!id) {
@@ -46,10 +46,28 @@ export async function getTrip(id) {
 }
 
 /**
+ * Get trip statistics
+ * @param {string} id - Trip ID
+ * @returns {Promise<Object>} Trip statistics
+ */
+export async function getTripStats(id) {
+  if (!id) {
+    throw new Error("id is required to fetch trip stats");
+  }
+
+  try {
+    return await authenticatedFetch(`${API_BASE}/trips/${id}/stats`);
+  } catch (error) {
+    console.error(`Error fetching trip stats ${id}:`, error);
+    throw error;
+  }
+}
+
+/**
  * Create a new trip
- * @param {string} mobilityId - Mobility UUID
- * @param {Object} name - Trip name
- * @returns {Promise<Object>} Created trip
+ * @param {string} mobilityId - Mobility ID
+ * @param {string} name - Trip name
+ * @returns {Promise<Object>} Created trip ID
  */
 export async function createTrip(mobilityId, name) {
   if (!mobilityId) {
@@ -57,13 +75,16 @@ export async function createTrip(mobilityId, name) {
   }
 
   try {
-    return await authenticatedFetch(`${API_BASE}/trips`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+    return await authenticatedFetch(
+      `${API_BASE}/mobilities/${mobilityId}/trips`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name }),
       },
-      body: JSON.stringify({ mobilityId, name }),
-    });
+    );
   } catch (error) {
     console.error(`Error creating trip for mobility ${mobilityId}:`, error);
     throw error;
@@ -71,8 +92,8 @@ export async function createTrip(mobilityId, name) {
 }
 
 /**
- * Update a trip by its UUID
- * @param {string} id - Trip UUID
+ * Update a trip by its ID
+ * @param {string} id - Trip ID
  * @param {Object} data - Fields to update
  * @returns {Promise<Object>} Updated trip
  */
@@ -96,10 +117,9 @@ export async function updateTrip(id, data) {
 }
 
 /**
- * Fetch all trips for a mobility with their full details.
- * Returns an array of trip objects: { id, name, isSelected, emissions, distance, steps, ... }.
- * Individual trip failures are caught and replaced with a default object so the rest of the list still renders.
- * @param {string} mobilityId - Mobility UUID
+ * Fetch all trips for a mobility with their statistics.
+ * Returns an array of trip objects with stats: { id, name, isSelected, emissions, distance, steps, ... }.
+ * @param {string} mobilityId - Mobility ID
  * @param {string} order - Sort order
  * @returns {Promise<Array>}
  */
@@ -108,10 +128,18 @@ export async function getMobilityTrips(mobilityId, order = "createdAt") {
   const items = Array.isArray(data) ? data : data.trips || [];
   return Promise.all(
     items.map(async (item) => {
-      const id = item.uuid;
+      const id = item?.id ?? item?.uuid;
       try {
-        const stats = await getTrip(id);
-        return { id, ...stats };
+        const tripData = await getTrip(id);
+        const stats = await getTripStats(id);
+        return {
+          id,
+          ...tripData,
+          emissions: stats?.totalCarbon ?? 0,
+          distance: stats?.totalDistance ?? 0,
+          time: stats?.totalTime ?? 0,
+          steps: stats?.stepCount ?? 0,
+        };
       } catch (e) {
         console.error(`Error fetching trip details ${id}:`, e);
         return {
@@ -119,6 +147,7 @@ export async function getMobilityTrips(mobilityId, order = "createdAt") {
           name: null,
           emissions: 0,
           distance: 0,
+          time: 0,
           steps: 0,
           from: null,
           to: null,
@@ -129,8 +158,8 @@ export async function getMobilityTrips(mobilityId, order = "createdAt") {
 }
 
 /**
- * Delete a trip by its UUID
- * @param {string} id - Trip UUID
+ * Delete a trip by its ID
+ * @param {string} id - Trip ID
  * @returns {Promise<Object>} Delete response
  */
 export async function deleteTrip(id) {

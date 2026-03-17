@@ -13,40 +13,7 @@ const { authenticateJWT } = require("../middlewares/index");
 
 /**
  * @openapi
- * /trips:
- *   post:
- *     summary: Create a newly pre-selected trip for a mobility
- *     tags: [Trips]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [mobilityId, name]
- *             properties:
- *               mobilityId:
- *                 type: string
- *                 format: uuid
- *               name:
- *                 type: string
- *     responses:
- *       201:
- *         description: Trip created successfully
- *       400:
- *         description: Missing data
- *       403:
- *         description: Forbidden - Not the mobility owner
- *       404:
- *         description: Mobility not found
- */
-router.post("/", authenticateJWT, tripController.createTrip);
-
-/**
- * @openapi
- * /trips/{tripId}:
+ * /trips/{id}:
  *   get:
  *     summary: Get a trip by ID
  *     tags: [Trips]
@@ -54,7 +21,7 @@ router.post("/", authenticateJWT, tripController.createTrip);
  *       - bearerAuth: []
  *     parameters:
  *       - in: path
- *         name: tripId
+ *         name: id
  *         required: true
  *         schema:
  *           type: string
@@ -62,13 +29,30 @@ router.post("/", authenticateJWT, tripController.createTrip);
  *         description: Trip UUID
  *     responses:
  *       200:
- *         description: Trip details and stats
+ *         description: Trip properties
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Trip'
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                 name:
+ *                   type: string
+ *                 isSelected:
+ *                   type: boolean
+ *                 mobilityId:
+ *                   type: string
+ *                 createdAt:
+ *                   type: string
+ *                   format: date-time
+ *                 updatedAt:
+ *                   type: string
+ *                   format: date-time
  *       401:
  *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
  *       404:
  *         description: Trip not found
  */
@@ -76,7 +60,52 @@ router.get("/:tripId", authenticateJWT, tripController.getTrip);
 
 /**
  * @openapi
- * /trips/{tripId}:
+ * /trips/{id}/stats:
+ *   get:
+ *     summary: Get trip statistics
+ *     tags: [Trips]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Trip UUID
+ *     responses:
+ *       200:
+ *         description: Trip statistics
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 totalCarbon:
+ *                   type: number
+ *                 totalDistance:
+ *                   type: number
+ *                 totalTime:
+ *                   type: number
+ *                 stepCount:
+ *                   type: number
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Trip not found
+ */
+router.get(
+  "/:tripId/stats",
+  authenticateJWT,
+  tripController.getTripStatsHandler,
+);
+
+/**
+ * @openapi
+ * /trips/{id}:
  *   patch:
  *     summary: Partially update a trip
  *     tags: [Trips]
@@ -84,7 +113,7 @@ router.get("/:tripId", authenticateJWT, tripController.getTrip);
  *       - bearerAuth: []
  *     parameters:
  *       - in: path
- *         name: tripId
+ *         name: id
  *         required: true
  *         schema:
  *           type: string
@@ -105,17 +134,10 @@ router.get("/:tripId", authenticateJWT, tripController.getTrip);
  *     responses:
  *       200:
  *         description: Trip updated
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                 trip:
- *                   $ref: '#/components/schemas/Trip'
  *       401:
  *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
  *       404:
  *         description: Trip not found
  */
@@ -123,7 +145,7 @@ router.patch("/:tripId", authenticateJWT, tripController.updateTrip);
 
 /**
  * @openapi
- * /trips/{tripId}:
+ * /trips/{id}:
  *   delete:
  *     summary: Delete a trip
  *     tags: [Trips]
@@ -131,24 +153,19 @@ router.patch("/:tripId", authenticateJWT, tripController.updateTrip);
  *       - bearerAuth: []
  *     parameters:
  *       - in: path
- *         name: tripId
+ *         name: id
  *         required: true
  *         schema:
  *           type: string
  *           format: uuid
  *         description: Trip UUID
  *     responses:
- *       200:
+ *       204:
  *         description: Trip deleted
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
  *       401:
  *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
  *       404:
  *         description: Trip not found
  */
@@ -173,6 +190,29 @@ router.delete("/:tripId", authenticateJWT, tripController.deleteTrip);
  *     responses:
  *       200:
  *         description: List of steps
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                   sequenceOrder:
+ *                     type: number
+ *                   transportMode:
+ *                     type: string
+ *                   carbon:
+ *                     type: number
+ *                   distance:
+ *                     type: number
+ *                   time:
+ *                     type: number
+ *                   labelStart:
+ *                     type: string
+ *                   labelEnd:
+ *                     type: string
  *       401:
  *         description: Unauthorized
  *       403:
@@ -180,7 +220,7 @@ router.delete("/:tripId", authenticateJWT, tripController.deleteTrip);
  *       404:
  *         description: Trip not found
  */
-router.get("/:tripId/steps", authenticateJWT, stepController.getStepsByTrip);
+router.get("/:tripId/steps", authenticateJWT, stepController.getSteps);
 
 /**
  * @openapi
@@ -201,6 +241,15 @@ router.get("/:tripId/steps", authenticateJWT, stepController.getStepsByTrip);
  *     responses:
  *       201:
  *         description: Step created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                 sequenceOrder:
+ *                   type: number
  *       401:
  *         description: Unauthorized
  *       403:
@@ -208,6 +257,6 @@ router.get("/:tripId/steps", authenticateJWT, stepController.getStepsByTrip);
  *       404:
  *         description: Trip not found
  */
-router.post("/:tripId/steps", authenticateJWT, stepController.createStepByTrip);
+router.post("/:tripId/steps", authenticateJWT, stepController.createStep);
 
 module.exports = router;

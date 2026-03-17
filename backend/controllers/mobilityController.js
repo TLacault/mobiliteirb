@@ -1,4 +1,6 @@
 const { PrismaClient } = require("@prisma/client");
+const { getMobilityStats: calculateMobilityStats } = require("../utils/stats");
+
 const prisma = new PrismaClient();
 
 function parseMobilityYear(value) {
@@ -18,126 +20,143 @@ function parseMobilityYear(value) {
 }
 
 /**
- * Controller pour la gestion des mobilités
- */
-
-/**
- * GET /api/v1/mobilites
- * Récupérer la liste des uuid des mobilités de l'utilisateur connecté
+ * GET /api/v1/mobilities
+ * Get list of user mobilities
  */
 async function getMobilities(req, res) {
   try {
-    const userId = req.user.id; // Récupérer l'ID de l'utilisateur connecté
-    const mobilites = await prisma.mobility.findMany({
+    const userId = req.user.id;
+    const mobilities = await prisma.mobility.findMany({
       where: { userId },
       orderBy: { lastEdit: "desc" },
       select: { id: true },
     });
-    // Renvoyer les IDs sous forme d'objets avec clé uuid pour compatibilité
-    res.json(mobilites.map((m) => ({ uuid: m.id })));
+    res.json(mobilities.map((m) => ({ id: m.id })));
   } catch (error) {
-    console.error("Erreur lors de la récupération des mobilités :", error);
-    res.status(500).json({ error: "Erreur serveur" });
+    console.error("Error fetching mobilities:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 }
 
 /**
- * GET /api/v1/mobilites/:id
- * Récupérer une mobilité complète par son ID (avec stats agrégées)
+ * GET /api/v1/mobilities/{id}
+ * Get mobility properties only
  */
 async function getMobility(req, res) {
   try {
     const { id } = req.params;
     const userId = req.user.id;
 
-    const mobilite = await prisma.mobility.findUnique({
+    const mobility = await prisma.mobility.findUnique({
       where: { id },
+    });
+
+    if (!mobility) {
+      return res.status(404).json({ error: "Mobility not found" });
+    }
+
+    if (mobility.userId !== userId) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    res.json({
+      id: mobility.id,
+      name: mobility.name,
+      year: mobility.year,
+      isPublic: mobility.isPublic,
+      isOriginal: mobility.isOriginal,
+      lastEdit: mobility.lastEdit,
+      startLocation: mobility.startLocation,
+      endLocation: mobility.endLocation,
+    });
+  } catch (error) {
+    console.error("Error fetching mobility:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+}
+
+/**
+ * GET /api/v1/mobilities/{id}/stats
+ * Get aggregated statistics for a mobility and its trips
+ */
+async function getMobilityStats(req, res) {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    const mobility = await prisma.mobility.findUnique({
+      where: { id },
+      select: { userId: true },
+    });
+
+    if (!mobility) {
+      return res.status(404).json({ error: "Mobility not found" });
+    }
+
+    if (mobility.userId !== userId) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    const trips = await prisma.trip.findMany({
+      where: {
+        mobilityId: id,
+        isSelected: true,
+      },
       include: {
-        trips: {
-          include: {
-            steps: true,
+        steps: {
+          select: {
+            carbon: true,
+            distance: true,
+            time: true,
           },
         },
       },
     });
 
-    if (!mobilite) {
-      return res.status(404).json({ error: "Mobilité introuvable" });
-    }
+    const stats = calculateMobilityStats(trips);
 
-    // Vérifier que la mobilité appartient à l'utilisateur connecté
-    if (mobilite.userId !== userId) {
-      return res.status(403).json({ error: "Accès non autorisé" });
-    }
-
-    // Calculer les stats agrégées depuis les steps
-    const allSteps = mobilite.trips.flatMap((t) => t.steps);
-    const totalCarbon = allSteps.reduce((sum, s) => sum + (s.carbon ?? 0), 0);
-    const totalDistance = allSteps.reduce(
-      (sum, s) => sum + (s.distance ?? 0),
-      0,
-    );
-    const totalTime = allSteps.reduce((sum, s) => sum + (s.time ?? 0), 0);
-    const stepCount = allSteps.length;
-
-    res.json({
-      id: mobilite.id,
-      name: mobilite.name,
-      year: mobilite.year,
-      isPublic: mobilite.isPublic,
-      isOriginal: mobilite.isOriginal,
-      lastEdit: mobilite.lastEdit,
-      startLocation: mobilite.startLocation,
-      endLocation: mobilite.endLocation,
-      stats: {
-        totalCarbon: Math.round(totalCarbon * 100) / 100, // kg CO2, arrondi 2 déc.
-        totalDistance: Math.round(totalDistance * 100) / 100, // km
-        totalTime, // minutes
-        stepCount,
-      },
-      trips: mobilite.trips,
-    });
+    res.json(stats);
   } catch (error) {
-    console.error("Erreur lors de la récupération de la mobilité :", error);
-    res.status(500).json({ error: "Erreur serveur" });
+    console.error("Error fetching mobility stats:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 }
 
 /**
- * DELETE /api/v1/mobilites/:id
- * Supprimer une mobilité par son ID (seulement si elle appartient à l'utilisateur)
+ * DELETE /api/v1/mobilities/{id}
+ * Delete a mobility (only if user owns it)
  */
 async function deleteMobility(req, res) {
   try {
     const { id } = req.params;
     const userId = req.user.id;
 
-    const mobilite = await prisma.mobility.findUnique({
+    const mobility = await prisma.mobility.findUnique({
       where: { id },
     });
 
-    if (!mobilite) {
-      return res.status(404).json({ error: "Mobilité introuvable" });
+    if (!mobility) {
+      return res.status(404).json({ error: "Mobility not found" });
     }
 
-    if (mobilite.userId !== userId) {
-      return res.status(403).json({ error: "Accès non autorisé" });
+    if (mobility.userId !== userId) {
+      return res.status(403).json({ error: "Forbidden" });
     }
 
     await prisma.mobility.delete({
       where: { id },
     });
 
-    res.json({ message: "Mobilité supprimée avec succès", id: id });
+    res.status(204).send();
   } catch (error) {
-    console.error("Erreur lors de la suppression de la mobilité :", error);
-    res.status(500).json({ error: "Erreur serveur" });
+    console.error("Error deleting mobility:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 }
 
 /**
- * POST /api/v1/mobilites
- * Créer une nouvelle mobilité
+ * POST /api/v1/mobilities
+ * Create a new mobility
  */
 async function createMobility(req, res) {
   try {
@@ -146,15 +165,15 @@ async function createMobility(req, res) {
       req.body;
 
     if (!name || !year || !startLocation || !endLocation) {
-      return res.status(400).json({ error: "Données incomplètes" });
+      return res.status(400).json({ error: "Missing required fields" });
     }
 
     const parsedYear = parseMobilityYear(year);
     if (!parsedYear) {
-      return res.status(400).json({ error: "Année invalide" });
+      return res.status(400).json({ error: "Invalid year format" });
     }
 
-    const newMobilite = await prisma.mobility.create({
+    const newMobility = await prisma.mobility.create({
       data: {
         name,
         year: parsedYear,
@@ -165,16 +184,16 @@ async function createMobility(req, res) {
         userId: req.user.id,
       },
     });
-    res.status(201).json({ uuid: newMobilite.id });
+    res.status(201).json({ id: newMobility.id });
   } catch (error) {
-    console.error("Erreur lors de la création de la mobilité :", error);
-    res.status(500).json({ error: "Erreur serveur" });
+    console.error("Error creating mobility:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 }
 
 /**
- * PATCH /api/v1/mobilites/:id
- * Met à jour une mobilité spécifique par son ID
+ * PATCH /api/v1/mobilities/{id}
+ * Update a mobility
  */
 async function updateMobility(req, res) {
   try {
@@ -182,16 +201,16 @@ async function updateMobility(req, res) {
     const userId = req.user.id;
     const updates = req.body;
 
-    const mobilite = await prisma.mobility.findUnique({
+    const mobility = await prisma.mobility.findUnique({
       where: { id },
     });
 
-    if (!mobilite) {
-      return res.status(404).json({ error: "Mobilité introuvable" });
+    if (!mobility) {
+      return res.status(404).json({ error: "Mobility not found" });
     }
 
-    if (mobilite.userId !== userId) {
-      return res.status(403).json({ error: "Accès non autorisé" });
+    if (mobility.userId !== userId) {
+      return res.status(403).json({ error: "Forbidden" });
     }
 
     const allowedFields = [
@@ -208,7 +227,7 @@ async function updateMobility(req, res) {
         if (key === "year") {
           const parsedYear = parseMobilityYear(updates[key]);
           if (!parsedYear) {
-            return res.status(400).json({ error: "Année invalide" });
+            return res.status(400).json({ error: "Invalid year format" });
           }
           filteredUpdates[key] = parsedYear;
         } else {
@@ -218,9 +237,7 @@ async function updateMobility(req, res) {
     }
 
     if (Object.keys(filteredUpdates).length === 0) {
-      return res
-        .status(400)
-        .json({ error: "Aucun champ valide à mettre à jour" });
+      return res.status(400).json({ error: "No valid fields to update" });
     }
 
     await prisma.mobility.update({
@@ -230,14 +247,15 @@ async function updateMobility(req, res) {
 
     res.json(filteredUpdates);
   } catch (error) {
-    console.error("Erreur lors de la mise à jour de la mobilité :", error);
-    res.status(500).json({ error: "Erreur serveur" });
+    console.error("Error updating mobility:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 }
 
 module.exports = {
   getMobilities,
   getMobility,
+  getMobilityStats,
   createMobility,
   deleteMobility,
   updateMobility,

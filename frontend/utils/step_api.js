@@ -6,10 +6,10 @@ import { API_BASE, authenticatedFetch } from "./authFetch.js";
 
 /**
  * Get the list of steps for a trip
- * @param {string} tripId - Trip UUID
+ * @param {string} tripId - Trip ID
  * @returns {Promise<Array>}
  */
-export async function getStepsByTrip(tripId) {
+export async function getSteps(tripId) {
   if (!tripId) {
     throw new Error("tripId is required to fetch steps");
   }
@@ -24,7 +24,7 @@ export async function getStepsByTrip(tripId) {
 
 /**
  * Create a new step for a trip
- * @param {string} tripId - Trip UUID
+ * @param {string} tripId - Trip ID
  * @returns {Promise<Object>} Created step
  */
 export async function createStep(tripId) {
@@ -43,8 +43,8 @@ export async function createStep(tripId) {
 }
 
 /**
- * Get a step by its UUID
- * @param {string} stepId - Step UUID
+ * Get a step by its ID
+ * @param {string} stepId - Step ID
  * @returns {Promise<Object>}
  */
 export async function getStep(stepId) {
@@ -61,8 +61,8 @@ export async function getStep(stepId) {
 }
 
 /**
- * Delete a step by its UUID
- * @param {string} stepId - Step UUID
+ * Delete a step by its ID
+ * @param {string} stepId - Step ID
  * @returns {Promise<void>}
  */
 export async function deleteStep(stepId) {
@@ -82,7 +82,7 @@ export async function deleteStep(stepId) {
 
 /**
  * Update a step's editable fields
- * @param {string} stepId - Step UUID
+ * @param {string} stepId - Step ID
  * @param {Object} data - Fields to update (labelStart, labelEnd, transportMode)
  * @returns {Promise<Object>} Updated step
  */
