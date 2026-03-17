@@ -1,6 +1,14 @@
 <script setup>
 import { ref, watch, computed } from "vue";
-import { Leaf, Timer, MapPin, Ruler, Trash2, Pencil } from "lucide-vue-next";
+import {
+  Leaf,
+  Timer,
+  MapPin,
+  Ruler,
+  Trash2,
+  Pencil,
+  ArrowDownWideNarrow,
+} from "lucide-vue-next";
 import PopupDelete from "../popup/PopupDelete.vue";
 
 const props = defineProps({
@@ -20,9 +28,21 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  highlightedStat: {
+    type: String,
+    default: null,
+  },
+  activeSortField: {
+    type: String,
+    default: null,
+  },
+  activeSortDirection: {
+    type: String,
+    default: null,
+  },
 });
 
-const emit = defineEmits(["toggle", "updated", "deleted"]);
+const emit = defineEmits(["toggle", "updated", "deleted", "sort-requested"]);
 
 const tripName = ref(props.trip.name ?? "");
 const showDeletePopup = ref(false);
@@ -55,6 +75,15 @@ function handleCardClick() {
 
 function confirmDelete() {
   emit("deleted", props.trip.id);
+}
+
+function sortDirectionFor(statField) {
+  if (props.activeSortField !== statField) return null;
+  return props.activeSortDirection;
+}
+
+function requestSort(statField) {
+  emit("sort-requested", statField);
 }
 </script>
 
@@ -109,23 +138,71 @@ function confirmDelete() {
     </div>
 
     <div class="stats-section">
-      <div class="stat-badge">
+      <div
+        class="stat-badge"
+        :class="{ highlighted: highlightedStat === 'emissions' }"
+        @click.stop="requestSort('emissions')"
+      >
         <Leaf size="16" />
         <span>{{ Number(trip.emissions ?? 0).toFixed(1) }} kg CO₂</span>
+        <ArrowDownWideNarrow
+          size="14"
+          class="stat-sort-icon"
+          :class="{
+            active: !!sortDirectionFor('emissions'),
+            asc: sortDirectionFor('emissions') === 'asc',
+          }"
+        />
       </div>
-      <div class="stat-badge">
+      <div
+        class="stat-badge"
+        :class="{ highlighted: highlightedStat === 'time' }"
+        @click.stop="requestSort('duration')"
+      >
         <Timer size="16" />
         <span>{{ formattedDuration }}</span>
+        <ArrowDownWideNarrow
+          size="14"
+          class="stat-sort-icon"
+          :class="{
+            active: !!sortDirectionFor('duration'),
+            asc: sortDirectionFor('duration') === 'asc',
+          }"
+        />
       </div>
-      <div class="stat-badge">
+      <div
+        class="stat-badge"
+        :class="{ highlighted: highlightedStat === 'steps' }"
+        @click.stop="requestSort('steps')"
+      >
         <MapPin size="16" />
         <span
           >{{ trip.steps ?? 0 }} étape{{ trip.steps !== 1 ? "s" : "" }}</span
         >
+        <ArrowDownWideNarrow
+          size="14"
+          class="stat-sort-icon"
+          :class="{
+            active: !!sortDirectionFor('steps'),
+            asc: sortDirectionFor('steps') === 'asc',
+          }"
+        />
       </div>
-      <div class="stat-badge">
+      <div
+        class="stat-badge"
+        :class="{ highlighted: highlightedStat === 'distance' }"
+        @click.stop="requestSort('distance')"
+      >
         <Ruler size="16" />
         <span>{{ Number(trip.distance ?? 0).toFixed(1) }} km</span>
+        <ArrowDownWideNarrow
+          size="14"
+          class="stat-sort-icon"
+          :class="{
+            active: !!sortDirectionFor('distance'),
+            asc: sortDirectionFor('distance') === 'asc',
+          }"
+        />
       </div>
     </div>
 
@@ -156,7 +233,6 @@ function confirmDelete() {
   transition: all 0.3s ease-in-out;
   &:hover {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-    transform: translateY(-2px);
   }
 }
 
@@ -270,15 +346,50 @@ function confirmDelete() {
   white-space: nowrap;
   padding: 0.5rem 0.65rem;
   border-radius: 999px;
-  /* border: 1px solid #e5e7eb; */
+  border: 1px solid transparent;
   background: #f9fafb;
   font-size: 0.9rem;
   font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.stat-badge:hover {
+  border-color: color-mix(in oklab, var(--primary) 35%, #ffffff);
+  background: color-mix(in oklab, var(--primary) 10%, #ffffff);
+  color: color-mix(in oklab, var(--primary) 80%, #1f2937);
+}
+
+.stat-badge.highlighted {
+  border-color: color-mix(in oklab, var(--primary) 35%, #ffffff);
+  background: color-mix(in oklab, var(--primary) 10%, #ffffff);
+  color: color-mix(in oklab, var(--primary) 80%, #1f2937);
 }
 
 .stat-badge :deep(svg) {
   color: var(--primary);
   flex-shrink: 0;
+}
+
+.stat-sort-icon {
+  margin-left: auto;
+  color: var(--primary);
+  opacity: 0;
+  transform: rotate(0deg);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.stat-sort-icon.active {
+  opacity: 1;
+}
+
+.stat-badge:hover .stat-sort-icon {
+  opacity: 1;
+}
+
+.stat-sort-icon.asc {
+  transform: rotate(180deg);
 }
 
 .toggle {

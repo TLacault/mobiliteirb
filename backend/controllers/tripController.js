@@ -13,6 +13,25 @@ async function getTrips(req, res) {
   try {
     const mobiliteId = req.params.id;
     const userId = req.user.id;
+    const requestedOrder =
+      typeof req.query.order === "string" ? req.query.order : "createdAt";
+
+    const allowedOrders = [
+      "createdAt",
+      "alpha_desc",
+      "alpha_asc",
+      "emissions_desc",
+      "emissions_asc",
+      "duration_desc",
+      "duration_asc",
+      "distance_desc",
+      "distance_asc",
+      "steps_desc",
+      "steps_asc",
+    ];
+    const order = allowedOrders.includes(requestedOrder)
+      ? requestedOrder
+      : "createdAt";
 
     if (!mobiliteId) {
       return res.status(400).json({ error: "ID mobilité manquant" });
@@ -33,8 +52,51 @@ async function getTrips(req, res) {
 
     const trips = await prisma.trip.findMany({
       where: { mobilityId: mobiliteId },
-      select: { id: true },
+      select: {
+        id: true,
+        name: true,
+        steps: {
+          select: {
+            carbon: true,
+            distance: true,
+            time: true,
+          },
+        },
+      },
     });
+
+    const [field, direction] = order.split("_");
+    const directionFactor = direction === "asc" ? 1 : -1;
+
+    if (field === "alpha") {
+      trips.sort((a, b) => {
+        const cmp = (a.name ?? "").localeCompare(b.name ?? "", "fr", {
+          sensitivity: "base",
+        });
+        return cmp * directionFactor;
+      });
+    } else if (field === "emissions") {
+      trips.sort((a, b) => {
+        const aVal = a.steps.reduce((sum, s) => sum + (s.carbon ?? 0), 0);
+        const bVal = b.steps.reduce((sum, s) => sum + (s.carbon ?? 0), 0);
+        return (aVal - bVal) * directionFactor;
+      });
+    } else if (field === "duration") {
+      trips.sort((a, b) => {
+        const aVal = a.steps.reduce((sum, s) => sum + (s.time ?? 0), 0);
+        const bVal = b.steps.reduce((sum, s) => sum + (s.time ?? 0), 0);
+        return (aVal - bVal) * directionFactor;
+      });
+    } else if (field === "distance") {
+      trips.sort((a, b) => {
+        const aVal = a.steps.reduce((sum, s) => sum + (s.distance ?? 0), 0);
+        const bVal = b.steps.reduce((sum, s) => sum + (s.distance ?? 0), 0);
+        return (aVal - bVal) * directionFactor;
+      });
+    } else if (field === "steps") {
+      trips.sort((a, b) => (a.steps.length - b.steps.length) * directionFactor);
+    }
+
     // Renvoyer les IDs sous forme d'objets avec clé uuid pour compatibilité
     res.json(trips.map((m) => ({ uuid: m.id })));
   } catch (error) {

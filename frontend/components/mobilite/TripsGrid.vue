@@ -5,6 +5,7 @@ import {
   Plus,
   History,
   ArrowDownAZ,
+  ArrowDownWideNarrow,
   Leaf,
   ListOrdered,
   Timer,
@@ -12,7 +13,6 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  Check,
 } from "lucide-vue-next";
 import TripCard from "./TripCard.vue";
 import StepCard from "./StepCard.vue";
@@ -49,7 +49,7 @@ async function loadData() {
   loading.value = true;
   error.value = null;
   try {
-    const trips = await getMobilityTrips(props.mobilityId);
+    const trips = await getMobilityTrips(props.mobilityId, orderQuery.value);
     const withSteps = await Promise.all(
       trips.map(async (trip) => {
         const steps = await getStepsByTrip(trip.id);
@@ -204,7 +204,8 @@ async function handleCreateStep(tripId) {
   }
 }
 
-const sortOrder = ref("createdAt");
+const sortField = ref(null);
+const sortDirection = ref(null);
 
 const baseSortOptions = [
   { value: "createdAt", label: "Date création", icon: History },
@@ -215,16 +216,78 @@ const statsSortOptions = [
   { value: "emissions", label: "Émissions CO₂", icon: Leaf },
   { value: "duration", label: "Temps", icon: Timer },
   { value: "distance", label: "Distance", icon: Ruler },
-  { value: "steps", label: "Nombre d'étapes", icon: ListOrdered },
+  { value: "steps", label: "Nombre Etapes", icon: ListOrdered },
 ];
 
 const allSortOptions = [...baseSortOptions, ...statsSortOptions];
 
-const selectedOption = computed(
-  () =>
-    allSortOptions.find((o) => o.value === sortOrder.value) ??
-    allSortOptions[0],
-);
+const optionDirection = computed(() => {
+  const byField = {};
+  if (sortField.value && sortDirection.value) {
+    byField[sortField.value] = sortDirection.value;
+  }
+  return byField;
+});
+
+const orderQuery = computed(() => {
+  if (!sortField.value || !sortDirection.value) return "createdAt";
+  return `${sortField.value}_${sortDirection.value}`;
+});
+
+function nextSortDirection(field) {
+  if (sortField.value !== field || !sortDirection.value) return "desc";
+  if (sortDirection.value === "desc") return "asc";
+  return null;
+}
+
+function applySortCycle(field, includeNone = true) {
+  if (field === "createdAt") {
+    sortField.value = null;
+    sortDirection.value = null;
+    return;
+  }
+
+  const nextDirection = nextSortDirection(field);
+  if (!nextDirection) {
+    if (includeNone) {
+      sortField.value = null;
+      sortDirection.value = null;
+    } else {
+      sortField.value = field;
+      sortDirection.value = "desc";
+    }
+    return;
+  }
+
+  sortField.value = field;
+  sortDirection.value = nextDirection;
+}
+
+function handleSortOptionClick(field) {
+  applySortCycle(field, false);
+  isDropdownOpen.value = false;
+}
+
+function handleCardSortRequested(field) {
+  applySortCycle(field, true);
+}
+
+const selectedOption = computed(() => {
+  if (!sortField.value || !sortDirection.value) return baseSortOptions[0];
+  return (
+    allSortOptions.find((o) => o.value === sortField.value) ??
+    baseSortOptions[0]
+  );
+});
+
+const highlightedStat = computed(() => {
+  if (!sortDirection.value) return null;
+  if (sortField.value === "emissions") return "emissions";
+  if (sortField.value === "duration") return "time";
+  if (sortField.value === "distance") return "distance";
+  if (sortField.value === "steps") return "steps";
+  return null;
+});
 
 const isDropdownOpen = ref(false);
 const dropdownRef = ref(null);
@@ -315,6 +378,15 @@ watch(
   },
 );
 
+watch(
+  () => orderQuery.value,
+  async () => {
+    await loadData();
+    await nextTick();
+    updateScrollState();
+  },
+);
+
 onMounted(() => {
   loadData();
   document.addEventListener("click", closeDropdown);
@@ -366,18 +438,26 @@ onUnmounted(() => {
                   v-for="opt in baseSortOptions"
                   :key="opt.value"
                   class="sort-option"
-                  :class="{ active: sortOrder === opt.value }"
-                  @click="
-                    sortOrder = opt.value;
-                    isDropdownOpen = false;
-                  "
+                  :class="{
+                    active:
+                      opt.value === 'createdAt'
+                        ? !sortDirection
+                        : sortField === opt.value && !!sortDirection,
+                  }"
+                  @click="handleSortOptionClick(opt.value)"
                 >
                   <component :is="opt.icon" size="16" class="opt-icon" />
                   <span>{{ opt.label }}</span>
-                  <Check
-                    v-if="sortOrder === opt.value"
+                  <ArrowDownWideNarrow
                     size="14"
-                    class="check-icon"
+                    class="sort-state-icon"
+                    :class="{
+                      active:
+                        opt.value === 'createdAt'
+                          ? !sortDirection
+                          : sortField === opt.value && !!sortDirection,
+                      asc: optionDirection[opt.value] === 'asc',
+                    }"
                   />
                 </button>
 
@@ -389,18 +469,20 @@ onUnmounted(() => {
                   v-for="opt in statsSortOptions"
                   :key="opt.value"
                   class="sort-option"
-                  :class="{ active: sortOrder === opt.value }"
-                  @click="
-                    sortOrder = opt.value;
-                    isDropdownOpen = false;
-                  "
+                  :class="{
+                    active: sortField === opt.value && !!sortDirection,
+                  }"
+                  @click="handleSortOptionClick(opt.value)"
                 >
                   <component :is="opt.icon" size="16" class="opt-icon" />
                   <span>{{ opt.label }}</span>
-                  <Check
-                    v-if="sortOrder === opt.value"
+                  <ArrowDownWideNarrow
                     size="14"
-                    class="check-icon"
+                    class="sort-state-icon"
+                    :class="{
+                      active: sortField === opt.value && !!sortDirection,
+                      asc: optionDirection[opt.value] === 'asc',
+                    }"
                   />
                 </button>
               </div>
@@ -456,8 +538,12 @@ onUnmounted(() => {
             <TripCard
               :trip="col.trip"
               :index="index"
+              :highlighted-stat="highlightedStat"
+              :active-sort-field="sortField"
+              :active-sort-direction="sortDirection"
               :show-toggle="false"
               :show-delete="true"
+              @sort-requested="(field) => handleCardSortRequested(field)"
               @toggle="(val) => handleToggle(col.trip.id, val)"
               @updated="(patch) => handleTripUpdated(col.trip.id, patch)"
               @deleted="() => handleTripDeleted(col.trip.id)"
@@ -679,10 +765,22 @@ onUnmounted(() => {
   color: var(--primary);
 }
 
-.check-icon {
+.sort-state-icon {
   margin-left: auto;
   color: var(--primary);
+  opacity: 0;
   flex-shrink: 0;
+  transition: transform 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+}
+
+.sort-state-icon.active,
+.sort-option:hover .sort-state-icon {
+  opacity: 1;
+  color: var(--primary);
+}
+
+.sort-state-icon.asc {
+  transform: rotate(180deg);
 }
 
 /* dropdown open/close transition */

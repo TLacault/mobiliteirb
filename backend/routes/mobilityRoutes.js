@@ -202,6 +202,13 @@ router.delete("/:id", authenticateJWT, mobilityController.deleteMobility);
  *           type: string
  *           format: uuid
  *         description: Mobility UUID
+ *       - in: query
+ *         name: order
+ *         required: false
+ *         schema:
+ *           type: string
+ *           enum: [createdAt, alpha_desc, alpha_asc, emissions_desc, emissions_asc, duration_desc, duration_asc, distance_desc, distance_asc, steps_desc, steps_asc]
+ *         description: Sort order for trips
  *     responses:
  *       200:
  *         description: Array of trip UUIDs

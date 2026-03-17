@@ -7,16 +7,19 @@ import { API_BASE, authenticatedFetch } from "./authFetch.js";
 /**
  * Get the list of trips for a mobility
  * @param {string} mobilityId - Mobility UUID
+ * @param {string} order - Sort order
  * @returns {Promise<Array>}
  */
-export async function getTrips(mobilityId) {
+export async function getTrips(mobilityId, order = "createdAt") {
   if (!mobilityId) {
     throw new Error("mobilityId is required to fetch trips");
   }
 
   try {
+    const params = new URLSearchParams();
+    if (order) params.set("order", order);
     return await authenticatedFetch(
-      `${API_BASE}/mobilities/${mobilityId}/trips`,
+      `${API_BASE}/mobilities/${mobilityId}/trips?${params.toString()}`,
     );
   } catch (error) {
     console.error("Error fetching trips:", error);
@@ -97,10 +100,11 @@ export async function updateTrip(id, data) {
  * Returns an array of trip objects: { id, name, isSelected, emissions, distance, steps, ... }.
  * Individual trip failures are caught and replaced with a default object so the rest of the list still renders.
  * @param {string} mobilityId - Mobility UUID
+ * @param {string} order - Sort order
  * @returns {Promise<Array>}
  */
-export async function getMobilityTrips(mobilityId) {
-  const data = await getTrips(mobilityId);
+export async function getMobilityTrips(mobilityId, order = "createdAt") {
+  const data = await getTrips(mobilityId, order);
   const items = Array.isArray(data) ? data : data.trips || [];
   return Promise.all(
     items.map(async (item) => {
