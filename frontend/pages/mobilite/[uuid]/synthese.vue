@@ -3,7 +3,7 @@ import MobiliteHeader from "../../../components/mobilite/MobiliteHeader.vue";
 import SyntheseStatsSection from "../../../components/mobilite/SyntheseStatsSection.vue";
 import TripCard from "../../../components/mobilite/TripCard.vue";
 import { Route } from "lucide-vue-next";
-import { getMobility } from "../../../utils/mobility_api.js";
+import { getMobility, getMobilityStats } from "../../../utils/mobility_api.js";
 import { getMobilityTrips, updateTrip } from "../../../utils/trip_api.js";
 
 definePageMeta({ middleware: "auth" });
@@ -21,6 +21,7 @@ onMounted(() => {
 
 // Données de la mobilité
 const mobility = ref(null);
+const mobilityStats = ref(null);
 const loading = ref(true);
 const error = ref(null);
 
@@ -37,6 +38,23 @@ const loadMobility = async () => {
 };
 
 onMounted(loadMobility);
+
+const loadMobilityStats = async () => {
+  try {
+    mobilityStats.value = await getMobilityStats(uuid.value);
+  } catch (e) {
+    console.error("Error loading mobility stats:", e);
+    mobilityStats.value = {
+      totalCarbon: 0,
+      totalDistance: 0,
+      totalTime: 0,
+      stepCount: 0,
+      tripCount: 0,
+    };
+  }
+};
+
+onMounted(loadMobilityStats);
 
 useHead({
   title: computed(() => `Synthèse — ${mobility.value?.name ?? "Mobilité"}`),
@@ -73,6 +91,7 @@ const toggleTripSelected = async (trip, val) => {
   trip.isSelected = val;
   try {
     await updateTrip(trip.id, { isSelected: val });
+    await loadMobilityStats();
   } catch (e) {
     console.error("Erreur lors de la mise à jour de isSelected :", e);
     trip.isSelected = previous;
@@ -94,12 +113,12 @@ onMounted(fetchTrips);
       />
 
       <section class="scene-content">
-        <SyntheseStatsSection :stats="mobility?.stats" />
+        <SyntheseStatsSection :stats="mobilityStats" />
 
         <div class="trip-container">
           <div class="trip-header">
             <Route color="var(--primary)" size="var(--font-section-title)" />
-            <h3 class="section-title">Trajets</h3>
+            <h3 class="section-title gradient-cta">Selection des Trajets</h3>
           </div>
           <p v-if="tripLoading" class="trips-state">Chargement...</p>
           <p v-else-if="tripError" class="trips-state trips-error">
@@ -112,7 +131,7 @@ onMounted(fetchTrips);
             <TripCard
               v-for="(trip, index) in tripList"
               :key="trip.id"
-              :trajet="trip"
+              :trip="trip"
               :index="index"
               @toggle="(val) => toggleTripSelected(trip, val)"
             />
@@ -161,14 +180,13 @@ onMounted(fetchTrips);
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 3rem 0rem;
+  margin-bottom: 1.5rem;
 }
 
 .trips-list {
   display: grid;
   gap: 2rem;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 500px));
-  justify-content: center;
+  grid-template-columns: repeat(auto-fit, minmax(550px, 1fr));
 }
 
 .trips-state {

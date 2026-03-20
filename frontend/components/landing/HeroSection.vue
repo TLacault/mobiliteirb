@@ -10,13 +10,13 @@
     </div>
 
     <!-- Logo Section -->
-    <div class="logo-hero">
+    <div class="logo-hero reveal-on-scroll reveal-up">
       <img src="/images/logo.webp" alt="MobilitEirb Logo" class="logo-image" />
       <span class="logo-text">Mobilit<span class="green">Eirb</span></span>
     </div>
 
     <!-- Text Section -->
-    <div class="text-hero">
+    <div class="text-hero reveal-on-scroll reveal-up delay-1">
       <p>Calculez les émissions CO2 de vos trajets rapidement.</p>
       <p>
         Partagez vos mobilités et inspirez-vous de celles des autres étudiants.
@@ -24,7 +24,7 @@
     </div>
 
     <!-- Account/Connection Section -->
-    <div class="account-hero">
+    <div class="account-hero reveal-on-scroll reveal-up delay-2">
       <NuxtLink to="/connexion" class="btn-connexion">
         <div class="btn-text">
           <User />
@@ -35,7 +35,7 @@
     </div>
 
     <!-- More information Section -->
-    <div class="more-info">
+    <div class="more-info reveal-on-scroll reveal-up delay-3">
       <p class="detail">En Savoir Plus</p>
       <div class="more-arrow"><MoveDown color="var(--background)" /></div>
     </div>

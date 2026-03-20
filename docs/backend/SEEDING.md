@@ -26,9 +26,6 @@ The seed script generates coherent mobility data including:
 # Seed the database (clears existing data first)
 make seed
 
-# Add more data without clearing existing data
-make seed-append
-
 # Reset database and seed with fresh data
 make db-reset
 ```
@@ -45,9 +42,6 @@ npm install
 # Run the seed script (clears first)
 npm run seed
 
-# Append data without clearing
-npm run seed:append
-
 # Or use Prisma's built-in seeding
 npm run db:seed
 
@@ -60,9 +54,6 @@ npm run db:reset
 ```bash
 # Seed the database (clears first)
 docker compose run --rm backend npm run seed
-
-# Append data without clearing
-docker compose run --rm backend npm run seed:append
 
 # Reset and reseed
 docker compose run --rm backend npm run db:reset
@@ -200,16 +191,6 @@ Ensure your PostgreSQL database has PostGIS enabled:
 ```sql
 CREATE EXTENSION IF NOT EXISTS postgis;
 ```
-
-### Want to keep existing data?
-Use the append script instead of the regular seed script:
-```bash
-make seed-append
-# or
-npm run seed:append
-```
-
-This will add 3-8 new users with their mobilities without clearing existing data.
 
 ## Integration with Development
 

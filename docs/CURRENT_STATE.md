@@ -164,7 +164,6 @@ Commandes disponibles :
 
 ```bash
 make seed         # Efface et remplit avec données aléatoires
-make seed-append  # Ajoute sans effacer
 make db-reset     # Reset complet + migrations + seed
 ```
 

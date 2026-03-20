@@ -2,7 +2,7 @@
   <section class="solution-section">
     <div class="solution-container">
       <div class="columns">
-        <div class="left-column">
+        <div class="left-column reveal-on-scroll reveal-right">
           <div class="title-container">
             <Puzzle :size="40" color="var(--primary)" />
             <span class="section-title gradient-cta">La Solution</span>
@@ -19,7 +19,7 @@
             au quotidien sans sacrifier votre temps de trajet.
           </p>
         </div>
-        <div class="right-column">
+        <div class="right-column reveal-on-scroll reveal-left delay-1">
           <img
             src="/images/example_trajet.webp"
             alt="La Solution image"

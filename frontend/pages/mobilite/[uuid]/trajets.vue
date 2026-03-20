@@ -1,5 +1,6 @@
 <script setup>
 import MobiliteHeader from "../../../components/mobilite/MobiliteHeader.vue";
+import TripsGrid from "../../../components/mobilite/TripsGrid.vue";
 import { getMobility } from "../../../utils/mobility_api.js";
 
 definePageMeta({ middleware: "auth" });
@@ -9,13 +10,11 @@ const uuid = computed(() => route.params.uuid);
 
 const { selectMobilite, setLastTab } = useMobiliteSession();
 
-// Marque la mobilité comme sélectionnée (mode édition) et mémorise l'onglet
 onMounted(() => {
   selectMobilite(uuid.value);
   setLastTab(uuid.value, "trajets");
 });
 
-// Données de la mobilité
 const mobility = ref(null);
 const loading = ref(true);
 const error = ref(null);
@@ -38,7 +37,6 @@ useHead({
   title: computed(() => `Trajets — ${mobility.value?.name ?? "Mobilité"}`),
 });
 
-// Mise à jour locale des champs modifiés depuis le header
 const handleUpdated = (patch) => {
   if (mobility.value) {
     Object.assign(mobility.value, patch);
@@ -56,6 +54,9 @@ const handleUpdated = (patch) => {
         :mobility="mobility"
         @updated="handleUpdated"
       />
+      <div class="scene-content">
+        <TripsGrid :mobility-id="uuid" />
+      </div>
     </template>
   </div>
 </template>
@@ -70,10 +71,10 @@ const handleUpdated = (patch) => {
 
 .scene-content {
   flex: 1;
-  max-width: 1400px;
   width: 100%;
-  margin: 0 auto;
   padding: 2rem;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .loading-state,

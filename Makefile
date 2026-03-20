@@ -1,8 +1,9 @@
 # Colors
 GREEN=\033[0;32m
+BLUE=\033[0;34m
 NC=\033[0m
 
-.PHONY: help install up down clean logs seed seed-append db-reset erase-db
+.PHONY: help install up down clean logs seed db-reset erase-db
 
 help:
 	@echo "Commandes disponibles :"
@@ -12,7 +13,6 @@ help:
 	@echo "  make logs         : Affiche les logs en temps réel"
 	@echo "  make clean        : Supprime tout (volumes, images, node_modules locaux)"
 	@echo "  make seed         : Remplit la base avec des données aléatoires (efface tout)"
-	@echo "  make seed-append  : Ajoute des données sans effacer l'existant"
 	@echo "  make db-reset     : Réinitialise la base et la remplit avec des données"
 	@echo "  make erase-db     : Supprime toutes les données de la base (garde le schéma)"
 
@@ -25,17 +25,18 @@ install:
 	docker compose run --rm backend npm install
 	docker compose run --rm frontend npm install
 	@echo -e "${GREEN}=== Mise en place de la Base de Données ===${NC}"
-	docker compose run --rm backend npx prisma migrate dev --name init_install
+	docker compose run --rm backend npx prisma migrate deploy
 	@echo -e "${GREEN}=== Ready ! Run 'make up' to start. ===${NC}"
 	@echo -e "${GREEN}💡 Pour remplir la base avec des données de test, exécutez : make seed${NC}"
 
 up:
 	@echo -e "${GREEN}=== Starting the environment ===${NC}"
 	docker compose up -d
-	@echo -e "${GREEN}Frontend available at : http://localhost:8080${NC}"
-	@echo -e "${GREEN}Backend available at  : http://localhost:3001${NC}"
-	@echo -e "${GREEN}Studio available at   : http://localhost:5555${NC}"
-
+	@echo -e ""
+	@echo -e " ${BLUE}➤  Frontend  http://localhost:8080${NC}"
+	@echo -e " ${BLUE}➤  Backend   http://localhost:3001${NC}"
+	@echo -e " ${BLUE}➤  Studio    http://localhost:5555${NC}"
+	@echo -e " ${BLUE}➤  Swagger   http://localhost:3001/api/docs${NC}"
 down:
 	docker compose down
 
@@ -50,11 +51,6 @@ seed:
 	@echo -e "${GREEN}=== Filling database with random data ===${NC}"
 	docker compose run --rm backend npm run seed
 	@echo -e "${GREEN}=== Database seeded successfully! ===${NC}"
-
-seed-append:
-	@echo -e "${GREEN}=== Adding more data to existing database ===${NC}"
-	docker compose run --rm backend npm run seed:append
-	@echo -e "${GREEN}=== Data appended successfully! ===${NC}"
 
 db-reset:
 	@echo -e "${GREEN}=== Resetting database and reseeding ===${NC}"

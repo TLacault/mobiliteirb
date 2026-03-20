@@ -73,7 +73,8 @@
 </template>
 
 <script setup>
-const { user, isAuthenticated, login, logout, checkAuth } = useAuth();
+const { user, isAuthenticated, login, logout, checkAuth, trySilentLogin } =
+  useAuth();
 import {
   UserKey,
   CircleUserRound,
@@ -100,7 +101,11 @@ onMounted(async () => {
     localStorage.removeItem("refresh_token");
     localStorage.removeItem("user");
   }
-  await checkAuth();
+
+  const authenticated = await checkAuth();
+  if (!authenticated) {
+    await trySilentLogin();
+  }
 });
 
 const handleLogin = () => {
@@ -157,6 +162,7 @@ h1 {
   border: none;
   border-radius: 100px;
   padding: 0.85rem 2rem;
+  margin-top: 1rem;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;

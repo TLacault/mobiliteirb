@@ -8,7 +8,11 @@ import {
   PencilRuler,
   CalendarCheck2,
 } from "lucide-vue-next";
-import { getMobility, deleteMobility } from "../../utils/mobility_api.js";
+import {
+  getMobility,
+  getMobilityStats,
+  deleteMobility,
+} from "../../utils/mobility_api.js";
 import PopupDelete from "../popup/PopupDelete.vue";
 
 const showForm = ref(false);
@@ -34,7 +38,14 @@ const error = ref(null);
 
 onMounted(async () => {
   try {
-    mobility.value = await getMobility(props.uuid);
+    const [details, stats] = await Promise.all([
+      getMobility(props.uuid),
+      getMobilityStats(props.uuid),
+    ]);
+    mobility.value = {
+      ...details,
+      stats,
+    };
   } catch (e) {
     error.value = e.message || "Erreur lors du chargement";
   } finally {
@@ -63,17 +74,23 @@ async function deleteMobilite(uuid) {
 
 <template>
   <!-- Chargement -->
-  <div v-if="loading" class="card-container card-loading">
+  <div
+    v-if="loading"
+    class="card-container card-loading reveal-on-scroll reveal-up"
+  >
     <p>Chargement...</p>
   </div>
 
   <!-- Erreur -->
-  <div v-else-if="error" class="card-container card-error">
+  <div
+    v-else-if="error"
+    class="card-container card-error reveal-on-scroll reveal-up"
+  >
     <p>{{ error }}</p>
   </div>
 
   <!-- Données -->
-  <div v-else-if="mobility" class="card-container">
+  <div v-else-if="mobility" class="card-container reveal-on-scroll reveal-up">
     <!-- Boutton-->
     <div class="trash-button" @click="showForm = true">
       <Trash2 color="red" />
@@ -90,7 +107,14 @@ async function deleteMobilite(uuid) {
       </div>
       <div class="stat-section">
         <div class="icon"><Timer size="18" /></div>
-        <p>{{ mobility.stats.totalDistance }} km</p>
+        <p>
+          {{
+            Math.floor(mobility.stats.totalTime / 60) > 0
+              ? Math.floor(mobility.stats.totalTime / 60) + "h "
+              : ""
+          }}
+          {{ mobility.stats.totalTime % 60 }} min
+        </p>
       </div>
       <div class="stat-section">
         <div class="icon"><MapPin size="18" /></div>

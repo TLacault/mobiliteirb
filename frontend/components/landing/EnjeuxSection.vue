@@ -4,7 +4,7 @@
   <!--Un conteneur parent qui centre tout au milieu de l'écran.-->
   <div class="section-enjeux container">
     <!--Un titre avec une icône d'alerte.-->
-    <div class="title-container">
+    <div class="title-container reveal-on-scroll reveal-up">
       <TriangleAlert :size="40" color="var(--primary)" />
       <h2 class="section-title gradient-cta">Les Enjeux</h2>
     </div>
@@ -12,7 +12,7 @@
     <!--Une zone flexible (Flexbox) contenant 3 colonnes identiques.-->
     <div class="flex-container">
       <!--Chaque colonne est divisée en deux : à gauche l'icône (le triangle), à droite le texte.-->
-      <div class="column">
+      <div class="column reveal-on-scroll reveal-up delay-1">
         <!--Colone 1-->
         <div class="icon-triangle">
           <Car color="var(--background)" />
@@ -26,7 +26,7 @@
         </div>
       </div>
 
-      <div class="column">
+      <div class="column reveal-on-scroll reveal-up delay-2">
         <!--Colone 2-->
         <div class="icon-triangle">
           <Cloudy color="var(--background)" centered />
@@ -40,7 +40,7 @@
         </div>
       </div>
 
-      <div class="column">
+      <div class="column reveal-on-scroll reveal-up delay-3">
         <!--Colone 3-->
         <div class="icon-triangle">
           <Goal color="var(--background)" />
@@ -57,7 +57,7 @@
     </div>
 
     <!--Un pied de page arrondi pour la source-->
-    <div class="source-bar">
+    <div class="source-bar reveal-on-scroll reveal-up delay-4">
       <Info color="var(--primary)" size="20" />
       <span>
         Toutes les données proviennent de sources vérifiées<a

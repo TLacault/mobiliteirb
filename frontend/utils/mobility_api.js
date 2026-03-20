@@ -18,11 +18,15 @@ export async function getMobilities() {
 }
 
 /**
- * Get a mobility by its UUID
- * @param {string} id - Mobility UUID
- * @returns {Promise<Object>} Mobility detail with stats
+ * Get a mobility by its ID (properties only)
+ * @param {string} id - Mobility ID
+ * @returns {Promise<Object>} Mobility properties and trip list
  */
 export async function getMobility(id) {
+  if (!id) {
+    throw new Error("id is required to fetch a mobility");
+  }
+
   try {
     return await authenticatedFetch(`${API_BASE}/mobilities/${id}`);
   } catch (error) {
@@ -32,8 +36,26 @@ export async function getMobility(id) {
 }
 
 /**
- * Delete a mobility by its UUID
- * @param {string} id - Mobility UUID to delete
+ * Get aggregated statistics for a mobility
+ * @param {string} id - Mobility ID
+ * @returns {Promise<Object>} Aggregated statistics
+ */
+export async function getMobilityStats(id) {
+  if (!id) {
+    throw new Error("id is required to fetch mobility stats");
+  }
+
+  try {
+    return await authenticatedFetch(`${API_BASE}/mobilities/${id}/stats`);
+  } catch (error) {
+    console.error(`Error fetching mobility stats ${id}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Delete a mobility by its ID
+ * @param {string} id - Mobility ID to delete
  * @returns {Promise<Object>} Success message or error
  */
 export async function deleteMobility(id) {
@@ -50,7 +72,7 @@ export async function deleteMobility(id) {
 /**
  * Create a new mobility
  * @param {Object} data - Mobility data
- * @returns {Promise<string>} UUID of the newly created mobility
+ * @returns {Promise<string>} ID of the newly created mobility
  */
 export async function createMobility(data) {
   try {
@@ -59,7 +81,7 @@ export async function createMobility(data) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
-    return response.uuid;
+    return response.id;
   } catch (error) {
     console.error("Error creating mobility:", error);
     throw error;
@@ -67,8 +89,8 @@ export async function createMobility(data) {
 }
 
 /**
- * Update a mobility by its UUID
- * @param {string} id - Mobility UUID
+ * Update a mobility by its ID
+ * @param {string} id - Mobility ID
  * @param {Object} data - Fields to update
  * @returns {Promise<Object>}
  */

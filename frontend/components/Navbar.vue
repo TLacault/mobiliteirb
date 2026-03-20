@@ -18,6 +18,7 @@
           :key="link.path"
           :to="link.path"
           class="nav-link"
+          @click="handleNavbarLinkClick(link.path)"
         >
           {{ link.name }}
         </NuxtLink>
@@ -53,7 +54,11 @@
 
             <div class="dropdown-divider"></div>
 
-            <NuxtLink to="/dashboard" class="dropdown-item" @click="closeMenu">
+            <NuxtLink
+              to="/dashboard"
+              class="dropdown-item"
+              @click="handleDashboardClick"
+            >
               <LayoutDashboard class="dropdown-icon" size="20" />
               <p>Dashboard</p>
             </NuxtLink>
@@ -77,6 +82,7 @@
 
 <script setup>
 const { user, isAuthenticated, logout, checkAuth } = useAuth();
+const { clearMobilite } = useMobiliteSession();
 const isMenuOpen = ref(false);
 import {
   LayoutDashboard,
@@ -119,6 +125,17 @@ const toggleMenu = () => {
 
 const closeMenu = () => {
   isMenuOpen.value = false;
+};
+
+const handleNavbarLinkClick = (path) => {
+  if (path === "/dashboard") {
+    clearMobilite();
+  }
+};
+
+const handleDashboardClick = () => {
+  clearMobilite();
+  closeMenu();
 };
 
 const handleLogout = () => {

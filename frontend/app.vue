@@ -18,14 +18,3 @@ useHead({
   ],
 });
 </script>
-
-<style>
-/* Import CSS Reset */
-@import "./src/assets/reset.css";
-
-/* Import Theme Variables */
-@import "./src/assets/theme.css";
-
-/* Import Popup Styles */
-@import "./src/assets/popup.css";
-</style>

@@ -4,6 +4,13 @@ export default defineNuxtConfig({
   compatibilityDate: "2026-01-31",
   devtools: { enabled: true },
 
+  css: [
+    "~/src/assets/reset.css",
+    "~/src/assets/theme.css",
+    "~/src/assets/popup.css",
+    "~/src/assets/animations.css",
+  ],
+
   // Configuration du serveur pour le développement
   devServer: {
     port: 8080,
@@ -41,7 +48,7 @@ export default defineNuxtConfig({
       },
       // En dev, proxie /api vers le backend local pour que les URLs relatives fonctionnent
       proxy: {
-        "/api": "http://localhost:3001",
+        "/api": process.env.NUXT_DEV_PROXY_TARGET || "http://localhost:3001",
       },
     },
   },
