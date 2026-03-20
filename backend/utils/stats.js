@@ -1,6 +1,27 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
+function toSafeNumber(value, defaultValue = 0) {
+  if (value === undefined || value === null) return defaultValue;
+
+  // Prisma can return bigint/Decimal-like values depending on DB schema.
+  if (typeof value === "bigint") {
+    const converted = Number(value);
+    return Number.isFinite(converted) ? converted : defaultValue;
+  }
+
+  const converted = Number(value);
+  return Number.isFinite(converted) ? converted : defaultValue;
+}
+
+function getStepTime(step) {
+  if (step?.time !== undefined && step?.time !== null) {
+    return toSafeNumber(step.time, 0);
+  }
+
+  return toSafeNumber(step?.metadata?.duration, 0);
+}
+
 /**
  * Calculate statistics for a single step
  * @param {Object} step - Step object with carbon, distance, time fields
@@ -8,9 +29,9 @@ const prisma = new PrismaClient();
  */
 function calculateStepStats(step) {
   return {
-    carbon: step.carbon ?? 0,
-    distance: step.distance ?? 0,
-    time: step.time ?? 0,
+    carbon: toSafeNumber(step?.carbon, 0),
+    distance: toSafeNumber(step?.distance, 0),
+    time: getStepTime(step),
   };
 }
 
@@ -29,9 +50,15 @@ function calculateStepsStats(steps) {
     };
   }
 
-  const totalCarbon = steps.reduce((sum, s) => sum + (s.carbon ?? 0), 0);
-  const totalDistance = steps.reduce((sum, s) => sum + (s.distance ?? 0), 0);
-  const totalTime = steps.reduce((sum, s) => sum + (s.time ?? 0), 0);
+  const totalCarbon = steps.reduce(
+    (sum, s) => sum + toSafeNumber(s?.carbon),
+    0,
+  );
+  const totalDistance = steps.reduce(
+    (sum, s) => sum + toSafeNumber(s?.distance),
+    0,
+  );
+  const totalTime = steps.reduce((sum, s) => sum + getStepTime(s), 0);
 
   return {
     totalCarbon: Math.round(totalCarbon * 100) / 100,
@@ -91,9 +118,9 @@ function getMobilityStats(trips) {
   trips.forEach((trip) => {
     if (trip.steps && Array.isArray(trip.steps)) {
       trip.steps.forEach((step) => {
-        totalCarbon += step.carbon ?? 0;
-        totalDistance += step.distance ?? 0;
-        totalTime += step.time ?? 0;
+        totalCarbon += toSafeNumber(step?.carbon);
+        totalDistance += toSafeNumber(step?.distance);
+        totalTime += getStepTime(step);
       });
       totalSteps += trip.steps.length;
     }

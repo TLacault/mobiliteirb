@@ -3,6 +3,24 @@ const { calculateStepsStats } = require("../utils/stats");
 
 const prisma = new PrismaClient();
 
+function isMissingStepTimeColumnError(error) {
+  if (!error || error.code !== "P2022") return false;
+  const target = error?.meta?.column || error?.meta?.target || "";
+  return String(target).toLowerCase().includes("time");
+}
+
+function getStepDuration(step) {
+  if (step?.time !== undefined && step?.time !== null) {
+    const value = Number(step.time);
+    if (Number.isFinite(value)) return value;
+  }
+
+  const metadataDuration = Number(step?.metadata?.duration);
+  if (Number.isFinite(metadataDuration)) return metadataDuration;
+
+  return 0;
+}
+
 /**
  * GET /api/v1/mobilities/{mobilityId}/trips
  * Get the list of trips for a mobility
@@ -48,20 +66,43 @@ async function getTrips(req, res) {
       return res.status(403).json({ error: "Forbidden" });
     }
 
-    const trips = await prisma.trip.findMany({
-      where: { mobilityId: mobilityId },
-      select: {
-        id: true,
-        name: true,
-        steps: {
-          select: {
-            carbon: true,
-            distance: true,
-            time: true,
+    let trips;
+    try {
+      trips = await prisma.trip.findMany({
+        where: { mobilityId: mobilityId },
+        select: {
+          id: true,
+          name: true,
+          steps: {
+            select: {
+              carbon: true,
+              distance: true,
+              time: true,
+              metadata: true,
+            },
           },
         },
-      },
-    });
+      });
+    } catch (error) {
+      if (!isMissingStepTimeColumnError(error)) {
+        throw error;
+      }
+
+      trips = await prisma.trip.findMany({
+        where: { mobilityId: mobilityId },
+        select: {
+          id: true,
+          name: true,
+          steps: {
+            select: {
+              carbon: true,
+              distance: true,
+              metadata: true,
+            },
+          },
+        },
+      });
+    }
 
     const [field, direction] = order.split("_");
     const directionFactor = direction === "asc" ? 1 : -1;
@@ -81,8 +122,8 @@ async function getTrips(req, res) {
       });
     } else if (field === "duration") {
       trips.sort((a, b) => {
-        const aVal = a.steps.reduce((sum, s) => sum + (s.time ?? 0), 0);
-        const bVal = b.steps.reduce((sum, s) => sum + (s.time ?? 0), 0);
+        const aVal = a.steps.reduce((sum, s) => sum + getStepDuration(s), 0);
+        const bVal = b.steps.reduce((sum, s) => sum + getStepDuration(s), 0);
         return (aVal - bVal) * directionFactor;
       });
     } else if (field === "distance") {
@@ -157,21 +198,45 @@ async function getTripStatsHandler(req, res) {
       return res.status(400).json({ error: "Trip ID is required" });
     }
 
-    const trip = await prisma.trip.findUnique({
-      where: { id: tripId },
-      include: {
-        mobility: {
-          select: { userId: true },
-        },
-        steps: {
-          select: {
-            carbon: true,
-            distance: true,
-            time: true,
+    let trip;
+    try {
+      trip = await prisma.trip.findUnique({
+        where: { id: tripId },
+        include: {
+          mobility: {
+            select: { userId: true },
+          },
+          steps: {
+            select: {
+              carbon: true,
+              distance: true,
+              time: true,
+              metadata: true,
+            },
           },
         },
-      },
-    });
+      });
+    } catch (error) {
+      if (!isMissingStepTimeColumnError(error)) {
+        throw error;
+      }
+
+      trip = await prisma.trip.findUnique({
+        where: { id: tripId },
+        include: {
+          mobility: {
+            select: { userId: true },
+          },
+          steps: {
+            select: {
+              carbon: true,
+              distance: true,
+              metadata: true,
+            },
+          },
+        },
+      });
+    }
 
     if (!trip) {
       return res.status(404).json({ error: "Trip not found" });

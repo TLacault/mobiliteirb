@@ -3,6 +3,12 @@ const { getMobilityStats: calculateMobilityStats } = require("../utils/stats");
 
 const prisma = new PrismaClient();
 
+function isMissingStepTimeColumnError(error) {
+  if (!error || error.code !== "P2022") return false;
+  const target = error?.meta?.column || error?.meta?.target || "";
+  return String(target).toLowerCase().includes("time");
+}
+
 function parseMobilityYear(value) {
   if (value === undefined || value === null || value === "") return null;
 
@@ -97,21 +103,45 @@ async function getMobilityStats(req, res) {
       return res.status(403).json({ error: "Forbidden" });
     }
 
-    const trips = await prisma.trip.findMany({
-      where: {
-        mobilityId: id,
-        isSelected: true,
-      },
-      include: {
-        steps: {
-          select: {
-            carbon: true,
-            distance: true,
-            time: true,
+    let trips;
+    try {
+      trips = await prisma.trip.findMany({
+        where: {
+          mobilityId: id,
+          isSelected: true,
+        },
+        include: {
+          steps: {
+            select: {
+              carbon: true,
+              distance: true,
+              time: true,
+              metadata: true,
+            },
           },
         },
-      },
-    });
+      });
+    } catch (error) {
+      if (!isMissingStepTimeColumnError(error)) {
+        throw error;
+      }
+
+      trips = await prisma.trip.findMany({
+        where: {
+          mobilityId: id,
+          isSelected: true,
+        },
+        include: {
+          steps: {
+            select: {
+              carbon: true,
+              distance: true,
+              metadata: true,
+            },
+          },
+        },
+      });
+    }
 
     const stats = calculateMobilityStats(trips);
 
