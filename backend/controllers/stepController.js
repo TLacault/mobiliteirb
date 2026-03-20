@@ -1,6 +1,45 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
+function isMissingStepTimeColumnError(error) {
+  if (!error || error.code !== "P2022") return false;
+  const target = error?.meta?.column || error?.meta?.target || "";
+  return String(target).toLowerCase().includes("time");
+}
+
+function getStepTime(step) {
+  if (step?.time !== undefined && step?.time !== null) {
+    const value = Number(step.time);
+    if (Number.isFinite(value)) return value;
+  }
+
+  const metadataDuration = Number(step?.metadata?.duration);
+  if (Number.isFinite(metadataDuration)) return metadataDuration;
+
+  return 0;
+}
+
+function normalizeStep(step) {
+  return {
+    ...step,
+    time: getStepTime(step),
+  };
+}
+
+async function getStepForOwnership(stepId) {
+  return prisma.step.findUnique({
+    where: { id: stepId },
+    select: {
+      id: true,
+      trip: {
+        select: {
+          mobility: { select: { userId: true } },
+        },
+      },
+    },
+  });
+}
+
 /**
  * GET /api/v1/trips/{tripId}/steps
  * Get the list of steps for a trip
@@ -29,23 +68,45 @@ async function getSteps(req, res) {
       return res.status(403).json({ error: "Forbidden" });
     }
 
-    const steps = await prisma.step.findMany({
-      where: { tripId },
-      orderBy: { sequenceOrder: "asc" },
-      select: {
-        id: true,
-        sequenceOrder: true,
-        transportMode: true,
-        carbon: true,
-        distance: true,
-        time: true,
-        labelStart: true,
-        labelEnd: true,
-        metadata: true,
-      },
-    });
+    let steps;
+    try {
+      steps = await prisma.step.findMany({
+        where: { tripId },
+        orderBy: { sequenceOrder: "asc" },
+        select: {
+          id: true,
+          sequenceOrder: true,
+          transportMode: true,
+          carbon: true,
+          distance: true,
+          time: true,
+          labelStart: true,
+          labelEnd: true,
+          metadata: true,
+        },
+      });
+    } catch (error) {
+      if (!isMissingStepTimeColumnError(error)) {
+        throw error;
+      }
 
-    res.json(steps.map((s) => ({ id: s.id, ...s })));
+      steps = await prisma.step.findMany({
+        where: { tripId },
+        orderBy: { sequenceOrder: "asc" },
+        select: {
+          id: true,
+          sequenceOrder: true,
+          transportMode: true,
+          carbon: true,
+          distance: true,
+          labelStart: true,
+          labelEnd: true,
+          metadata: true,
+        },
+      });
+    }
+
+    res.json(steps.map((s) => normalizeStep(s)));
   } catch (error) {
     console.error("Error fetching steps:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -88,25 +149,49 @@ async function createStep(req, res) {
 
     const nextSequenceOrder = (lastStep?.sequenceOrder ?? 0) + 1;
 
-    const created = await prisma.step.create({
-      data: {
-        tripId,
-        sequenceOrder: nextSequenceOrder,
-      },
-      select: {
-        id: true,
-        sequenceOrder: true,
-        transportMode: true,
-        carbon: true,
-        distance: true,
-        time: true,
-        labelStart: true,
-        labelEnd: true,
-        metadata: true,
-      },
-    });
+    let created;
+    try {
+      created = await prisma.step.create({
+        data: {
+          tripId,
+          sequenceOrder: nextSequenceOrder,
+        },
+        select: {
+          id: true,
+          sequenceOrder: true,
+          transportMode: true,
+          carbon: true,
+          distance: true,
+          time: true,
+          labelStart: true,
+          labelEnd: true,
+          metadata: true,
+        },
+      });
+    } catch (error) {
+      if (!isMissingStepTimeColumnError(error)) {
+        throw error;
+      }
 
-    res.status(201).json({ id: created.id, ...created });
+      created = await prisma.step.create({
+        data: {
+          tripId,
+          sequenceOrder: nextSequenceOrder,
+        },
+        select: {
+          id: true,
+          sequenceOrder: true,
+          transportMode: true,
+          carbon: true,
+          distance: true,
+          labelStart: true,
+          labelEnd: true,
+          metadata: true,
+        },
+      });
+    }
+
+    res.status(201).json(normalizeStep(created));
   } catch (error) {
     console.error("Error creating step:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -126,27 +211,57 @@ async function getStep(req, res) {
       return res.status(400).json({ error: "Step ID is required" });
     }
 
-    const step = await prisma.step.findUnique({
-      where: { id: stepId },
-      include: {
-        trip: {
-          include: {
-            mobility: { select: { userId: true } },
-          },
+    const stepOwner = await getStepForOwnership(stepId);
+
+    if (!stepOwner) {
+      return res.status(404).json({ error: "Step not found" });
+    }
+
+    if (stepOwner.trip.mobility.userId !== userId) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    let step;
+    try {
+      step = await prisma.step.findUnique({
+        where: { id: stepId },
+        select: {
+          id: true,
+          sequenceOrder: true,
+          transportMode: true,
+          carbon: true,
+          distance: true,
+          time: true,
+          labelStart: true,
+          labelEnd: true,
+          metadata: true,
         },
-      },
-    });
+      });
+    } catch (error) {
+      if (!isMissingStepTimeColumnError(error)) {
+        throw error;
+      }
+
+      step = await prisma.step.findUnique({
+        where: { id: stepId },
+        select: {
+          id: true,
+          sequenceOrder: true,
+          transportMode: true,
+          carbon: true,
+          distance: true,
+          labelStart: true,
+          labelEnd: true,
+          metadata: true,
+        },
+      });
+    }
 
     if (!step) {
       return res.status(404).json({ error: "Step not found" });
     }
 
-    if (step.trip.mobility.userId !== userId) {
-      return res.status(403).json({ error: "Forbidden" });
-    }
-
-    const { trip, ...stepData } = step;
-    res.json({ id: stepData.id, ...stepData });
+    res.json(normalizeStep(step));
   } catch (error) {
     console.error("Error fetching step:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -166,16 +281,7 @@ async function deleteStep(req, res) {
       return res.status(400).json({ error: "Step ID is required" });
     }
 
-    const step = await prisma.step.findUnique({
-      where: { id: stepId },
-      include: {
-        trip: {
-          include: {
-            mobility: { select: { userId: true } },
-          },
-        },
-      },
-    });
+    const step = await getStepForOwnership(stepId);
 
     if (!step) {
       return res.status(404).json({ error: "Step not found" });
@@ -203,16 +309,7 @@ async function updateStep(req, res) {
     const { stepId } = req.params;
     const userId = req.user.id;
 
-    const step = await prisma.step.findUnique({
-      where: { id: stepId },
-      include: {
-        trip: {
-          include: {
-            mobility: { select: { userId: true } },
-          },
-        },
-      },
-    });
+    const step = await getStepForOwnership(stepId);
 
     if (!step) {
       return res.status(404).json({ error: "Step not found" });
