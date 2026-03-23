@@ -12,12 +12,21 @@ services:
     networks:
       - dev-network
     restart: always
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${DB_USER:-user} -d ${DB_NAME:-mobility_db}",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    command: npm run dev
+    command: sh -c "until npx prisma db push; do echo 'Waiting for database...'; sleep 2; done && npm run dev"
     volumes:
       - ./backend:/app
       - /app/node_modules
@@ -29,7 +38,8 @@ services:
     networks:
       - dev-network
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   studio:
     build:
@@ -47,7 +57,10 @@ services:
     networks:
       - dev-network
     depends_on:
-      - backend
+      db:
+        condition: service_healthy
+      backend:
+        condition: service_started
 
   frontend:
     build:

@@ -25,7 +25,7 @@ install:
 	docker compose run --rm backend npm install
 	docker compose run --rm frontend npm install
 	@echo -e "${GREEN}=== Mise en place de la Base de Données ===${NC}"
-	docker compose run --rm backend npx prisma migrate deploy
+	docker compose run --rm backend npx prisma db push
 	@echo -e "${GREEN}=== Ready ! Run 'make up' to start. ===${NC}"
 	@echo -e "${GREEN}💡 Pour remplir la base avec des données de test, exécutez : make seed${NC}"
 
@@ -49,15 +49,17 @@ clean:
 
 seed:
 	@echo -e "${GREEN}=== Filling database with random data ===${NC}"
+	docker compose run --rm backend npx prisma db push
 	docker compose run --rm backend npm run seed
 	@echo -e "${GREEN}=== Database seeded successfully! ===${NC}"
 
 db-reset:
 	@echo -e "${GREEN}=== Resetting database and reseeding ===${NC}"
-	docker compose run --rm backend npx prisma migrate reset --force
+	docker compose run --rm backend npx prisma db push --force-reset
+	docker compose run --rm backend npm run seed
 	@echo -e "${GREEN}=== Database reset and seeded! ===${NC}"
 
 erase-db:
 	@echo -e "${GREEN}=== Erasing all data from database ===${NC}"
-	docker compose run --rm backend npx prisma migrate reset --skip-seed --force
+	docker compose run --rm backend npx prisma db push --force-reset
 	@echo -e "${GREEN}=== All data erased! Database schema preserved. ===${NC}"
