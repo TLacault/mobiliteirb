@@ -282,6 +282,75 @@ async function updateMobility(req, res) {
   }
 }
 
+/**
+ * POST /api/v1/mobilities/{id}/duplicate
+ * Duplicate a mobility along with its trips and steps
+ */
+async function duplicateMobility(req, res) {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    const mobilityToDuplicate = await prisma.mobility.findUnique({
+      where: { id },
+      include: {
+        trips: {
+          include: {
+            steps: true,
+          },
+        },
+      },
+    });
+
+    if (!mobilityToDuplicate) {
+      return res.status(404).json({ error: "Mobility not found" });
+    }
+
+    if (!mobilityToDuplicate.isPublic) {
+      return res
+        .status(403)
+        .json({ error: "Forbidden: Mobility is not public" });
+    }
+
+    const newMobility = await prisma.mobility.create({
+      data: {
+        userId,
+        name: `Copie de ${mobilityToDuplicate.name}`,
+        year: mobilityToDuplicate.year,
+        isPublic: mobilityToDuplicate.isPublic,
+        isOriginal: false,
+        startLocation: mobilityToDuplicate.startLocation,
+        endLocation: mobilityToDuplicate.endLocation,
+        trips: {
+          create: mobilityToDuplicate.trips.map((trip) => ({
+            name: trip.name,
+            isSelected: trip.isSelected,
+            steps: {
+              create: trip.steps.map((step) => ({
+                transportMode: step.transportMode,
+                sequenceOrder: step.sequenceOrder,
+                labelStart: step.labelStart,
+                labelEnd: step.labelEnd,
+                pointStart: step.pointStart,
+                pointEnd: step.pointEnd,
+                distance: step.distance,
+                time: step.time,
+                carbon: step.carbon,
+                metadata: step.metadata,
+              })),
+            },
+          })),
+        },
+      },
+    });
+
+    res.status(201).json({ id: newMobility.id });
+  } catch (error) {
+    console.error("Error duplicating mobility:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+}
+
 module.exports = {
   getMobilities,
   getMobility,
@@ -289,4 +358,5 @@ module.exports = {
   createMobility,
   deleteMobility,
   updateMobility,
+  duplicateMobility,
 };
