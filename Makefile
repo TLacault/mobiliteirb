@@ -33,10 +33,11 @@ up:
 	@echo -e "${GREEN}=== Starting the environment ===${NC}"
 	docker compose up -d
 	@echo -e ""
-	@echo -e " ${BLUE}➤  Frontend  http://localhost:8080${NC}"
-	@echo -e " ${BLUE}➤  Backend   http://localhost:3001${NC}"
-	@echo -e " ${BLUE}➤  Studio    http://localhost:5555${NC}"
-	@echo -e " ${BLUE}➤  Swagger   http://localhost:3001/api/docs${NC}"
+	@echo -e " ${BLUE}➤ Frontend  http://localhost:8080${NC}"
+	@echo -e " ${BLUE}➤ Backend   http://localhost:3001${NC}"
+	@echo -e " ${BLUE}➤ Studio    http://localhost:5555${NC}"
+	@echo -e " ${BLUE}➤ Swagger   http://localhost:3001/api/docs${NC}"
+
 down:
 	docker compose down
 
