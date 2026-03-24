@@ -1,5 +1,6 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
+const { getStepEstimation } = require("../utils/emissionDatas");
 
 /**
  * GET /api/v1/trips/{tripId}/steps
@@ -222,27 +223,65 @@ async function updateStep(req, res) {
       return res.status(403).json({ error: "Forbidden" });
     }
 
-    const { labelStart, labelEnd, transportMode, sequenceOrder, metadata } =
-      req.body;
+    const { sequenceOrder, labelStart, labelEnd, 
+      pointStart, pointEnd, metadata, transportMode 
+    } = req.body;
+    
+    let updateData = {
+      sequenceOrder,
+      labelStart,
+      labelEnd,
+      metadata,
+      transportMode
+    };
+
+    const newStart = labelStart !== undefined ? labelStart : step.labelStart;
+    const newEnd = labelEnd !== undefined ? labelEnd : step.labelEnd;
+    const newPointStart = pointStart !== undefined ? pointStart : step.pointStart;
+    const newPointEnd = pointEnd !== undefined ? pointEnd : step.pointEnd;
+    const newMode = transportMode !== undefined ? transportMode : step.transportMode;
+
+    const hasNewInput = 
+      labelStart !== undefined || 
+      labelEnd !== undefined || 
+      transportMode !== undefined;
+
+    if (hasNewInput) {
+      const isHaversineMode = newMode.startsWith('plane') || newMode.startsWith('boat');
+            
+      const estimation = await getStepEstimation({
+        origin: isHaversineMode ? newPointStart : newStart,
+        destination: isHaversineMode ? newPointEnd : newEnd,
+        transportMode: newMode
+      });
+
+      if (isHaversineMode) {
+        updateData.pointStart = newPointStart;
+        updateData.pointEnd = newPointEnd;
+      }
+
+      updateData.carbon = estimation.carbon;
+      updateData.distance = estimation.distance;
+      updateData.time = estimation.time;
+      updateData.transportCarbonFactor = estimation.transportCarbonFactor;
+    }
 
     const updated = await prisma.step.update({
       where: { id: stepId },
-      data: {
-        ...(labelStart !== undefined && { labelStart }),
-        ...(labelEnd !== undefined && { labelEnd }),
-        ...(transportMode !== undefined && { transportMode }),
-        ...(sequenceOrder !== undefined && { sequenceOrder }),
-        ...(metadata !== undefined && { metadata }),
-      },
+      data: updateData,
       select: {
         id: true,
         sequenceOrder: true,
-        transportMode: true,
-        carbon: true,
-        distance: true,
         labelStart: true,
         labelEnd: true,
+        pointStart: true,
+        pointEnd: true,
+        carbon: true,
+        distance: true,
+        time: true,
         metadata: true,
+        transportMode: true,
+        transportCarbonFactor: true,
       },
     });
 
