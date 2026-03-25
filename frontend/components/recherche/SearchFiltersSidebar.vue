@@ -236,12 +236,12 @@ function triggerSearch() {
           </div>
           <div class="range-row">
             <div class="range-values-inline">
-              <span
-                >Min: <strong>{{ emissionsMin }} kg CO2</strong></span
-              >
-              <span
-                >Max: <strong>{{ emissionsMax }} kg CO2</strong></span
-              >
+              <span>
+                Min: <strong>{{ emissionsMin }} kg CO2</strong>
+              </span>
+              <span>
+                Max: <strong>{{ emissionsMax }} kg CO2</strong>
+              </span>
             </div>
             <div
               class="dual-range"
@@ -274,12 +274,12 @@ function triggerSearch() {
           </div>
           <div class="range-row">
             <div class="range-values-inline">
-              <span
-                >Min: <strong>{{ formattedDurationMin }}</strong></span
-              >
-              <span
-                >Max: <strong>{{ formattedDurationMax }}</strong></span
-              >
+              <span>
+                Min: <strong>{{ formattedDurationMin }}</strong>
+              </span>
+              <span>
+                Max: <strong>{{ formattedDurationMax }}</strong>
+              </span>
             </div>
             <div
               class="dual-range"
@@ -312,12 +312,12 @@ function triggerSearch() {
           </div>
           <div class="range-row">
             <div class="range-values-inline">
-              <span
-                >Min: <strong>{{ distanceMin }} km</strong></span
-              >
-              <span
-                >Max: <strong>{{ distanceMax }} km</strong></span
-              >
+              <span>
+                Min: <strong>{{ distanceMin }} km</strong>
+              </span>
+              <span>
+                Max: <strong>{{ distanceMax }} km</strong>
+              </span>
             </div>
             <div
               class="dual-range"

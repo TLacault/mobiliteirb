@@ -301,24 +301,17 @@ async function duplicateMobility(req, res) {
         },
       },
     });
-
     if (!mobilityToDuplicate) {
       return res.status(404).json({ error: "Mobility not found" });
-    }
-
-    if (!mobilityToDuplicate.isPublic) {
-      return res
-        .status(403)
-        .json({ error: "Forbidden: Mobility is not public" });
     }
 
     const newMobility = await prisma.mobility.create({
       data: {
         userId,
-        name: `Copie de ${mobilityToDuplicate.name}`,
+        name: `Copie de ${mobilityToDuplicate.name}`, //   TODO: "Anonyme" is !isPublic
         year: mobilityToDuplicate.year,
-        isPublic: mobilityToDuplicate.isPublic,
-        isOriginal: false,
+        isPublic: mobilityToDuplicate.isPublic, // TODO: true
+        isOriginal: false, // TODO: true
         startLocation: mobilityToDuplicate.startLocation,
         endLocation: mobilityToDuplicate.endLocation,
         trips: {
@@ -336,7 +329,7 @@ async function duplicateMobility(req, res) {
                 distance: step.distance,
                 time: step.time,
                 carbon: step.carbon,
-                metadata: step.metadata,
+                metadata: step.metadata, // TODO: NULL
               })),
             },
           })),
