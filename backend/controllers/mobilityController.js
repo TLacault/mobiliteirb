@@ -25,6 +25,319 @@ function parseMobilityYear(value) {
   return date;
 }
 
+function parsePositiveInt(value, fallback) {
+  const parsed = Number.parseInt(value, 10);
+  return Number.isInteger(parsed) && parsed >= 0 ? parsed : fallback;
+}
+
+function parsePage(value, fallback) {
+  const parsed = Number.parseInt(value, 10);
+  return Number.isInteger(parsed) && parsed >= 1 ? parsed : fallback;
+}
+
+function parseFloatOrNull(value) {
+  if (value === undefined || value === null || value === "") return null;
+  const parsed = Number.parseFloat(value);
+  if (!Number.isFinite(parsed)) return null;
+  return parsed >= 0 ? parsed : null;
+}
+
+function getStepTime(step) {
+  if (step?.time !== undefined && step?.time !== null) {
+    const parsed = Number(step.time);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+  return null;
+}
+
+function parseTransportModes(input) {
+  if (!input) return [];
+  if (Array.isArray(input)) {
+    return input.map((mode) => String(mode).trim()).filter(Boolean);
+  }
+
+  if (typeof input !== "string") return [];
+  return input
+    .split(",")
+    .map((mode) => mode.trim())
+    .filter(Boolean);
+}
+
+function buildMobilityBaseFilter({ query, departure, arrival }) {
+  const andFilters = [];
+
+  // Recherche textuelle globale sur les lieux.
+  const trimmedQuery = typeof query === "string" ? query.trim() : "";
+  if (trimmedQuery) {
+    const orFilters = [
+      { startLocation: { contains: trimmedQuery, mode: "insensitive" } },
+      { endLocation: { contains: trimmedQuery, mode: "insensitive" } },
+    ];
+    andFilters.push({ OR: orFilters });
+  }
+
+  const trimmedDeparture =
+    typeof departure === "string" ? departure.trim() : "";
+  if (trimmedDeparture) {
+    andFilters.push({
+      startLocation: { contains: trimmedDeparture, mode: "insensitive" },
+    });
+  }
+
+  const trimmedArrival = typeof arrival === "string" ? arrival.trim() : "";
+  if (trimmedArrival) {
+    andFilters.push({
+      endLocation: { contains: trimmedArrival, mode: "insensitive" },
+    });
+  }
+
+  return andFilters.length > 0 ? { AND: andFilters } : {};
+}
+
+const mobilityDirectOrderMap = {
+  lastEdit_desc: { lastEdit: "desc" },
+  lastEdit_asc: { lastEdit: "asc" },
+  name_asc: { name: "asc" },
+  name_desc: { name: "desc" },
+  year_desc: { year: "desc" },
+  year_asc: { year: "asc" },
+};
+
+/**
+ * GET /api/v1/mobilities/searchMobilty
+ * Search public mobilities with sorting and pagination
+ */
+async function searchMobilty(req, res) {
+  try {
+    const query =
+      typeof req.query.criteria === "string"
+        ? req.query.criteria
+        : req.query.query;
+
+    const filters = {
+      query,
+      departure: req.query.departure,
+      arrival: req.query.arrival,
+      minCarbon: parseFloatOrNull(req.query.minCarbon),
+      maxCarbon: parseFloatOrNull(req.query.maxCarbon),
+      minTime: parseFloatOrNull(req.query.minTime),
+      maxTime: parseFloatOrNull(req.query.maxTime),
+      minDistance: parseFloatOrNull(req.query.minDistance),
+      maxDistance: parseFloatOrNull(req.query.maxDistance),
+      minSteps: parsePositiveInt(req.query.minSteps, null),
+      maxSteps: parsePositiveInt(req.query.maxSteps, null),
+      transportModes: parseTransportModes(req.query.transportModes),
+    };
+
+    const requestedOrder =
+      typeof req.query.order === "string" ? req.query.order : "lastEdit_desc";
+
+    const page = parsePage(req.query.page, 1);
+    const pageSize = 10;
+    const where = buildMobilityBaseFilter(filters);
+
+    const directOrderBy =
+      mobilityDirectOrderMap[requestedOrder] ??
+      mobilityDirectOrderMap.lastEdit_desc;
+
+    const mobilitiesRaw = await prisma.mobility.findMany({
+      where,
+      orderBy: directOrderBy,
+      include: {
+        user: {
+          select: {
+            casLogin: true,
+          },
+        },
+        trips: {
+          select: {
+            id: true,
+            steps: {
+              select: {
+                transportMode: true,
+                carbon: true,
+                distance: true,
+                time: true,
+                metadata: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const withStats = mobilitiesRaw.map((mobility) => {
+      const allSteps = mobility.trips.flatMap((trip) => trip.steps ?? []);
+
+      const totalCarbon = allSteps.reduce(
+        (sum, step) => sum + (Number(step?.carbon) || 0),
+        0,
+      );
+      const totalDistance = allSteps.reduce(
+        (sum, step) => sum + (Number(step?.distance) || 0),
+        0,
+      );
+      const totalTime = allSteps.reduce(
+        (sum, step) => sum + (getStepTime(step) ?? 0),
+        0,
+      );
+      const stepCount = allSteps.length;
+
+      const transportCounts = allSteps.reduce((acc, step) => {
+        const mode =
+          typeof step?.transportMode === "string"
+            ? step.transportMode
+            : "unknown";
+        acc[mode] = (acc[mode] || 0) + 1;
+        return acc;
+      }, {});
+
+      const selectedTransportScore = filters.transportModes.length
+        ? filters.transportModes.reduce(
+            (sum, mode) => sum + (transportCounts[mode] || 0),
+            0,
+          )
+        : Object.values(transportCounts).reduce((sum, val) => sum + val, 0);
+
+      return {
+        ...mobility,
+        stats: {
+          totalCarbon: Math.round(totalCarbon * 100) / 100,
+          totalDistance: Math.round(totalDistance * 100) / 100,
+          totalTime,
+          stepCount,
+          tripCount: mobility.trips.length,
+          transportCounts,
+          selectedTransportScore,
+        },
+      };
+    });
+
+    const filtered = withStats.filter((mobility) => {
+      const stats = mobility.stats;
+      if (filters.minCarbon !== null && stats.totalCarbon < filters.minCarbon) {
+        return false;
+      }
+      if (filters.maxCarbon !== null && stats.totalCarbon > filters.maxCarbon) {
+        return false;
+      }
+
+      if (filters.minTime !== null && stats.totalTime < filters.minTime) {
+        return false;
+      }
+      if (filters.maxTime !== null && stats.totalTime > filters.maxTime) {
+        return false;
+      }
+
+      if (
+        filters.minDistance !== null &&
+        stats.totalDistance < filters.minDistance
+      ) {
+        return false;
+      }
+      if (
+        filters.maxDistance !== null &&
+        stats.totalDistance > filters.maxDistance
+      ) {
+        return false;
+      }
+
+      if (filters.minSteps !== null && stats.stepCount < filters.minSteps) {
+        return false;
+      }
+      if (filters.maxSteps !== null && stats.stepCount > filters.maxSteps) {
+        return false;
+      }
+
+      if (
+        filters.transportModes.length > 0 &&
+        stats.selectedTransportScore <= 0
+      ) {
+        return false;
+      }
+
+      return true;
+    });
+
+    const [orderField, orderDirection] = requestedOrder.split("_");
+    const directionFactor = orderDirection === "asc" ? 1 : -1;
+
+    const sortWithDirection = (a, b, selector) => {
+      const aVal = selector(a);
+      const bVal = selector(b);
+
+      if (typeof aVal === "string" || typeof bVal === "string") {
+        return (
+          String(aVal || "").localeCompare(String(bVal || ""), "fr", {
+            sensitivity: "base",
+          }) * directionFactor
+        );
+      }
+
+      return ((Number(aVal) || 0) - (Number(bVal) || 0)) * directionFactor;
+    };
+
+    if (orderField === "emissions" || orderField === "carbon") {
+      filtered.sort((a, b) =>
+        sortWithDirection(a, b, (m) => m.stats.totalCarbon),
+      );
+    } else if (orderField === "duration" || orderField === "time") {
+      filtered.sort((a, b) =>
+        sortWithDirection(a, b, (m) => m.stats.totalTime),
+      );
+    } else if (orderField === "distance") {
+      filtered.sort((a, b) =>
+        sortWithDirection(a, b, (m) => m.stats.totalDistance),
+      );
+    } else if (orderField === "steps") {
+      filtered.sort((a, b) =>
+        sortWithDirection(a, b, (m) => m.stats.stepCount),
+      );
+    } else if (orderField === "transport") {
+      filtered.sort((a, b) =>
+        sortWithDirection(a, b, (m) => m.stats.selectedTransportScore),
+      );
+    }
+
+    const total = filtered.length;
+    const skip = (page - 1) * pageSize;
+    const paginated = filtered.slice(skip, skip + pageSize).map((mobility) => ({
+      id: mobility.id,
+      name: mobility.name,
+      year: mobility.year,
+      startLocation: mobility.startLocation,
+      endLocation: mobility.endLocation,
+      lastEdit: mobility.lastEdit,
+      isPublic: mobility.isPublic,
+      isOriginal: mobility.isOriginal,
+      author: mobility.isPublic
+        ? { casLogin: mobility.user?.casLogin ?? null }
+        : null,
+      stats: {
+        totalCarbon: mobility.stats.totalCarbon,
+        totalDistance: mobility.stats.totalDistance,
+        totalTime: mobility.stats.totalTime,
+        stepCount: mobility.stats.stepCount,
+        tripCount: mobility.stats.tripCount,
+        transportCounts: mobility.stats.transportCounts,
+      },
+    }));
+
+    res.json({
+      data: paginated,
+      pagination: {
+        page,
+        pageSize,
+        total,
+        totalPages: Math.max(1, Math.ceil(total / pageSize)),
+      },
+    });
+  } catch (error) {
+    console.error("Error searching mobilities:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+}
+
 /**
  * GET /api/v1/mobilities
  * Get list of user mobilities
@@ -346,6 +659,7 @@ async function duplicateMobility(req, res) {
 
 module.exports = {
   getMobilities,
+  searchMobilty,
   getMobility,
   getMobilityStats,
   createMobility,

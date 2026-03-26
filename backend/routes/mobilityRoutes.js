@@ -90,6 +90,109 @@ router.post("/", authenticateJWT, mobilityController.createMobility);
 
 /**
  * @openapi
+ * /mobilities/searchMobilty:
+ *   get:
+ *     summary: Search mobilities
+ *     tags: [Mobilities]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: query
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: Global text search on departure and arrival
+ *       - in: query
+ *         name: departure
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: Departure location filter
+ *       - in: query
+ *         name: arrival
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: Arrival location filter
+ *       - in: query
+ *         name: transportModes
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: Comma-separated list of transport modes
+ *       - in: query
+ *         name: minCarbon
+ *         required: false
+ *         schema:
+ *           type: number
+ *           minimum: 0
+ *       - in: query
+ *         name: maxCarbon
+ *         required: false
+ *         schema:
+ *           type: number
+ *           minimum: 0
+ *       - in: query
+ *         name: minTime
+ *         required: false
+ *         schema:
+ *           type: number
+ *           minimum: 0
+ *       - in: query
+ *         name: maxTime
+ *         required: false
+ *         schema:
+ *           type: number
+ *           minimum: 0
+ *       - in: query
+ *         name: minDistance
+ *         required: false
+ *         schema:
+ *           type: number
+ *           minimum: 0
+ *       - in: query
+ *         name: maxDistance
+ *         required: false
+ *         schema:
+ *           type: number
+ *           minimum: 0
+ *       - in: query
+ *         name: minSteps
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           minimum: 0
+ *       - in: query
+ *         name: maxSteps
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           minimum: 0
+ *       - in: query
+ *         name: order
+ *         required: false
+ *         schema:
+ *           type: string
+ *           enum: [lastEdit_desc, lastEdit_asc, name_asc, name_desc, year_desc, year_asc]
+ *         description: Sort order for mobilities
+ *       - in: query
+ *         name: page
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *         description: Page number (10 results per page)
+ *     responses:
+ *       200:
+ *         description: Matching mobilities and pagination
+ *       401:
+ *         description: Unauthorized
+ */
+router.get("/searchMobilty", authenticateJWT, mobilityController.searchMobilty);
+
+/**
+ * @openapi
  * /mobilities/{id}:
  *   get:
  *     summary: Get a mobility by ID

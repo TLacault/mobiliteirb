@@ -107,3 +107,68 @@ export async function updateMobility(id, data) {
     throw error;
   }
 }
+
+/**
+ * Search public mobilities with filters, sort and pagination
+ * @param {Object} params
+ * @param {string} [params.query]
+ * @param {string} [params.order]
+ * @param {number} [params.page]
+ * @returns {Promise<{data: Array, pagination: Object}>}
+ */
+export async function searchMobilty({
+  query = "",
+  order,
+  page = 1,
+  departure,
+  arrival,
+  emissions,
+  duration,
+  distance,
+  steps,
+  transportModes,
+} = {}) {
+  try {
+    const searchParams = new URLSearchParams();
+
+    if (query) {
+      searchParams.set("query", query);
+      searchParams.set("criteria", query);
+    }
+    if (order) {
+      searchParams.set("order", order);
+    }
+
+    const setIfPresent = (key, value) => {
+      if (value === undefined || value === null || value === "") return;
+      searchParams.set(key, String(value));
+    };
+
+    const setRange = (minKey, maxKey, range) => {
+      if (!range || typeof range !== "object") return;
+      setIfPresent(minKey, range.min);
+      setIfPresent(maxKey, range.max);
+    };
+
+    setIfPresent("departure", departure);
+    setIfPresent("arrival", arrival);
+
+    setRange("minCarbon", "maxCarbon", emissions);
+    setRange("minTime", "maxTime", duration);
+    setRange("minDistance", "maxDistance", distance);
+    setRange("minSteps", "maxSteps", steps);
+
+    if (Array.isArray(transportModes) && transportModes.length > 0) {
+      searchParams.set("transportModes", transportModes.join(","));
+    }
+
+    searchParams.set("page", String(page));
+
+    return await authenticatedFetch(
+      `${API_BASE}/mobilities/searchMobilty?${searchParams.toString()}`,
+    );
+  } catch (error) {
+    console.error("Error searching mobilities:", error);
+    throw error;
+  }
+}
