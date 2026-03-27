@@ -134,7 +134,11 @@ async function searchMobilty(req, res) {
 
     const page = parsePage(req.query.page, 1);
     const pageSize = 10;
-    const where = buildMobilityBaseFilter(filters);
+    const baseFilter = buildMobilityBaseFilter(filters);
+    const where = {
+      ...baseFilter,
+      AND: [...(baseFilter.AND ?? []), { userId: { not: req.user.id } }],
+    };
 
     const directOrderBy =
       mobilityDirectOrderMap[requestedOrder] ??
@@ -165,6 +169,10 @@ async function searchMobilty(req, res) {
         },
       },
     });
+
+    // DEBUG: à retirer après investigation
+    console.log("[searchMobilty] where:", JSON.stringify(where, null, 2));
+    console.log("[searchMobilty] mobilitiesRaw count:", mobilitiesRaw.length);
 
     const withStats = mobilitiesRaw.map((mobility) => {
       const allSteps = mobility.trips.flatMap((trip) => trip.steps ?? []);
@@ -251,6 +259,7 @@ async function searchMobilty(req, res) {
 
       if (
         filters.transportModes.length > 0 &&
+        stats.stepCount > 0 &&
         stats.selectedTransportScore <= 0
       ) {
         return false;

@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import SearchFiltersSidebar from "../components/recherche/SearchFiltersSidebar.vue";
+import { searchMobilty } from "../utils/mobility_api.js";
 import {
   Route,
   History,
@@ -100,12 +101,30 @@ onMounted(() => {
 onUnmounted(() => {
   document.removeEventListener("click", closeDropdown);
 });
+
+const searchResults = ref(null);
+
+async function handleSearch() {
+  searchResults.value = await searchMobilty({
+    departure: "Barcelona",
+    arrival: "Porto",
+    // TODO: remplacer les paramètres prédéfinis par les valeurs dynamiques de la sidebar
+    transportModes: ["plane", "train", "car", "bus", "carpool", "bike", "walk"],
+    emissions: { min: 0, max: 20000 },
+    duration: { min: 0, max: 60000 },
+    distance: { min: 0, max: 10000 },
+    steps: { min: 0, max: 100 },
+  });
+
+  //   mobility info
+  console.log("Résultats de recherche :", searchResults.value);
+}
 </script>
 
 <template>
   <div class="search-page">
     <div class="search-layout">
-      <SearchFiltersSidebar />
+      <SearchFiltersSidebar @search="handleSearch" />
 
       <div class="results-wrapper">
         <header class="section-header">
@@ -289,9 +308,7 @@ onUnmounted(() => {
   font-size: var(--font-body);
   font-weight: 400;
   cursor: pointer;
-  transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
   white-space: nowrap;
 }
 
@@ -384,10 +401,7 @@ onUnmounted(() => {
   color: var(--primary);
   opacity: 0;
   flex-shrink: 0;
-  transition:
-    transform 0.2s ease,
-    color 0.2s ease,
-    opacity 0.2s ease;
+  transition: transform 0.2s ease, color 0.2s ease, opacity 0.2s ease;
 }
 
 .sort-state-icon.active,
@@ -402,9 +416,7 @@ onUnmounted(() => {
 
 .dropdown-enter-active,
 .dropdown-leave-active {
-  transition:
-    opacity 0.15s ease,
-    transform 0.15s ease;
+  transition: opacity 0.15s ease, transform 0.15s ease;
 }
 
 .dropdown-enter-from,
