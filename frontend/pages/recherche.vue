@@ -43,6 +43,22 @@ const optionDirection = computed(() => {
   return byField;
 });
 
+const orderFieldMap = {
+  createdAt: "lastEdit",
+  alpha: "name",
+  emissions: "emissions",
+  duration: "duration",
+  distance: "distance",
+  steps: "steps",
+};
+
+const orderQuery = computed(
+  () =>
+    (orderFieldMap[sortField.value] && sortDirection.value &&
+      `${orderFieldMap[sortField.value]}_${sortDirection.value}`) ||
+    undefined,
+);
+
 function nextSortDirection(field) {
   if (sortField.value !== field || !sortDirection.value) return "desc";
   if (sortDirection.value === "desc") return "asc";
@@ -104,16 +120,26 @@ onUnmounted(() => {
 
 const searchResults = ref(null);
 
-async function handleSearch() {
+async function handleSearch(filters = {}) {
+  const {
+    departure = "",
+    arrival = "",
+    transportModes = [],
+    emissions,
+    duration,
+    distance,
+    steps,
+  } = filters;
+
   searchResults.value = await searchMobilty({
-    departure: "Barcelona",
-    arrival: "Porto",
-    // TODO: remplacer les paramètres prédéfinis par les valeurs dynamiques de la sidebar
-    transportModes: ["plane", "train", "car", "bus", "carpool", "bike", "walk"],
-    emissions: { min: 0, max: 20000 },
-    duration: { min: 0, max: 60000 },
-    distance: { min: 0, max: 10000 },
-    steps: { min: 0, max: 100 },
+    departure,
+    arrival,
+    transportModes,
+    emissions,
+    duration,
+    distance,
+    steps,
+    order: orderQuery.value,
   });
 
   //   mobility info
