@@ -144,6 +144,8 @@ async function searchMobilty(req, res) {
       mobilityDirectOrderMap[requestedOrder] ??
       mobilityDirectOrderMap.lastEdit_desc;
 
+    console.log("[search] where:", JSON.stringify(where, null, 2));
+
     const mobilitiesRaw = await prisma.mobility.findMany({
       where,
       orderBy: directOrderBy,
@@ -170,9 +172,22 @@ async function searchMobilty(req, res) {
       },
     });
 
-    // DEBUG: à retirer après investigation
-    console.log("[searchMobilty] where:", JSON.stringify(where, null, 2));
-    console.log("[searchMobilty] mobilitiesRaw count:", mobilitiesRaw.length);
+    console.log("[search] mobilitiesRaw count:", mobilitiesRaw.length);
+    if (mobilitiesRaw.length > 0) {
+      console.log(
+        "[search] first mobility:",
+        JSON.stringify(
+          {
+            id: mobilitiesRaw[0].id,
+            start: mobilitiesRaw[0].startLocation,
+            end: mobilitiesRaw[0].endLocation,
+            trips: mobilitiesRaw[0].trips.length,
+          },
+          null,
+          2,
+        ),
+      );
+    }
 
     const withStats = mobilitiesRaw.map((mobility) => {
       const allSteps = mobility.trips.flatMap((trip) => trip.steps ?? []);
@@ -221,6 +236,32 @@ async function searchMobilty(req, res) {
       };
     });
 
+    console.log("[search] withStats count:", withStats.length);
+    if (withStats.length > 0) {
+      console.log(
+        "[search] first stats:",
+        JSON.stringify(withStats[0].stats, null, 2),
+      );
+    }
+    console.log(
+      "[search] filters applied:",
+      JSON.stringify(
+        {
+          minCarbon: filters.minCarbon,
+          maxCarbon: filters.maxCarbon,
+          minTime: filters.minTime,
+          maxTime: filters.maxTime,
+          minDistance: filters.minDistance,
+          maxDistance: filters.maxDistance,
+          minSteps: filters.minSteps,
+          maxSteps: filters.maxSteps,
+          transportModes: filters.transportModes,
+        },
+        null,
+        2,
+      ),
+    );
+
     const filtered = withStats.filter((mobility) => {
       const stats = mobility.stats;
       if (filters.minCarbon !== null && stats.totalCarbon < filters.minCarbon) {
@@ -267,6 +308,8 @@ async function searchMobilty(req, res) {
 
       return true;
     });
+
+    console.log("[search] filtered count:", filtered.length);
 
     const [orderField, orderDirection] = requestedOrder.split("_");
     const directionFactor = orderDirection === "asc" ? 1 : -1;

@@ -18,12 +18,14 @@ import {
   CheckCheck,
   MapPin,
   ArrowUpDown,
+  Infinity,
 } from "lucide-vue-next";
 
 const emit = defineEmits(["search"]);
 
 const departure = ref("");
 const arrival = ref("");
+const locationError = ref(false);
 
 const transportOptions = [
   { value: "plane", label: "Avion", icon: Plane },
@@ -41,15 +43,19 @@ const selectedTransportModes = ref(
 
 const emissionsMin = ref(0);
 const emissionsMax = ref(10000);
+const emissionsAnyValue = ref(true);
 
 const durationMin = ref(0);
 const durationMax = ref(6000);
+const durationAnyValue = ref(true);
 
 const distanceMin = ref(0);
 const distanceMax = ref(10000);
+const distanceAnyValue = ref(true);
 
 const stepsMin = ref(1);
-const stepsMax = ref(100);
+const stepsMax = ref(12);
+const stepsAnyValue = ref(true);
 
 const allTransportModesSelected = computed(
   () => selectedTransportModes.value.length === transportOptions.length,
@@ -80,14 +86,16 @@ function rangeTrackStyle(minValue, maxValue, domainMin, domainMax) {
   };
 }
 
-function makeRangePair(minRef, maxRef) {
+function makeRangePair(minRef, maxRef, anyValueRef) {
   return [
     (e) => {
+      if (anyValueRef) anyValueRef.value = false;
       const v = Math.min(+e.target.value, maxRef.value);
       minRef.value = v;
       e.target.value = v;
     },
     (e) => {
+      if (anyValueRef) anyValueRef.value = false;
       const v = Math.max(+e.target.value, minRef.value);
       maxRef.value = v;
       e.target.value = v;
@@ -98,21 +106,64 @@ function makeRangePair(minRef, maxRef) {
 const [onEmissionsMinInput, onEmissionsMaxInput] = makeRangePair(
   emissionsMin,
   emissionsMax,
+  emissionsAnyValue,
 );
 const [onDurationMinInput, onDurationMaxInput] = makeRangePair(
   durationMin,
   durationMax,
+  durationAnyValue,
 );
 const [onDistanceMinInput, onDistanceMaxInput] = makeRangePair(
   distanceMin,
   distanceMax,
+  distanceAnyValue,
 );
-const [onStepsMinInput, onStepsMaxInput] = makeRangePair(stepsMin, stepsMax);
+const [onStepsMinInput, onStepsMaxInput] = makeRangePair(
+  stepsMin,
+  stepsMax,
+  stepsAnyValue,
+);
+
+function toggleEmissionsAnyValue() {
+  emissionsAnyValue.value = !emissionsAnyValue.value;
+  if (emissionsAnyValue.value) {
+    emissionsMin.value = 0;
+    emissionsMax.value = 10000;
+  }
+}
+
+function toggleDurationAnyValue() {
+  durationAnyValue.value = !durationAnyValue.value;
+  if (durationAnyValue.value) {
+    durationMin.value = 0;
+    durationMax.value = 6000;
+  }
+}
+
+function toggleDistanceAnyValue() {
+  distanceAnyValue.value = !distanceAnyValue.value;
+  if (distanceAnyValue.value) {
+    distanceMin.value = 0;
+    distanceMax.value = 10000;
+  }
+}
+
+function toggleStepsAnyValue() {
+  stepsAnyValue.value = !stepsAnyValue.value;
+  if (stepsAnyValue.value) {
+    stepsMin.value = 1;
+    stepsMax.value = 12;
+  }
+}
 
 function swapLocations() {
   const previousDeparture = departure.value;
   departure.value = arrival.value;
   arrival.value = previousDeparture;
+}
+
+function clearLocationError() {
+  locationError.value = false;
 }
 
 function toggleTransportMode(mode) {
@@ -144,14 +195,30 @@ function toggleAllTransportModes() {
 }
 
 function triggerSearch() {
+  if (!departure.value.trim() && !arrival.value.trim()) {
+    locationError.value = true;
+    return;
+  }
+  locationError.value = false;
+
   emit("search", {
     departure: departure.value,
     arrival: arrival.value,
-    transportModes: selectedTransportModes.value,
-    emissions: { min: emissionsMin.value, max: emissionsMax.value },
-    duration: { min: durationMin.value, max: durationMax.value },
-    distance: { min: distanceMin.value, max: distanceMax.value },
-    steps: { min: stepsMin.value, max: stepsMax.value },
+    transportModes: allTransportModesSelected.value
+      ? []
+      : selectedTransportModes.value,
+    emissions: emissionsAnyValue.value
+      ? null
+      : { min: emissionsMin.value, max: emissionsMax.value },
+    duration: durationAnyValue.value
+      ? null
+      : { min: durationMin.value, max: durationMax.value },
+    distance: distanceAnyValue.value
+      ? null
+      : { min: distanceMin.value, max: distanceMax.value },
+    steps: stepsAnyValue.value
+      ? null
+      : { min: stepsMin.value, max: stepsMax.value },
   });
 }
 </script>
@@ -185,6 +252,8 @@ function triggerSearch() {
                 type="text"
                 placeholder="Ville de depart"
                 class="filter-input"
+                :class="{ error: locationError }"
+                @input="clearLocationError"
               />
             </label>
 
@@ -194,9 +263,14 @@ function triggerSearch() {
                 type="text"
                 placeholder="Ville d'arrivee"
                 class="filter-input"
+                :class="{ error: locationError }"
+                @input="clearLocationError"
               />
             </label>
           </div>
+          <p v-if="locationError" class="location-error">
+            Indiquez au moins une ville de départ ou d'arrivée.
+          </p>
         </section>
 
         <section class="filter-group">
@@ -233,8 +307,20 @@ function triggerSearch() {
           <div class="filter-group-header">
             <Leaf size="16" />
             <h3>Emissions (kg CO2)</h3>
+            <button
+              type="button"
+              class="any-value-btn"
+              :class="{ active: emissionsAnyValue }"
+              @click="toggleEmissionsAnyValue"
+            >
+              <Infinity size="13" />
+              <span>Sans limite</span>
+            </button>
           </div>
-          <div class="range-row">
+          <div
+            class="range-row"
+            :class="{ 'range-disabled': emissionsAnyValue }"
+          >
             <div class="range-values-inline">
               <span>
                 Min: <strong>{{ emissionsMin }} kg CO2</strong>
@@ -271,8 +357,20 @@ function triggerSearch() {
           <div class="filter-group-header">
             <Clock3 size="16" />
             <h3>Temps de trajet</h3>
+            <button
+              type="button"
+              class="any-value-btn"
+              :class="{ active: durationAnyValue }"
+              @click="toggleDurationAnyValue"
+            >
+              <Infinity size="13" />
+              <span>Sans limite</span>
+            </button>
           </div>
-          <div class="range-row">
+          <div
+            class="range-row"
+            :class="{ 'range-disabled': durationAnyValue }"
+          >
             <div class="range-values-inline">
               <span>
                 Min: <strong>{{ formattedDurationMin }}</strong>
@@ -309,8 +407,20 @@ function triggerSearch() {
           <div class="filter-group-header">
             <Ruler size="16" />
             <h3>Distance (km)</h3>
+            <button
+              type="button"
+              class="any-value-btn"
+              :class="{ active: distanceAnyValue }"
+              @click="toggleDistanceAnyValue"
+            >
+              <Infinity size="13" />
+              <span>Sans limite</span>
+            </button>
           </div>
-          <div class="range-row">
+          <div
+            class="range-row"
+            :class="{ 'range-disabled': distanceAnyValue }"
+          >
             <div class="range-values-inline">
               <span>
                 Min: <strong>{{ distanceMin }} km</strong>
@@ -347,8 +457,17 @@ function triggerSearch() {
           <div class="filter-group-header">
             <ListOrdered size="16" />
             <h3>Nombre d'etapes</h3>
+            <button
+              type="button"
+              class="any-value-btn"
+              :class="{ active: stepsAnyValue }"
+              @click="toggleStepsAnyValue"
+            >
+              <Infinity size="13" />
+              <span>Sans limite</span>
+            </button>
           </div>
-          <div class="range-row">
+          <div class="range-row" :class="{ 'range-disabled': stepsAnyValue }">
             <div class="range-values-inline">
               <span>
                 Min:
@@ -719,6 +838,57 @@ function triggerSearch() {
   transform: translateY(-1px);
   box-shadow: 0 8px 20px oklch(70.62% 0.139 158.37 / 25%);
   filter: brightness(1.02);
+}
+
+.any-value-btn {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 26px;
+  padding: 0 0.55rem;
+  border-radius: 999px;
+  border: 1.5px solid #dbe3ec;
+  background: #f8fbff;
+  color: #475569;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.any-value-btn:hover {
+  border-color: #22c55e;
+  background: #f0fdf4;
+}
+
+.any-value-btn.active {
+  border-color: #16a34a;
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+.range-disabled .range-values-inline {
+  opacity: 0.35;
+  transition: opacity 0.2s ease;
+}
+
+.range-disabled .dual-range {
+  opacity: 0.35;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.filter-input.error {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.location-error {
+  margin: 0.15rem 0 0;
+  font-size: 0.73rem;
+  color: #ef4444;
+  font-weight: 500;
 }
 
 @media (max-width: 1024px) {
