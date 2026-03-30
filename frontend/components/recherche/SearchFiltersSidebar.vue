@@ -40,16 +40,16 @@ const selectedTransportModes = ref(
 );
 
 const emissionsMin = ref(0);
-const emissionsMax = ref(12);
+const emissionsMax = ref(10000);
 
-const durationMin = ref(15);
-const durationMax = ref(240);
+const durationMin = ref(0);
+const durationMax = ref(6000);
 
-const distanceMin = ref(5);
-const distanceMax = ref(400);
+const distanceMin = ref(0);
+const distanceMax = ref(10000);
 
 const stepsMin = ref(1);
-const stepsMax = ref(5);
+const stepsMax = ref(100);
 
 const allTransportModesSelected = computed(
   () => selectedTransportModes.value.length === transportOptions.length,
@@ -245,22 +245,22 @@ function triggerSearch() {
             </div>
             <div
               class="dual-range"
-              :style="rangeTrackStyle(emissionsMin, emissionsMax, 0, 40)"
+              :style="rangeTrackStyle(emissionsMin, emissionsMax, 0, 10000)"
             >
               <input
                 :value="emissionsMin"
                 type="range"
                 min="0"
-                max="40"
-                step="1"
+                max="10000"
+                step="100"
                 @input="onEmissionsMinInput"
               />
               <input
                 :value="emissionsMax"
                 type="range"
                 min="0"
-                max="40"
-                step="1"
+                max="10000"
+                step="100"
                 @input="onEmissionsMaxInput"
               />
             </div>
@@ -283,22 +283,22 @@ function triggerSearch() {
             </div>
             <div
               class="dual-range"
-              :style="rangeTrackStyle(durationMin, durationMax, 15, 900)"
+              :style="rangeTrackStyle(durationMin, durationMax, 0, 6000)"
             >
               <input
                 :value="durationMin"
                 type="range"
-                min="15"
-                max="900"
-                step="15"
+                min="0"
+                max="6000"
+                step="60"
                 @input="onDurationMinInput"
               />
               <input
                 :value="durationMax"
                 type="range"
-                min="15"
-                max="900"
-                step="15"
+                min="0"
+                max="6000"
+                step="60"
                 @input="onDurationMaxInput"
               />
             </div>
@@ -321,22 +321,22 @@ function triggerSearch() {
             </div>
             <div
               class="dual-range"
-              :style="rangeTrackStyle(distanceMin, distanceMax, 5, 2000)"
+              :style="rangeTrackStyle(distanceMin, distanceMax, 0, 10000)"
             >
               <input
                 :value="distanceMin"
                 type="range"
-                min="5"
-                max="2000"
-                step="5"
+                min="0"
+                max="10000"
+                step="50"
                 @input="onDistanceMinInput"
               />
               <input
                 :value="distanceMax"
                 type="range"
-                min="5"
-                max="2000"
-                step="5"
+                min="0"
+                max="10000"
+                step="50"
                 @input="onDistanceMaxInput"
               />
             </div>
