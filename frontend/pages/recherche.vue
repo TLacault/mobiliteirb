@@ -1,6 +1,8 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import SearchFiltersSidebar from "../components/recherche/SearchFiltersSidebar.vue";
+import MobilityResultCard from "../components/recherche/MobilityResultCard.vue";
+import SearchPagination from "../components/recherche/SearchPagination.vue";
 import { searchMobilty } from "../utils/mobility_api.js";
 import {
   Route,
@@ -54,7 +56,8 @@ const orderFieldMap = {
 
 const orderQuery = computed(
   () =>
-    (orderFieldMap[sortField.value] && sortDirection.value &&
+    (orderFieldMap[sortField.value] &&
+      sortDirection.value &&
       `${orderFieldMap[sortField.value]}_${sortDirection.value}`) ||
     undefined,
 );
@@ -91,6 +94,9 @@ function applySortCycle(field, includeNone = true) {
 function handleSortOptionClick(field) {
   applySortCycle(field, false);
   isDropdownOpen.value = false;
+  if (searchResults.value !== null) {
+    handleSearch(lastFilters.value);
+  }
 }
 
 const selectedOption = computed(() => {
@@ -119,6 +125,8 @@ onUnmounted(() => {
 });
 
 const searchResults = ref(null);
+const currentPage = ref(1);
+const lastFilters = ref({});
 
 async function handleSearch(filters = {}) {
   const {
@@ -131,6 +139,9 @@ async function handleSearch(filters = {}) {
     steps,
   } = filters;
 
+  lastFilters.value = filters;
+  currentPage.value = 1;
+
   searchResults.value = await searchMobilty({
     departure,
     arrival,
@@ -140,10 +151,33 @@ async function handleSearch(filters = {}) {
     distance,
     steps,
     order: orderQuery.value,
+    page: 1,
   });
+}
 
-  //   mobility info
-  console.log("Résultats de recherche :", searchResults.value);
+async function goToPage(page) {
+  currentPage.value = page;
+  const {
+    departure = "",
+    arrival = "",
+    transportModes = [],
+    emissions,
+    duration,
+    distance,
+    steps,
+  } = lastFilters.value;
+
+  searchResults.value = await searchMobilty({
+    departure,
+    arrival,
+    transportModes,
+    emissions,
+    duration,
+    distance,
+    steps,
+    order: orderQuery.value,
+    page,
+  });
 }
 </script>
 
@@ -234,11 +268,36 @@ async function handleSearch(filters = {}) {
         </header>
 
         <section class="results-section">
-          <div class="section-container results-container">
-            <p class="placeholder-text">
-              Zone des cartes de mobilité (1 carte par ligne)
+          <div v-if="!searchResults" class="results-empty">
+            <p class="empty-text">
+              Lancez une recherche pour afficher les résultats.
             </p>
           </div>
+
+          <div
+            v-else-if="searchResults.data && searchResults.data.length === 0"
+            class="results-empty"
+          >
+            <p class="empty-text">Aucune mobilité trouvée pour ces critères.</p>
+          </div>
+
+          <template
+            v-else-if="searchResults.data && searchResults.data.length > 0"
+          >
+            <div class="results-grid">
+              <MobilityResultCard
+                v-for="mob in searchResults.data"
+                :key="mob.id"
+                :mobility="mob"
+              />
+            </div>
+
+            <SearchPagination
+              :page="searchResults.pagination.page"
+              :total-pages="searchResults.pagination.totalPages"
+              @update:page="goToPage"
+            />
+          </template>
         </section>
       </div>
     </div>
@@ -268,10 +327,32 @@ async function handleSearch(filters = {}) {
 }
 
 .results-section {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 18px;
-  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
+  gap: 0.6rem;
+}
+
+.results-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  background: #fafbfc;
+  border: 1.5px dashed #dbe3ec;
+  border-radius: 14px;
+}
+
+.empty-text {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 0.9rem;
+  font-weight: 500;
 }
 
 .section-header {
@@ -298,23 +379,6 @@ async function handleSearch(filters = {}) {
 
 .section-title {
   margin: 0;
-}
-
-.section-container {
-  border: 1.5px dashed #dbe3ec;
-  border-radius: 14px;
-  background: #fafbfc;
-  padding: 1rem;
-}
-
-.results-container {
-  min-height: 620px;
-}
-
-.placeholder-text {
-  margin: 0;
-  color: #6b7280;
-  font-size: 0.92rem;
 }
 
 .sort-dropdown {
@@ -460,8 +524,8 @@ async function handleSearch(filters = {}) {
     grid-template-columns: 1fr;
   }
 
-  .results-container {
-    min-height: 260px;
+  .results-empty {
+    min-height: 200px;
   }
 }
 </style>
