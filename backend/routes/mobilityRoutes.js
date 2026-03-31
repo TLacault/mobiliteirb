@@ -452,4 +452,38 @@ router.get("/:id/trips", authenticateJWT, tripController.getTrips);
  */
 router.post("/:id/trips", authenticateJWT, tripController.createTrip);
 
+/**
+ * @openapi
+ * /mobilities/{id}/duplicate:
+ *   post:
+ *     summary: Duplicate a mobility
+ *     tags: [Mobilities]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Mobility UUID
+ *     responses:
+ *       201:
+ *         description: Mobility duplicated
+ *       400:
+ *         description: Missing required fields
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Mobility not found
+ */
+router.post(
+  "/:id/duplicate",
+  authenticateJWT,
+  mobilityController.duplicateMobility,
+);
+
 module.exports = router;
