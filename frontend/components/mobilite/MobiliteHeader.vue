@@ -6,9 +6,14 @@ import {
   Route,
   CheckCheck,
   HatGlasses,
+  FilePen,
 } from "lucide-vue-next";
 import PopupDelete from "../popup/PopupDelete.vue";
-import { deleteMobility, updateMobility } from "../../utils/mobility_api.js";
+import {
+  deleteMobility,
+  updateMobility,
+  duplicateMobility,
+} from "../../utils/mobility_api.js";
 
 const props = defineProps({
   uuid: {
@@ -141,6 +146,19 @@ const handleDelete = async () => {
     console.error("Erreur suppression mobilité:", e);
   }
 };
+
+const handleDuplicate = async () => {
+  try {
+    const newMobility = await duplicateMobility(props.uuid);
+    if (newMobility && newMobility.id) {
+      navigateTo(`/mobilite/${newMobility.id}/synthese`);
+    } else {
+      console.error("La duplication a échoué, aucun ID retourné");
+    }
+  } catch (e) {
+    console.error("Erreur duplication mobilité:", e);
+  }
+};
 </script>
 
 <template>
@@ -209,10 +227,21 @@ const handleDelete = async () => {
           </div>
         </div>
 
-        <button class="delete-btn" @click="showDeletePopup = true">
-          <Trash2 size="16" />
-          <span>Supprimer</span>
-        </button>
+        <div class="header-actions">
+          <button
+            v-if="mobility && !mobility.isOriginal"
+            class="duplicate-btn"
+            @click="handleDuplicate"
+          >
+            <FilePen size="16" color="var(--background)" />
+            <span>Dupliquer</span>
+          </button>
+
+          <button class="delete-btn" @click="showDeletePopup = true">
+            <Trash2 size="16" />
+            <span>Supprimer</span>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -260,9 +289,15 @@ const handleDelete = async () => {
 
 .header-container {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: 1fr auto 2fr;
   align-items: center;
   gap: 1rem;
+}
+
+.header-actions {
+  display: flex;
+  justify-content: end;
+  gap: 0.75rem;
 }
 
 .back-btn {
@@ -327,7 +362,9 @@ const handleDelete = async () => {
 
 .badge-enter-active,
 .badge-leave-active {
-  transition: opacity 0.35s ease, transform 0.35s ease;
+  transition:
+    opacity 0.35s ease,
+    transform 0.35s ease;
 }
 .badge-enter-from,
 .badge-leave-to {
@@ -343,7 +380,9 @@ const handleDelete = async () => {
   font-family: inherit;
   background: #f8f9fa;
   color: var(--text);
-  transition: border-color 0.2s, background 0.2s;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
   outline: none;
 
   &:focus {
@@ -409,6 +448,30 @@ const handleDelete = async () => {
 
 .anonymous-toggle input:checked + .anonymous-track::after {
   transform: translateX(16px);
+}
+
+.duplicate-btn {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.9rem;
+  border: none;
+  background: var(--gradientCallToAction);
+  color: white;
+  line-height: 1;
+  border-radius: 100px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+
+  transition: all 0.3s ease-in-out;
+  &:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    transform: translateY(-2px);
+  }
 }
 
 .delete-btn {
