@@ -172,3 +172,23 @@ export async function searchMobilty({
     throw error;
   }
 }
+
+/**
+ * Duplicate a mobility by its ID
+ * @param {string} id - Mobility ID to duplicate
+ * @returns {Promise<Object>} The newly duplicated mobility object
+ */
+export async function duplicateMobility(id) {
+  try {
+    const response = await authenticatedFetch(
+      `${API_BASE}/mobilities/${id}/duplicate`,
+      {
+        method: "POST",
+      },
+    );
+    return response;
+  } catch (error) {
+    console.error(`Error duplicating mobility ${id}:`, error);
+    throw error;
+  }
+}
