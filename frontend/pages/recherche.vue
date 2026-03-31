@@ -3,7 +3,7 @@ import { ref, computed, onMounted, onUnmounted } from "vue";
 import SearchFiltersSidebar from "../components/recherche/SearchFiltersSidebar.vue";
 import MobilityResultCard from "../components/recherche/MobilityResultCard.vue";
 import SearchPagination from "../components/recherche/SearchPagination.vue";
-import { searchMobilty } from "../utils/mobility_api.js";
+import { searchMobilty, duplicateMobility } from "../utils/mobility_api.js";
 import {
   Route,
   History,
@@ -155,6 +155,17 @@ async function handleSearch(filters = {}) {
   });
 }
 
+async function handleViewDetails(mobilityId) {
+  try {
+    const result = await duplicateMobility(mobilityId);
+    if (result?.id) {
+      navigateTo(`/mobilite/${result.id}/synthese`);
+    }
+  } catch (e) {
+    console.error("Erreur lors de l'import de la mobilité:", e);
+  }
+}
+
 async function goToPage(page) {
   currentPage.value = page;
   const {
@@ -289,6 +300,7 @@ async function goToPage(page) {
                 v-for="mob in searchResults.data"
                 :key="mob.id"
                 :mobility="mob"
+                @view-details="handleViewDetails"
               />
             </div>
 

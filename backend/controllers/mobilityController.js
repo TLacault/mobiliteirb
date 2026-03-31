@@ -317,7 +317,7 @@ async function searchMobilty(req, res) {
       isOriginal: mobility.isOriginal,
       author: {
         casLogin: mobility.isPublic
-          ? (mobility.user?.casLogin ?? "Anonyme")
+          ? mobility.user?.casLogin ?? "Anonyme"
           : "Anonyme",
       },
       stats: {
@@ -567,6 +567,7 @@ async function updateMobility(req, res) {
       "name",
       "year",
       "isPublic",
+      "isOriginal",
       "startLocation",
       "endLocation",
     ];
@@ -627,13 +628,13 @@ async function duplicateMobility(req, res) {
 
     const newMobility = await prisma.mobility.create({
       data: {
-        userId,
+        user: { connect: { id: userId } },
         name: mobilityToDuplicate.isPublic
           ? `Copie de ${mobilityToDuplicate.name}`
           : "Copie anonyme",
         year: mobilityToDuplicate.year,
         isPublic: true,
-        isOriginal: true,
+        isOriginal: null,
         startLocation: mobilityToDuplicate.startLocation,
         endLocation: mobilityToDuplicate.endLocation,
         trips: {

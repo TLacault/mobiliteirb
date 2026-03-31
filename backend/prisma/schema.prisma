@@ -30,7 +30,7 @@ model Mobility {
     name       String
     year       DateTime @db.Date // Juste la date, pas l'heure
     isPublic   Boolean  @default(true) @map("is_public")
-    isOriginal Boolean  @default(true) @map("is_original")
+    isOriginal Boolean? @map("is_original")
     lastEdit   DateTime @updatedAt @map("last_edit")
 
     startLocation String @map("start")

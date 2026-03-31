@@ -9,11 +9,7 @@ import {
   FilePen,
 } from "lucide-vue-next";
 import PopupDelete from "../popup/PopupDelete.vue";
-import {
-  deleteMobility,
-  updateMobility,
-  duplicateMobility,
-} from "../../utils/mobility_api.js";
+import { deleteMobility, updateMobility } from "../../utils/mobility_api.js";
 
 const props = defineProps({
   uuid: {
@@ -103,6 +99,10 @@ const saveField = async (field, inputEl = null) => {
     payload.year = `${localYear.value}-01-01`;
   if (field === "anonymous") payload.isPublic = !localAnonymous.value;
   if (!Object.keys(payload).length) return;
+  // Mark as original on first edit of an unconfirmed import
+  if (props.mobility.isOriginal === null) {
+    payload.isOriginal = true;
+  }
   try {
     await updateMobility(props.uuid, payload);
     // Commit the new values
@@ -149,14 +149,10 @@ const handleDelete = async () => {
 
 const handleDuplicate = async () => {
   try {
-    const newMobility = await duplicateMobility(props.uuid);
-    if (newMobility && newMobility.id) {
-      navigateTo(`/mobilite/${newMobility.id}/synthese`);
-    } else {
-      console.error("La duplication a échoué, aucun ID retourné");
-    }
+    await updateMobility(props.uuid, { isOriginal: true });
+    emit("updated", { isOriginal: true });
   } catch (e) {
-    console.error("Erreur duplication mobilité:", e);
+    console.error("Erreur confirmation import mobilité:", e);
   }
 };
 </script>
@@ -362,9 +358,7 @@ const handleDuplicate = async () => {
 
 .badge-enter-active,
 .badge-leave-active {
-  transition:
-    opacity 0.35s ease,
-    transform 0.35s ease;
+  transition: opacity 0.35s ease, transform 0.35s ease;
 }
 .badge-enter-from,
 .badge-leave-to {
@@ -380,9 +374,7 @@ const handleDuplicate = async () => {
   font-family: inherit;
   background: #f8f9fa;
   color: var(--text);
-  transition:
-    border-color 0.2s,
-    background 0.2s;
+  transition: border-color 0.2s, background 0.2s;
   outline: none;
 
   &:focus {
