@@ -3,7 +3,7 @@ GREEN=\033[0;32m
 BLUE=\033[0;34m
 NC=\033[0m
 
-.PHONY: help install up down clean logs seed db-reset erase-db
+.PHONY: help install up down clean logs seed seed-append db-reset erase-db
 
 help:
 	@echo "Commandes disponibles :"
@@ -12,8 +12,7 @@ help:
 	@echo "  make down         : Arrête les conteneurs"
 	@echo "  make logs         : Affiche les logs en temps réel"
 	@echo "  make clean        : Supprime tout (volumes, images, node_modules locaux)"
-	@echo "  make seed         : Remplit la base avec des données aléatoires (efface tout)"
-	@echo "  make db-reset     : Réinitialise la base et la remplit avec des données"
+	@echo "  make seed         : Remplit la base avec des données aléatoires (efface tout)"	@echo "  make seed-append  : Ajoute des données sans effacer l'existant"	@echo "  make db-reset     : Réinitialise la base et la remplit avec des données"
 	@echo "  make erase-db     : Supprime toutes les données de la base (garde le schéma)"
 
 install:
@@ -53,6 +52,11 @@ seed:
 	docker compose run --rm backend npx prisma db push
 	docker compose run --rm backend npm run seed
 	@echo -e "${GREEN}=== Database seeded successfully! ===${NC}"
+
+seed-append:
+	@echo -e "${GREEN}=== Appending random data (no reset) ===${NC}"
+	docker compose run --rm backend node prisma/seed-append.js
+	@echo -e "${GREEN}=== Data appended successfully! ===${NC}"
 
 db-reset:
 	@echo -e "${GREEN}=== Resetting database and reseeding ===${NC}"
