@@ -317,7 +317,7 @@ async function searchMobilty(req, res) {
       isOriginal: mobility.isOriginal,
       author: {
         casLogin: mobility.isPublic
-          ? mobility.user?.casLogin ?? "Anonyme"
+          ? (mobility.user?.casLogin ?? "Anonyme")
           : "Anonyme",
       },
       stats: {
@@ -372,6 +372,7 @@ async function getMobility(req, res) {
   try {
     const { id } = req.params;
     const userId = req.user.id;
+    const { preview } = req.query;
 
     const mobility = await prisma.mobility.findUnique({
       where: { id },
@@ -379,6 +380,23 @@ async function getMobility(req, res) {
 
     if (!mobility) {
       return res.status(404).json({ error: "Mobility not found" });
+    }
+
+    if (preview === "true") {
+      if (mobility.isPublic) {
+        return res.json({
+          id: mobility.id,
+          name: mobility.name,
+          year: mobility.year,
+          isPublic: mobility.isPublic,
+          isOriginal: false,
+          lastEdit: mobility.lastEdit,
+          startLocation: mobility.startLocation,
+          endLocation: mobility.endLocation,
+          notes: null,
+        });
+      }
+      return res.status(403).json({ error: "Forbidden" });
     }
 
     if (mobility.userId !== userId) {
