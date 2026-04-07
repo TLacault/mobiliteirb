@@ -22,13 +22,15 @@ export async function getMobilities() {
  * @param {string} id - Mobility ID
  * @returns {Promise<Object>} Mobility properties and trip list
  */
-export async function getMobility(id) {
+export async function getMobility(id, preview = false) {
   if (!id) {
     throw new Error("id is required to fetch a mobility");
   }
 
   try {
-    return await authenticatedFetch(`${API_BASE}/mobilities/${id}`);
+    return await authenticatedFetch(
+      `${API_BASE}/mobilities/${id}${preview ? "?preview=true" : ""}`,
+    );
   } catch (error) {
     console.error(`Error fetching mobility ${id}:`, error);
     throw error;

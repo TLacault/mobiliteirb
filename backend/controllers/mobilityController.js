@@ -383,20 +383,21 @@ async function getMobility(req, res) {
     }
 
     if (preview === "true") {
-      if (mobility.isPublic) {
-        return res.json({
-          id: mobility.id,
-          name: mobility.name,
-          year: mobility.year,
-          isPublic: mobility.isPublic,
-          isOriginal: false,
-          lastEdit: mobility.lastEdit,
-          startLocation: mobility.startLocation,
-          endLocation: mobility.endLocation,
-          notes: null,
-        });
+      if (!mobility.isPublic) {
+        return res.status(403).json({ error: "Forbidden" });
       }
-      return res.status(403).json({ error: "Forbidden" });
+
+      return res.json({
+        id: mobility.id,
+        name: mobility.name,
+        year: mobility.year,
+        isPublic: mobility.isPublic,
+        isOriginal: false,
+        lastEdit: mobility.lastEdit,
+        startLocation: mobility.startLocation,
+        endLocation: mobility.endLocation,
+        notes: null,
+      });
     }
 
     if (mobility.userId !== userId) {
