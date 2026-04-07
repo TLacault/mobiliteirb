@@ -400,7 +400,7 @@ async function getMobility(req, res) {
       });
     }
 
-    if (mobility.userId !== userId) {
+    if (mobility.userId !== userId && !preview) {
       return res.status(403).json({ error: "Forbidden" });
     }
 
@@ -428,6 +428,7 @@ async function getMobilityStats(req, res) {
   try {
     const { id } = req.params;
     const userId = req.user.id;
+    const { preview } = req.query;
 
     const mobility = await prisma.mobility.findUnique({
       where: { id },
@@ -438,7 +439,11 @@ async function getMobilityStats(req, res) {
       return res.status(404).json({ error: "Mobility not found" });
     }
 
-    if (mobility.userId !== userId) {
+    if (mobility.userId !== userId && !preview) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    if (preview && !mobility.isPublic) {
       return res.status(403).json({ error: "Forbidden" });
     }
 

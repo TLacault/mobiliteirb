@@ -29,6 +29,7 @@ async function getTrips(req, res) {
   try {
     const mobilityId = req.params.id;
     const userId = req.user.id;
+    const { preview } = req.query;
     const requestedOrder =
       typeof req.query.order === "string" ? req.query.order : "createdAt";
 
@@ -62,7 +63,7 @@ async function getTrips(req, res) {
       return res.status(404).json({ error: "Mobility not found" });
     }
 
-    if (mobility.userId !== userId) {
+    if (mobility.userId !== userId && !preview) {
       return res.status(403).json({ error: "Forbidden" });
     }
 
@@ -151,6 +152,7 @@ async function getTrip(req, res) {
   try {
     const { tripId } = req.params;
     const userId = req.user.id;
+    const { preview } = req.query;
 
     if (!tripId) {
       return res.status(400).json({ error: "Trip ID is required" });
@@ -169,7 +171,7 @@ async function getTrip(req, res) {
       return res.status(404).json({ error: "Trip not found" });
     }
 
-    if (trip.mobility.userId !== userId) {
+    if (trip.mobility.userId !== userId && !preview) {
       return res.status(403).json({ error: "Forbidden" });
     }
 
@@ -193,6 +195,7 @@ async function getTripStatsHandler(req, res) {
   try {
     const { tripId } = req.params;
     const userId = req.user.id;
+    const { preview } = req.query;
 
     if (!tripId) {
       return res.status(400).json({ error: "Trip ID is required" });
@@ -242,7 +245,7 @@ async function getTripStatsHandler(req, res) {
       return res.status(404).json({ error: "Trip not found" });
     }
 
-    if (trip.mobility.userId !== userId) {
+    if (trip.mobility.userId !== userId && !preview) {
       return res.status(403).json({ error: "Forbidden" });
     }
 

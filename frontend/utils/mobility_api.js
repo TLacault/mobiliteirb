@@ -42,13 +42,15 @@ export async function getMobility(id, preview = false) {
  * @param {string} id - Mobility ID
  * @returns {Promise<Object>} Aggregated statistics
  */
-export async function getMobilityStats(id) {
+export async function getMobilityStats(id, preview = false) {
   if (!id) {
     throw new Error("id is required to fetch mobility stats");
   }
 
   try {
-    return await authenticatedFetch(`${API_BASE}/mobilities/${id}/stats`);
+    return await authenticatedFetch(
+      `${API_BASE}/mobilities/${id}/stats${preview ? "?preview=true" : ""}`,
+    );
   } catch (error) {
     console.error(`Error fetching mobility stats ${id}:`, error);
     throw error;

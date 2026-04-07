@@ -93,7 +93,10 @@ function formatCarbon(kg) {
         </div>
       </div>
 
-      <button class="details-btn" @click="$emit('view-details', mobility.id)">
+      <button
+        class="details-btn"
+        @click="navigateTo(`/mobilite/${mobility.id}/synthese?preview=true`)"
+      >
         <Eye :size="15" />
         <span>Voir détails</span>
       </button>
@@ -109,7 +112,9 @@ function formatCarbon(kg) {
   border-radius: 12px;
   background: #fff;
   border: 1.5px solid #e5e7eb;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
   overflow: hidden;
 }
 
@@ -243,7 +248,10 @@ function formatCarbon(kg) {
   font-weight: 650;
   cursor: pointer;
   white-space: nowrap;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    filter 0.15s ease;
 }
 
 .details-btn:hover {

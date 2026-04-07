@@ -3,7 +3,11 @@ import { ref, computed, onMounted, onUnmounted } from "vue";
 import SearchFiltersSidebar from "../components/recherche/SearchFiltersSidebar.vue";
 import MobilityResultCard from "../components/recherche/MobilityResultCard.vue";
 import SearchPagination from "../components/recherche/SearchPagination.vue";
-import { searchMobilty, duplicateMobility } from "../utils/mobility_api.js";
+import {
+  searchMobilty,
+  getMobility,
+  duplicateMobility,
+} from "../utils/mobility_api.js";
 import {
   Route,
   History,
@@ -157,7 +161,7 @@ async function handleSearch(filters = {}) {
 
 async function handleViewDetails(mobilityId) {
   try {
-    const result = await duplicateMobility(mobilityId);
+    const result = await getMobility(mobilityId, true);
     if (result?.id) {
       navigateTo(`/mobilite/${result.id}/synthese`);
     }
@@ -410,7 +414,9 @@ async function goToPage(page) {
   font-size: var(--font-body);
   font-weight: 400;
   cursor: pointer;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
   white-space: nowrap;
 }
 
@@ -503,7 +509,10 @@ async function goToPage(page) {
   color: var(--primary);
   opacity: 0;
   flex-shrink: 0;
-  transition: transform 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    color 0.2s ease,
+    opacity 0.2s ease;
 }
 
 .sort-state-icon.active,
@@ -518,7 +527,9 @@ async function goToPage(page) {
 
 .dropdown-enter-active,
 .dropdown-leave-active {
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
 }
 
 .dropdown-enter-from,

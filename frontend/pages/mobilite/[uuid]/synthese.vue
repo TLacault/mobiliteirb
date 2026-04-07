@@ -25,11 +25,13 @@ const mobilityStats = ref(null);
 const loading = ref(true);
 const error = ref(null);
 
+const isPreview = computed(() => route.query.preview === "true");
+
 const loadMobility = async () => {
   loading.value = true;
   error.value = null;
   try {
-    mobility.value = await getMobility(uuid.value);
+    mobility.value = await getMobility(uuid.value, isPreview.value);
   } catch (e) {
     error.value = e.message || "Erreur lors du chargement";
   } finally {
@@ -41,7 +43,7 @@ onMounted(loadMobility);
 
 const loadMobilityStats = async () => {
   try {
-    mobilityStats.value = await getMobilityStats(uuid.value);
+    mobilityStats.value = await getMobilityStats(uuid.value, isPreview.value);
   } catch (e) {
     console.error("Error loading mobility stats:", e);
     mobilityStats.value = {
@@ -77,7 +79,11 @@ const fetchTrips = async () => {
   tripLoading.value = true;
   tripError.value = null;
   try {
-    tripList.value = await getMobilityTrips(uuid.value);
+    tripList.value = await getMobilityTrips(
+      uuid.value,
+      "createdAt",
+      isPreview.value,
+    );
   } catch (e) {
     console.error("Error loading trips:", e);
     tripError.value = "Failed to load trips.";

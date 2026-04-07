@@ -10,7 +10,11 @@ import { API_BASE, authenticatedFetch } from "./authFetch.js";
  * @param {string} order - Sort order
  * @returns {Promise<Array>}
  */
-export async function getTrips(mobilityId, order = "createdAt") {
+export async function getTrips(
+  mobilityId,
+  order = "createdAt",
+  preview = false,
+) {
   if (!mobilityId) {
     throw new Error("mobilityId is required to fetch trips");
   }
@@ -18,6 +22,7 @@ export async function getTrips(mobilityId, order = "createdAt") {
   try {
     const params = new URLSearchParams();
     if (order) params.set("order", order);
+    if (preview) params.set("preview", "true");
     return await authenticatedFetch(
       `${API_BASE}/mobilities/${mobilityId}/trips?${params.toString()}`,
     );
@@ -32,13 +37,15 @@ export async function getTrips(mobilityId, order = "createdAt") {
  * @param {string} id - Trip ID
  * @returns {Promise<Object>} Trip properties
  */
-export async function getTrip(id) {
+export async function getTrip(id, preview = false) {
   if (!id) {
     throw new Error("id is required to fetch a trip");
   }
 
   try {
-    return await authenticatedFetch(`${API_BASE}/trips/${id}`);
+    return await authenticatedFetch(
+      `${API_BASE}/trips/${id}${preview ? "?preview=true" : ""}`,
+    );
   } catch (error) {
     console.error(`Error fetching trip ${id}:`, error);
     throw error;
@@ -50,13 +57,15 @@ export async function getTrip(id) {
  * @param {string} id - Trip ID
  * @returns {Promise<Object>} Trip statistics
  */
-export async function getTripStats(id) {
+export async function getTripStats(id, preview = false) {
   if (!id) {
     throw new Error("id is required to fetch trip stats");
   }
 
   try {
-    return await authenticatedFetch(`${API_BASE}/trips/${id}/stats`);
+    return await authenticatedFetch(
+      `${API_BASE}/trips/${id}/stats${preview ? "?preview=true" : ""}`,
+    );
   } catch (error) {
     console.error(`Error fetching trip stats ${id}:`, error);
     throw error;
@@ -123,15 +132,20 @@ export async function updateTrip(id, data) {
  * @param {string} order - Sort order
  * @returns {Promise<Array>}
  */
-export async function getMobilityTrips(mobilityId, order = "createdAt") {
-  const data = await getTrips(mobilityId, order);
+export async function getMobilityTrips(
+  mobilityId,
+  order = "createdAt",
+  preview = false,
+) {
+  const data = await getTrips(mobilityId, order, preview);
   const items = Array.isArray(data) ? data : data.trips || [];
+
   return Promise.all(
     items.map(async (item) => {
       const id = item?.id ?? item?.uuid;
       try {
-        const tripData = await getTrip(id);
-        const stats = await getTripStats(id);
+        const tripData = await getTrip(id, preview);
+        const stats = await getTripStats(id, preview);
         return {
           id,
           ...tripData,
