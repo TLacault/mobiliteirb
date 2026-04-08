@@ -137,7 +137,7 @@ async function selectTransportMode(mode) {
 }
 
 const isDirtyNotes = () => {
-  return localNotes.value.trim() !== committedNotes.value.trim();
+  return localNotes.value !== committedNotes.value;
 };
 
 const flashSavedNotes = () => {
@@ -150,7 +150,6 @@ const flashSavedNotes = () => {
 
 const saveNotes = async () => {
   clearTimeout(debounceTimers.notes);
-  localNotes.value = localNotes.value.trim();
   if (!isDirtyNotes()) return;
 
   try {

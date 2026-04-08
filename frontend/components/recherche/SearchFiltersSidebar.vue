@@ -562,7 +562,7 @@ function triggerSearch() {
 }
 
 .filters-section::-webkit-scrollbar-thumb:hover {
-  background: oklch(77.386% 0.01667 166.875 / 0.6);
+  background: var(--primary);
 }
 
 .section-icon {

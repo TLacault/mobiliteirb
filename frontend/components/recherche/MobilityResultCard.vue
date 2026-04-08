@@ -6,8 +6,8 @@ import {
   Timer,
   Ruler,
   MapPin,
-  House,
-  MapPinned,
+  PlaneTakeoff,
+  PlaneLanding,
   Eye,
 } from "lucide-vue-next";
 
@@ -53,16 +53,16 @@ function formatCarbon(kg) {
     <div class="row-top">
       <Briefcase :size="15" class="name-icon" />
       <span class="name-text">{{ mobility.name }}</span>
-      <span class="author-badge" :class="{ anonymous: isAnonymous }">{{
-        authorLabel
-      }}</span>
+      <span class="author-badge" :class="{ anonymous: isAnonymous }"
+        >étudiant {{ authorLabel }}</span
+      >
       <span class="top-sep" />
       <div class="location">
-        <House :size="14" class="icon-departure" />
+        <PlaneTakeoff :size="14" class="icon-departure" />
         <span>{{ mobility.startLocation }}</span>
       </div>
       <div class="location">
-        <MapPinned :size="14" class="icon-arrival" />
+        <PlaneLanding :size="14" class="icon-arrival" />
         <span>{{ mobility.endLocation }}</span>
       </div>
     </div>
@@ -112,9 +112,7 @@ function formatCarbon(kg) {
   border-radius: 12px;
   background: #fff;
   border: 1.5px solid #e5e7eb;
-  transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
   overflow: hidden;
 }
 
@@ -191,7 +189,7 @@ function formatCarbon(kg) {
 }
 .icon-arrival {
   flex-shrink: 0;
-  color: var(--accent);
+  color: var(--primary);
 }
 
 /* Divider */
@@ -211,8 +209,8 @@ function formatCarbon(kg) {
 }
 
 .stats-grid {
-  display: grid;
-  grid-template-columns: auto auto;
+  display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
 }
 
@@ -248,10 +246,7 @@ function formatCarbon(kg) {
   font-weight: 650;
   cursor: pointer;
   white-space: nowrap;
-  transition:
-    transform 0.15s ease,
-    box-shadow 0.15s ease,
-    filter 0.15s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
 }
 
 .details-btn:hover {

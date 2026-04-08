@@ -506,6 +506,14 @@ onUnmounted(() => {
         aria-label="Indicateur de trajets"
       >
         <button
+          class="scroll-nav"
+          :disabled="!canScrollLeft"
+          @click="scrollToAdjacentTrip('left')"
+        >
+          <ChevronLeft size="20" />
+        </button>
+
+        <button
           v-for="(col, index) in columns"
           :key="`dot-${col.trip.id}`"
           class="indicator-dot"
@@ -513,20 +521,20 @@ onUnmounted(() => {
           :aria-label="`Aller au trajet ${index + 1}`"
           @click="scrollToTrip(index)"
         ></button>
+
+        <button
+          class="scroll-nav"
+          :disabled="!canScrollRight"
+          @click="scrollToAdjacentTrip('right')"
+        >
+          <ChevronRight size="20" />
+        </button>
       </div>
 
       <div
         v-if="!loading && !error && columns.length > 0"
         class="trips-carousel-shell"
       >
-        <button
-          class="scroll-nav left"
-          :disabled="!canScrollLeft"
-          @click="scrollToAdjacentTrip('left')"
-        >
-          <ChevronLeft size="20" />
-        </button>
-
         <div
           ref="tripsTrackRef"
           class="trips-grid"
@@ -584,14 +592,6 @@ onUnmounted(() => {
             </div>
           </div>
         </div>
-
-        <button
-          class="scroll-nav right"
-          :disabled="!canScrollRight"
-          @click="scrollToAdjacentTrip('right')"
-        >
-          <ChevronRight size="20" />
-        </button>
       </div>
     </div>
 
@@ -815,7 +815,6 @@ onUnmounted(() => {
   --trips-gap: 3rem;
   --edge-offset: 78px;
   --edge-width: 64px;
-  --nav-top-offset: 80px;
   position: relative;
 }
 
@@ -874,10 +873,8 @@ onUnmounted(() => {
 }
 
 .scroll-nav {
-  position: absolute;
-  top: var(--nav-top-offset);
-  width: 42px;
-  height: 42px;
+  padding: 0.3rem;
+  aspect-ratio: 1;
   border: 1.5px solid #dbe3ec;
   border-radius: 999px;
   background-color: white;
@@ -887,16 +884,9 @@ onUnmounted(() => {
   justify-content: center;
   cursor: pointer;
   z-index: 3;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  /* box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08); */
   transition: all 0.2s ease;
-}
-
-.scroll-nav.left {
-  left: -60px;
-}
-
-.scroll-nav.right {
-  right: -60px;
+  flex-shrink: 0;
 }
 
 .scroll-nav:hover:not(:disabled) {

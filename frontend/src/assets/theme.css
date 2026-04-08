@@ -64,6 +64,27 @@ body {
   font-family: var(--font-inter);
   color: var(--text);
   background-color: var(--background);
+  scrollbar-width: thin;
+  scrollbar-color: oklch(70.62% 0.139 158.37 / 30%) transparent;
+}
+
+/* Custom global scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: oklch(70.62% 0.139 158.37 / 25%);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
 }
 
 /* Text */

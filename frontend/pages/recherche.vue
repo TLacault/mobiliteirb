@@ -172,6 +172,7 @@ async function handleViewDetails(mobilityId) {
 
 async function goToPage(page) {
   currentPage.value = page;
+  window.scrollTo({ top: 0, behavior: "smooth" });
   const {
     departure = "",
     arrival = "",
@@ -328,7 +329,7 @@ async function goToPage(page) {
 
 .search-layout {
   width: 100%;
-  max-width: 1500px;
+  max-width: 1200px;
   margin: 0 auto;
   display: grid;
   grid-template-columns: minmax(270px, 320px) minmax(0, 1fr);
@@ -349,8 +350,8 @@ async function goToPage(page) {
 }
 
 .results-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 0.6rem;
 }
 
@@ -414,9 +415,7 @@ async function goToPage(page) {
   font-size: var(--font-body);
   font-weight: 400;
   cursor: pointer;
-  transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
   white-space: nowrap;
 }
 
@@ -509,10 +508,7 @@ async function goToPage(page) {
   color: var(--primary);
   opacity: 0;
   flex-shrink: 0;
-  transition:
-    transform 0.2s ease,
-    color 0.2s ease,
-    opacity 0.2s ease;
+  transition: transform 0.2s ease, color 0.2s ease, opacity 0.2s ease;
 }
 
 .sort-state-icon.active,
@@ -527,9 +523,7 @@ async function goToPage(page) {
 
 .dropdown-enter-active,
 .dropdown-leave-active {
-  transition:
-    opacity 0.15s ease,
-    transform 0.15s ease;
+  transition: opacity 0.15s ease, transform 0.15s ease;
 }
 
 .dropdown-enter-from,
