@@ -43,14 +43,6 @@ curl -X POST "https://routes.googleapis.com/directions/v2:computeRoutes" \
 }
 ```
 
-**Services** : Google flight API (non retenu pour ce projet)
-* **Fonctionnalités** :
-    * Prise en compte du trafic en temps réel.
-    * Gestion intelligente des trajets en avion.
-    * Résultats : distance réelle (km) et durée estimée (s).
-* **Limites** : 
-  * Service payant (principe de quotas : 250 requêtes/mois)
-
 ### B. Méthode de Haversine (Vol d'oiseau)
 
 **Services** : Calcule la distance la plus courte entre deux points sur une sphère à partir de leurs coordonnées GPS (latitude/longitude) grâce à la formule de Haversine
@@ -117,106 +109,15 @@ curl "https://maps.googleapis.com/maps/api/geocode/json?address=Gare%20du%20Nord
 
 ---
 
-## 2. Obtention du Facteur d'Émission Carbone
-
-$Emissions = Distance \times Facteur\_d\_Emission$.
-On peut choisir le facteur d'émissions de la ville de départ.
-
-### A. Méthode API
-
-**Services** : Climatiq (non retenu pour ce projet)
-* **Fonctionnalités** : API qui fournit un facteur d'émission exact
-* **Avantages** : 
-  * Service international
-  * Mise à jour automatique
-  * Filtrage possible par mode de transport (emission factor)
-  * Filtrage possible par région (location) -> permet tenir compte mixte énergétique dans la région
-* **Limites** : Service payant (au delà de 250 requêtes/mois)
-* **Exemple** : POST https://api.climatiq.io/estimate
-```
-curl -X POST "https://beta3.api.climatiq.io/estimate" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "emission_factor": "passenger_vehicle-vehicle_type_car-fuel_source_na",
-    "parameters": {
-      "distance": 100,
-      "distance_unit": "km"
-      "location": "DE"
-    }
-  }'
-```
-**Réponse attendue** :
-```
-{
-  "co2e": 21.3,
-  "co2e_unit": "kg",
-  "emission_factor": {
-    "id": "passenger_vehicle-vehicle_type_car-fuel_source_na",
-    "category": "passenger_vehicle",
-    "activity_type": "vehicle_type_car",
-    "fuel_source": "na"
-  },
-  "parameters": {
-    "distance": 100,
-    "distance_unit": "km"
-    "location": "DE"
-  }
-}
-```
-
-Ne calculer un facteur d'émissions que si celui là n'existe pas dans la base de données.
-Cela permet de réduire le nombre de requêtes. Peut être utilisé en complément de la méthode bases de données ouvertes, si les fichiers json importés ne sont pas complets.
-
-**Services** : Carbon Interface (non retenu pour ce projet)
-* **Fonctionnalités** : API qui fournit un facteur d'émission depuis la base de données de l'IEA
-* **Avantages** : 
-  * Service international
-  * Filtrage possible par mode de transport (de base en renseignant que le véhicule, cela prend le facteur d'émission associé au véhicule)
-  * Filtrage possible par pays (renseigné country si on veut tenir compte du mixte énergétique allemand)
-* **Limites** : Service payant
-  * gratuit jusqu'à 200 requêtes/mois
-  * 30€/mois pour 5000 requêtes
-  * 250€/mois pour 100 000 requêtes
-* **Exemple** :
-```bash
-curl -X POST "https://www.carboninterface.com/api/v1/estimates" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "type": "vehicle",
-    "distance": 100,
-    "distance_unit": "km",
-    "vehicle_type": "small_car"
-    "country": "DE"
-  }'
-```
-**Réponse attendue** :
-```
-{
-  "data": {
-    "id": "est_xyz123",
-    "type": "estimate",
-    "attributes": {
-      "carbon_kg": 20.5,
-      "carbon_lb": 45.2,
-      "estimated_at": "2026-03-10T12:34:56Z",
-      "distance_value": 100,
-      "distance_unit": "km",
-      "vehicle_type": "small_car"
-      "country": "DE"
-    }
-  }
-}
-```
+## 2. Obtention des émissions CO2
 
 **Services** : ADEME - Base Empreinte (Impact CO2)
 
 * **Fonctionnalités** : API officielle française fournissant les facteurs d'émission de la Base Carbone (ADEME).
-* 
+
 * **Avantages** :
   * Gratuit
-  * Renvoie directement la valeur des émissions CO2 (afit le calcul distance*facteur d'émission selon le type de transport renseigné)
+  * Renvoie directement la valeur des émissions CO2 (fait le calcul distance*facteur d'émission selon le type de transport renseigné)
   * Référence française pour les bilans GES
   * Données extrêmement précises sur le contexte français (mix électrique, spécificités régionales)
 
@@ -289,39 +190,3 @@ Code 405 : Mauvais type de requete HTTP
 ```
 Only GET queries are allowed
 ```
-
-### B. Méthode bases de données Ouvertes (Open Data)
-
-**Services** : ADEME
-* **Fonctionnalités** : fichiers csv qui fournit un nombre conséquent de facteurs d'émissions vérifiés
-* **Avantages** : 
-  * Service français
-  * Gratuit
-  * Filtrage possible par un large panel de mode de transport (plusieurs carburants différents, plusieurs poids/tailles pour un même véhicule)
-* **Limites** : 
-  * Service français : facteurs d'émissions associés aux véhicules circulant en France. Pas les facteurs en Allemagne ou aux Etats-Unis. A combiner avec Electricity Maps pour tenir compte du mix énergétique lié à la production d'électricité
-
-
-**Services** : Dépôts GitHub (ex: tmrowco/carbon-intensities) (non retenu pour ce projet)
-* **Fonctionnalités** : fichiers json qui fournit un nombre conséquent de facteurs d'émission mondiaux (issus de l'IEA et de l'ADEME)
-* **Avantages** : 
-  * Service international
-  * Filtrage possible par mode de transport
-  * Filtrage possible par pays
-  * Filtrage possible par région
-* **Limites** : 
-  * Pas de filtre par pays
-  * Les données ne sont pas mises à jour automatiquement
-  * Données brutes dans un svg à traiter avant utilisation
-* **Exemple** :
-```
-{
-  "category": "transport",
-  "vehicle_type": "car",
-  "fuel": "diesel",
-  "emission_factor": 0.171,
-  "unit": "kgCO2e/km",
-  "source": "ADEME Base Carbone"
-}
-```
----
