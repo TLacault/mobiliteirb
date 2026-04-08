@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from "vue";
+import { ref, computed } from "vue";
 import {
   Briefcase,
   Leaf,
@@ -9,7 +9,9 @@ import {
   PlaneTakeoff,
   PlaneLanding,
   Eye,
+  User,
 } from "lucide-vue-next";
+import PopupAuthor from "~/components/popup/PopupAuthor.vue";
 
 const props = defineProps({
   mobility: {
@@ -21,11 +23,30 @@ const props = defineProps({
 const authorLabel = computed(
   () => props.mobility.author?.casLogin ?? "Anonyme",
 );
+const authorEmail = computed(() => props.mobility.author?.email ?? null);
 const isAnonymous = computed(
   () =>
     !props.mobility.author?.casLogin ||
     props.mobility.author.casLogin === "Anonyme",
 );
+
+const showAuthorPopup = ref(false);
+const badgeRef = ref(null);
+const popupPosition = ref({});
+
+function openAuthorPopup() {
+  if (isAnonymous.value) return;
+  if (badgeRef.value) {
+    const rect = badgeRef.value.getBoundingClientRect();
+    popupPosition.value = {
+      position: "fixed",
+      top: `${rect.bottom + 6}px`,
+      left: `${rect.left}px`,
+      zIndex: 9999,
+    };
+  }
+  showAuthorPopup.value = true;
+}
 
 function formatTime(totalMinutes) {
   const minutes = Number(totalMinutes ?? 0);
@@ -53,9 +74,23 @@ function formatCarbon(kg) {
     <div class="row-top">
       <Briefcase :size="15" class="name-icon" />
       <span class="name-text">{{ mobility.name }}</span>
-      <span class="author-badge" :class="{ anonymous: isAnonymous }"
-        >étudiant {{ authorLabel }}</span
+      <span
+        ref="badgeRef"
+        class="author-badge"
+        :class="{ anonymous: isAnonymous, clickable: !isAnonymous }"
+        @click.stop="openAuthorPopup"
       >
+        <User :size="12" />
+        {{ authorLabel }}
+      </span>
+
+      <PopupAuthor
+        :show="showAuthorPopup"
+        :cas-login="authorLabel"
+        :email="authorEmail"
+        :position="popupPosition"
+        @close="showAuthorPopup = false"
+      />
       <span class="top-sep" />
       <div class="location">
         <PlaneTakeoff :size="14" class="icon-departure" />
@@ -146,7 +181,11 @@ function formatCarbon(kg) {
 }
 
 .author-badge {
+  position: relative;
   flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
   font-size: 0.72rem;
   font-weight: 600;
   padding: 0.3rem 0.55rem;
@@ -156,9 +195,19 @@ function formatCarbon(kg) {
   line-height: 1;
 }
 
+.author-badge.clickable {
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.author-badge.clickable:hover {
+  background: oklch(70.62% 0.139 158.37 / 25%);
+}
+
 .author-badge.anonymous {
   background: #f1f5f9;
   color: #94a3b8;
+  cursor: default;
 }
 
 .top-sep {

@@ -28,6 +28,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  sortable: {
+    type: Boolean,
+    default: true,
+  },
   highlightedStat: {
     type: String,
     default: null,
@@ -140,12 +144,16 @@ function requestSort(statField) {
     <div class="stats-section">
       <div
         class="stat-badge"
-        :class="{ highlighted: highlightedStat === 'emissions' }"
-        @click.stop="requestSort('emissions')"
+        :class="{
+          highlighted: highlightedStat === 'emissions',
+          'stat-sortable': sortable,
+        }"
+        @click.stop="sortable && requestSort('emissions')"
       >
         <Leaf size="16" />
         <span>{{ Number(trip.emissions ?? 0).toFixed(1) }} kg CO₂</span>
         <ArrowDownWideNarrow
+          v-if="sortable"
           size="14"
           class="stat-sort-icon"
           :class="{
@@ -156,12 +164,16 @@ function requestSort(statField) {
       </div>
       <div
         class="stat-badge"
-        :class="{ highlighted: highlightedStat === 'time' }"
-        @click.stop="requestSort('duration')"
+        :class="{
+          highlighted: highlightedStat === 'time',
+          'stat-sortable': sortable,
+        }"
+        @click.stop="sortable && requestSort('duration')"
       >
         <Timer size="16" />
         <span>{{ formattedDuration }}</span>
         <ArrowDownWideNarrow
+          v-if="sortable"
           size="14"
           class="stat-sort-icon"
           :class="{
@@ -172,14 +184,18 @@ function requestSort(statField) {
       </div>
       <div
         class="stat-badge"
-        :class="{ highlighted: highlightedStat === 'steps' }"
-        @click.stop="requestSort('steps')"
+        :class="{
+          highlighted: highlightedStat === 'steps',
+          'stat-sortable': sortable,
+        }"
+        @click.stop="sortable && requestSort('steps')"
       >
         <MapPin size="16" />
         <span
           >{{ trip.steps ?? 0 }} étape{{ trip.steps !== 1 ? "s" : "" }}</span
         >
         <ArrowDownWideNarrow
+          v-if="sortable"
           size="14"
           class="stat-sort-icon"
           :class="{
@@ -190,12 +206,16 @@ function requestSort(statField) {
       </div>
       <div
         class="stat-badge"
-        :class="{ highlighted: highlightedStat === 'distance' }"
-        @click.stop="requestSort('distance')"
+        :class="{
+          highlighted: highlightedStat === 'distance',
+          'stat-sortable': sortable,
+        }"
+        @click.stop="sortable && requestSort('distance')"
       >
         <Ruler size="16" />
         <span>{{ Number(trip.distance ?? 0).toFixed(1) }} km</span>
         <ArrowDownWideNarrow
+          v-if="sortable"
           size="14"
           class="stat-sort-icon"
           :class="{
@@ -350,12 +370,16 @@ function requestSort(statField) {
   background: #f9fafb;
   font-size: 0.9rem;
   font-weight: 500;
-  cursor: pointer;
+  cursor: default;
   transition: border-color 0.2s ease, background-color 0.2s ease,
     color 0.2s ease;
 }
 
-.stat-badge:hover {
+.stat-badge.stat-sortable {
+  cursor: pointer;
+}
+
+.stat-badge.stat-sortable:hover {
   border-color: color-mix(in oklab, var(--primary) 35%, #ffffff);
   background: color-mix(in oklab, var(--primary) 10%, #ffffff);
   color: color-mix(in oklab, var(--primary) 80%, #1f2937);
@@ -384,7 +408,7 @@ function requestSort(statField) {
   opacity: 1;
 }
 
-.stat-badge:hover .stat-sort-icon {
+.stat-badge.stat-sortable:hover .stat-sort-icon {
   opacity: 1;
 }
 

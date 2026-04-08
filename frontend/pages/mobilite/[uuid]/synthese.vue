@@ -139,6 +139,7 @@ onMounted(fetchTrips);
               :key="trip.id"
               :trip="trip"
               :index="index"
+              :sortable="false"
               @toggle="(val) => toggleTripSelected(trip, val)"
             />
           </div>

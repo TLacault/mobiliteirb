@@ -151,6 +151,7 @@ async function searchMobilty(req, res) {
         user: {
           select: {
             casLogin: true,
+            email: true,
           },
         },
         trips: {
@@ -317,8 +318,9 @@ async function searchMobilty(req, res) {
       isOriginal: mobility.isOriginal,
       author: {
         casLogin: mobility.isPublic
-          ? (mobility.user?.casLogin ?? "Anonyme")
+          ? mobility.user?.casLogin ?? "Anonyme"
           : "Anonyme",
+        email: mobility.isPublic ? mobility.user?.email ?? null : null,
       },
       stats: {
         totalCarbon: mobility.stats.totalCarbon,
