@@ -1,24 +1,34 @@
-const { getEmissionFactors } = require('./emissionFactors');
+const { getEmissionFactors, getEmissionsCO2 } = require('./emissionCO2');
 
 /**
  * Mapping from internal transport modes to Google Routes API travel modes
  */
 const travelModeMap = {
-  'car_gasoline': 'DRIVE',
-  'car_diesel': 'DRIVE',
-  'bus_urban': 'TRANSIT',
-  'bus_long_haul': 'DRIVE',
+  'plane': 'DRIVE',             // Fallback, though not used
   'train_high_speed': 'TRANSIT',
   'train_intercity': 'TRANSIT',
+  'car_gasoline': 'DRIVE',
+  'car_electric': 'DRIVE',
+  'bus_gasoline_long_haul': 'DRIVE',
+  'bike': 'BICYCLE',
+  'bike_electric': 'BICYCLE',
+  'bus_gasoline': 'DRIVE',
+  'tram': 'TRANSIT',
+  'metro': 'TRANSIT',
+  'scooter_gasoline': 'DRIVE',
+  'motorcycle_gasoline': 'DRIVE',
+  'train_paris': 'TRANSIT',
   'train_regional': 'TRANSIT',
-  'train_international': 'TRANSIT',
-  'transit': 'TRANSIT',
-  'plane_medium_haul': 'DRIVE', // Fallback, though not used
-  'plane_long_haul': 'DRIVE',
-  'boat_short_haul': 'DRIVE',
-  'boat_long_haul': 'DRIVE',
-  'walk': 'WALK',
-  'bike': 'BICYCLE'
+  'bus_electric': 'DRIVE',
+  'car_gasoline_1_passenger': 'DRIVE',
+  'car_gasoline_2_passengers': 'DRIVE',
+  'car_gasoline_3_passengers': 'DRIVE',
+  'car_gasoline_4_passengers': 'DRIVE',
+  'car_electric_1_passenger': 'DRIVE',
+  'car_electric_2_passengers': 'DRIVE',
+  'car_electric_3_passengers': 'DRIVE',
+  'car_electric_4_passengers': 'DRIVE',
+  'walk': 'WALK'
 };
 
 /**
@@ -65,17 +75,10 @@ async function getCoordinates(address) {
 async function getStepEstimation(data) {
   const { origin, destination, transportMode } = data;
 
-  // Fetch carbon factor from CSV
-  const factor = await getEmissionFactors(transportMode);
-  if (factor === undefined) {
-    throw new Error(`Emission factor not found for transport mode: ${transportMode}`);
-  }
-
   let distanceKm = 0;
   let durationMin = 0;
 
-  // Choose calculation method
-  if (["plane_medium_haul", "plane_long_haul", "boat_short_haul", "boat_long_haul"].includes(transportMode)) {
+  if (["plane", "boat"].includes(transportMode)) {
     const startCoords = typeof origin === "string" ? await getCoordinates(origin) : origin;
     const endCoords = typeof destination === "string" ? await getCoordinates(destination) : destination;
     
@@ -101,7 +104,7 @@ async function getStepEstimation(data) {
       
       const result = await response.json();
       if (!result.routes || result.routes.length === 0) {
-        console.log("Résultat brut sans route:", result);
+        console.log("No route found:", result);
         throw new Error("No route found");
       }
 
@@ -114,11 +117,20 @@ async function getStepEstimation(data) {
     }
   }
 
+  let carbonEmissions = 0;
+  
+  try {
+    carbonEmissions = await getEmissionsCO2(distanceKm, transportMode);
+  } catch (error) {
+    console.error("Error calculating emissions:", error.message);
+    throw new Error(`Unable to calculate emissions for transport mode: ${transportMode}`);
+  }
+
+
   return {
-    carbon: parseFloat((distanceKm * factor).toFixed(2)),
+    carbon: parseFloat(carbonEmissions),
     distance: parseFloat(distanceKm.toFixed(2)),
     time: Math.round(durationMin),
-    transportCarbonFactor: factor,
   };
 }
 
