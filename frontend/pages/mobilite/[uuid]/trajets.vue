@@ -19,11 +19,13 @@ const mobility = ref(null);
 const loading = ref(true);
 const error = ref(null);
 
+const isPreview = computed(() => route.query.preview === "true");
+
 const loadMobility = async () => {
   loading.value = true;
   error.value = null;
   try {
-    mobility.value = await getMobility(uuid.value);
+    mobility.value = await getMobility(uuid.value, isPreview.value);
   } catch (e) {
     error.value = e.message || "Erreur lors du chargement";
   } finally {
@@ -55,7 +57,7 @@ const handleUpdated = (patch) => {
         @updated="handleUpdated"
       />
       <div class="scene-content">
-        <TripsGrid :mobility-id="uuid" />
+        <TripsGrid :mobility-id="uuid" :preview="isPreview" />
       </div>
     </template>
   </div>

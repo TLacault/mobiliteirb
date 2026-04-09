@@ -9,13 +9,17 @@ import { API_BASE, authenticatedFetch } from "./authFetch.js";
  * @param {string} tripId - Trip ID
  * @returns {Promise<Array>}
  */
-export async function getSteps(tripId) {
+export async function getSteps(tripId, preview = false) {
   if (!tripId) {
     throw new Error("tripId is required to fetch steps");
   }
 
   try {
-    return await authenticatedFetch(`${API_BASE}/trips/${tripId}/steps`);
+    const params = new URLSearchParams();
+    if (preview) params.set("preview", "true");
+    return await authenticatedFetch(
+      `${API_BASE}/trips/${tripId}/steps?${params.toString()}`,
+    );
   } catch (error) {
     console.error(`Error fetching steps for trip ${tripId}:`, error);
     throw error;

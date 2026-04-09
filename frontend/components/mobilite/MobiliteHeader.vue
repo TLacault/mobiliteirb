@@ -27,6 +27,8 @@ const emit = defineEmits(["deleted", "updated"]);
 const { clearMobilite, setLastTab } = useMobiliteSession();
 const route = useRoute();
 
+const isPreview = ref(route.query.preview);
+
 // Onglet actif détecté depuis l'URL
 const activeTab = computed(() =>
   route.path.endsWith("/trajets") ? "trajets" : "synthese",
@@ -129,8 +131,16 @@ const goBack = () => {
 };
 
 const goToTab = (tab) => {
-  setLastTab(props.uuid, tab);
-  navigateTo(`/mobilite/${props.uuid}/${tab}`);
+  setLastTab(tab);
+  const tabLink = computed(() => {
+    const base = `/mobilite/${props.uuid}/${tab}`;
+    if (route.query.preview) {
+      return `${base}?preview=true`;
+    }
+    return base;
+  });
+  const path = tabLink.value;
+  navigateTo(path);
 };
 
 // Suppression
@@ -149,8 +159,9 @@ const handleDelete = async () => {
 
 const handleDuplicate = async () => {
   try {
-    await updateMobility(props.uuid, { isOriginal: true });
-    emit("updated", { isOriginal: true });
+    const { id: newUuid } = await duplicateMobility(props.uuid);
+    console.log("Mobilité dupliquée avec UUID:", newUuid);
+    navigateTo(`/mobilite/${newUuid}/synthese`);
   } catch (e) {
     console.error("Erreur confirmation import mobilité:", e);
   }
@@ -225,7 +236,7 @@ const handleDuplicate = async () => {
 
         <div class="header-actions">
           <button
-            v-if="mobility && !mobility.isOriginal"
+            v-if="mobility && isPreview"
             class="duplicate-btn"
             @click="handleDuplicate"
           >
@@ -358,7 +369,9 @@ const handleDuplicate = async () => {
 
 .badge-enter-active,
 .badge-leave-active {
-  transition: opacity 0.35s ease, transform 0.35s ease;
+  transition:
+    opacity 0.35s ease,
+    transform 0.35s ease;
 }
 .badge-enter-from,
 .badge-leave-to {
@@ -374,7 +387,9 @@ const handleDuplicate = async () => {
   font-family: inherit;
   background: #f8f9fa;
   color: var(--text);
-  transition: border-color 0.2s, background 0.2s;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
   outline: none;
 
   &:focus {

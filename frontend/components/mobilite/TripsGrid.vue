@@ -30,6 +30,10 @@ const props = defineProps({
     type: String,
     required: true,
   },
+  preview: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const loading = ref(true);
@@ -47,10 +51,14 @@ async function loadData() {
   loading.value = true;
   error.value = null;
   try {
-    const trips = await getMobilityTrips(props.mobilityId, orderQuery.value);
+    const trips = await getMobilityTrips(
+      props.mobilityId,
+      orderQuery.value,
+      props.preview,
+    );
     const withSteps = await Promise.all(
       trips.map(async (trip) => {
-        const steps = await getSteps(trip.id);
+        const steps = await getSteps(trip.id, props.preview);
         const sorted = [...steps].sort(
           (a, b) => a.sequenceOrder - b.sequenceOrder,
         );
@@ -645,7 +653,9 @@ onUnmounted(() => {
   font-size: var(--font-body);
   font-weight: 400;
   cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
   margin-left: 1rem;
   white-space: nowrap;
 }
@@ -679,7 +689,9 @@ onUnmounted(() => {
   font-size: var(--font-body);
   font-weight: 400;
   cursor: pointer;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
   white-space: nowrap;
 }
 
@@ -772,7 +784,10 @@ onUnmounted(() => {
   color: var(--primary);
   opacity: 0;
   flex-shrink: 0;
-  transition: transform 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    color 0.2s ease,
+    opacity 0.2s ease;
 }
 
 .sort-state-icon.active,
@@ -788,7 +803,9 @@ onUnmounted(() => {
 /* dropdown open/close transition */
 .dropdown-enter-active,
 .dropdown-leave-active {
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
 }
 .dropdown-enter-from,
 .dropdown-leave-to {
@@ -946,7 +963,9 @@ onUnmounted(() => {
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: border-color 0.15s ease, background-color 0.15s ease,
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
     color 0.15s ease;
 }
 

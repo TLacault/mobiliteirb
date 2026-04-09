@@ -48,6 +48,7 @@ async function getSteps(req, res) {
   try {
     const { tripId } = req.params;
     const userId = req.user.id;
+    const { preview } = req.query;
 
     if (!tripId) {
       return res.status(400).json({ error: "Trip ID is required" });
@@ -64,7 +65,7 @@ async function getSteps(req, res) {
       return res.status(404).json({ error: "Trip not found" });
     }
 
-    if (trip.mobility.userId !== userId) {
+    if (trip.mobility.userId !== userId && !preview) {
       return res.status(403).json({ error: "Forbidden" });
     }
 

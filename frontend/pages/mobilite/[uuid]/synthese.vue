@@ -43,6 +43,12 @@ onMounted(loadMobility);
 
 const loadMobilityStats = async () => {
   try {
+    console.log(
+      "Loading mobility stats with UUID:",
+      uuid.value,
+      "Preview mode:",
+      isPreview.value,
+    );
     mobilityStats.value = await getMobilityStats(uuid.value, isPreview.value);
   } catch (e) {
     console.error("Error loading mobility stats:", e);

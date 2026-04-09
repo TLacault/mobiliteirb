@@ -318,9 +318,9 @@ async function searchMobilty(req, res) {
       isOriginal: mobility.isOriginal,
       author: {
         casLogin: mobility.isPublic
-          ? mobility.user?.casLogin ?? "Anonyme"
+          ? (mobility.user?.casLogin ?? "Anonyme")
           : "Anonyme",
-        email: mobility.isPublic ? mobility.user?.email ?? null : null,
+        email: mobility.isPublic ? (mobility.user?.email ?? null) : null,
       },
       stats: {
         totalCarbon: mobility.stats.totalCarbon,
@@ -442,10 +442,6 @@ async function getMobilityStats(req, res) {
     }
 
     if (mobility.userId !== userId && !preview) {
-      return res.status(403).json({ error: "Forbidden" });
-    }
-
-    if (preview && !mobility.isPublic) {
       return res.status(403).json({ error: "Forbidden" });
     }
 
