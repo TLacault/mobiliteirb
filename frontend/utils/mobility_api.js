@@ -48,12 +48,6 @@ export async function getMobilityStats(id, preview = false) {
   }
 
   try {
-    console.log(
-      "Fetching mobility stats for ID:",
-      id,
-      "Preview mode:",
-      preview,
-    );
     return await authenticatedFetch(
       `${API_BASE}/mobilities/${id}/stats${preview ? "?preview=true" : ""}`,
     );

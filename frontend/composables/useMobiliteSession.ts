@@ -15,6 +15,9 @@ export const useMobiliteSession = () => {
     () => ({}),
   );
 
+  // État du mode preview
+  const isPreview = useState<boolean>("mobilite-is-preview", () => false);
+
   /**
    * Sélectionne une mobilité et entre en mode édition.
    * Réinitialise l'onglet actif sur "synthese" si c'est une nouvelle mobilité.
@@ -24,6 +27,13 @@ export const useMobiliteSession = () => {
       lastTab.value = { ...lastTab.value, [uuid]: "synthese" };
     }
     selectedUuid.value = uuid;
+  };
+
+  /**
+   * Active ou désactive le mode preview.
+   */
+  const setPreviewMode = (status: boolean) => {
+    isPreview.value = status;
   };
 
   /**
@@ -50,9 +60,11 @@ export const useMobiliteSession = () => {
   return {
     selectedUuid,
     lastTab,
+    isPreview,
     selectMobilite,
     clearMobilite,
     setLastTab,
     getLastTab,
+    setPreviewMode,
   };
 };

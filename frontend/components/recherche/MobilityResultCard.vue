@@ -13,12 +13,20 @@ import {
 } from "lucide-vue-next";
 import PopupAuthor from "~/components/popup/PopupAuthor.vue";
 
+const { setPreviewMode, selectMobilite } = useMobiliteSession();
+
 const props = defineProps({
   mobility: {
     type: Object,
     required: true,
   },
 });
+
+const handleViewDetails = () => {
+  selectMobilite(props.mobility.id);
+  setPreviewMode(true);
+  navigateTo(`/mobilite/${props.mobility.id}/synthese`);
+};
 
 const authorLabel = computed(
   () => props.mobility.author?.casLogin ?? "Anonyme",
@@ -130,7 +138,7 @@ function formatCarbon(kg) {
 
       <button
         class="details-btn"
-        @click="navigateTo(`/mobilite/${mobility.id}/synthese?preview=true`)"
+        @click="handleViewDetails"
       >
         <Eye :size="15" />
         <span>Voir détails</span>

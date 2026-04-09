@@ -11,7 +11,7 @@ definePageMeta({ middleware: "auth" });
 const route = useRoute();
 const uuid = computed(() => route.params.uuid);
 
-const { selectMobilite, setLastTab } = useMobiliteSession();
+const { selectMobilite, setLastTab, isPreview } = useMobiliteSession();
 
 // Marque la mobilité comme sélectionnée (mode édition) et mémorise l'onglet
 onMounted(() => {
@@ -25,7 +25,7 @@ const mobilityStats = ref(null);
 const loading = ref(true);
 const error = ref(null);
 
-const isPreview = computed(() => route.query.preview === "true");
+// const isPreview = computed(() => route.query.preview === "true");
 
 const loadMobility = async () => {
   loading.value = true;
@@ -43,12 +43,6 @@ onMounted(loadMobility);
 
 const loadMobilityStats = async () => {
   try {
-    console.log(
-      "Loading mobility stats with UUID:",
-      uuid.value,
-      "Preview mode:",
-      isPreview.value,
-    );
     mobilityStats.value = await getMobilityStats(uuid.value, isPreview.value);
   } catch (e) {
     console.error("Error loading mobility stats:", e);

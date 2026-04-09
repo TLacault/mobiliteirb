@@ -8,7 +8,7 @@ definePageMeta({ middleware: "auth" });
 const route = useRoute();
 const uuid = computed(() => route.params.uuid);
 
-const { selectMobilite, setLastTab } = useMobiliteSession();
+const { selectMobilite, setLastTab, isPreview } = useMobiliteSession();
 
 onMounted(() => {
   selectMobilite(uuid.value);
@@ -19,7 +19,7 @@ const mobility = ref(null);
 const loading = ref(true);
 const error = ref(null);
 
-const isPreview = computed(() => route.query.preview === "true");
+// const isPreview = computed(() => route.query.preview === "true");
 
 const loadMobility = async () => {
   loading.value = true;

@@ -24,10 +24,9 @@ const props = defineProps({
 
 const emit = defineEmits(["deleted", "updated"]);
 
-const { clearMobilite, setLastTab } = useMobiliteSession();
+const { clearMobilite, setLastTab, setPreviewMode, isPreview } =
+  useMobiliteSession();
 const route = useRoute();
-
-const isPreview = ref(route.query.preview);
 
 // Onglet actif détecté depuis l'URL
 const activeTab = computed(() =>
@@ -131,16 +130,8 @@ const goBack = () => {
 };
 
 const goToTab = (tab) => {
-  setLastTab(tab);
-  const tabLink = computed(() => {
-    const base = `/mobilite/${props.uuid}/${tab}`;
-    if (route.query.preview) {
-      return `${base}?preview=true`;
-    }
-    return base;
-  });
-  const path = tabLink.value;
-  navigateTo(path);
+  setLastTab(props.uuid, tab);
+  navigateTo(`/mobilite/${props.uuid}/${tab}`);
 };
 
 // Suppression
@@ -160,7 +151,7 @@ const handleDelete = async () => {
 const handleDuplicate = async () => {
   try {
     const { id: newUuid } = await duplicateMobility(props.uuid);
-    console.log("Mobilité dupliquée avec UUID:", newUuid);
+    setPreviewMode(false);
     navigateTo(`/mobilite/${newUuid}/synthese`);
   } catch (e) {
     console.error("Erreur confirmation import mobilité:", e);
