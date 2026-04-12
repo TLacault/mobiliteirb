@@ -3,11 +3,13 @@
     <Navbar />
     <NuxtPage />
     <Footer />
+    <NotificationPopup />
   </div>
 </template>
 
 <script setup>
 import Footer from "./components/Footer.vue";
+import NotificationPopup from "./components/NotificationPopup.vue";
 
 // Configuration globale de l'application
 useHead({

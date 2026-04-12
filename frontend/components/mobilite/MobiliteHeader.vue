@@ -9,7 +9,13 @@ import {
   FilePen,
 } from "lucide-vue-next";
 import PopupDelete from "../popup/PopupDelete.vue";
-import { deleteMobility, updateMobility } from "../../utils/mobility_api.js";
+import {
+  deleteMobility,
+  updateMobility,
+  duplicateMobility,
+} from "../../utils/mobility_api.js";
+
+const { notify } = useNotification();
 
 const props = defineProps({
   uuid: {
@@ -38,7 +44,7 @@ const localName = ref(props.mobility?.name ?? "");
 const localYear = ref(
   props.mobility?.year ? new Date(props.mobility.year).getFullYear() : "",
 );
-const localAnonymous = ref(!Boolean(props.mobility?.isPublic));
+const localAnonymous = ref(Boolean(props.mobility?.isAnonymous));
 
 // Last committed values — used to skip saves when nothing changed
 const committedName = ref(localName.value);
@@ -54,7 +60,7 @@ watch(
       committedName.value = localName.value;
       localYear.value = m.year ? new Date(m.year).getFullYear() : "";
       committedYear.value = localYear.value;
-      localAnonymous.value = !Boolean(m.isPublic);
+      localAnonymous.value = Boolean(m.isAnonymous);
       committedAnonymous.value = localAnonymous.value;
     }
   },
@@ -98,12 +104,8 @@ const saveField = async (field, inputEl = null) => {
   if (field === "name") payload.name = localName.value;
   if (field === "year" && localYear.value)
     payload.year = `${localYear.value}-01-01`;
-  if (field === "anonymous") payload.isPublic = !localAnonymous.value;
+  if (field === "anonymous") payload.isAnonymous = localAnonymous.value;
   if (!Object.keys(payload).length) return;
-  // Mark as original on first edit of an unconfirmed import
-  if (props.mobility.isOriginal === null) {
-    payload.isOriginal = true;
-  }
   try {
     await updateMobility(props.uuid, payload);
     // Commit the new values
@@ -142,6 +144,7 @@ const handleDelete = async () => {
     await deleteMobility(props.uuid);
     clearMobilite();
     emit("deleted");
+    notify("success", "Mobilité supprimée avec succès.");
     navigateTo("/dashboard");
   } catch (e) {
     console.error("Erreur suppression mobilité:", e);
@@ -152,6 +155,7 @@ const handleDuplicate = async () => {
   try {
     const { id: newUuid } = await duplicateMobility(props.uuid);
     setPreviewMode(false);
+    notify("success", "Mobilité importée avec succès dans votre espace.");
     navigateTo(`/mobilite/${newUuid}/synthese`);
   } catch (e) {
     console.error("Erreur confirmation import mobilité:", e);
@@ -360,9 +364,7 @@ const handleDuplicate = async () => {
 
 .badge-enter-active,
 .badge-leave-active {
-  transition:
-    opacity 0.35s ease,
-    transform 0.35s ease;
+  transition: opacity 0.35s ease, transform 0.35s ease;
 }
 .badge-enter-from,
 .badge-leave-to {
@@ -378,9 +380,7 @@ const handleDuplicate = async () => {
   font-family: inherit;
   background: #f8f9fa;
   color: var(--text);
-  transition:
-    border-color 0.2s,
-    background 0.2s;
+  transition: border-color 0.2s, background 0.2s;
   outline: none;
 
   &:focus {

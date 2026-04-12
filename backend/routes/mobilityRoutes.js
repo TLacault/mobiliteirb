@@ -66,9 +66,7 @@ router.get("/", authenticateJWT, mobilityController.getMobilities);
  *               endLocation:
  *                 type: string
  *                 example: Berlin, Germany
- *               isPublic:
- *                 type: boolean
- *               isOriginal:
+ *               isAnonymous:
  *                 type: boolean
  *     responses:
  *       201:
@@ -225,9 +223,7 @@ router.get("/searchMobilty", authenticateJWT, mobilityController.searchMobilty);
  *                   type: string
  *                 endLocation:
  *                   type: string
- *                 isPublic:
- *                   type: boolean
- *                 isOriginal:
+ *                 isAnonymous:
  *                   type: boolean
  *                 lastEdit:
  *                   type: string
@@ -312,7 +308,7 @@ router.get("/:id/stats", authenticateJWT, mobilityController.getMobilityStats);
  *               year:
  *                 type: string
  *                 format: date
- *               isPublic:
+ *               isAnonymous:
  *                 type: boolean
  *               startLocation:
  *                 type: string

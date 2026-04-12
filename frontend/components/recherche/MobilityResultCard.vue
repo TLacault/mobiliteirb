@@ -40,17 +40,17 @@ const isAnonymous = computed(
 
 const showAuthorPopup = ref(false);
 const badgeRef = ref(null);
-const popupPosition = ref({});
+const anchorRect = ref(null);
 
 function openAuthorPopup() {
   if (isAnonymous.value) return;
   if (badgeRef.value) {
     const rect = badgeRef.value.getBoundingClientRect();
-    popupPosition.value = {
-      position: "fixed",
-      top: `${rect.bottom + 6}px`,
-      left: `${rect.left}px`,
-      zIndex: 9999,
+    anchorRect.value = {
+      top: rect.top,
+      bottom: rect.bottom,
+      left: rect.left,
+      right: rect.right,
     };
   }
   showAuthorPopup.value = true;
@@ -96,10 +96,9 @@ function formatCarbon(kg) {
         :show="showAuthorPopup"
         :cas-login="authorLabel"
         :email="authorEmail"
-        :position="popupPosition"
+        :anchor-rect="anchorRect"
         @close="showAuthorPopup = false"
       />
-      <span class="top-sep" />
       <div class="location">
         <PlaneTakeoff :size="14" class="icon-departure" />
         <span>{{ mobility.startLocation }}</span>
@@ -136,10 +135,7 @@ function formatCarbon(kg) {
         </div>
       </div>
 
-      <button
-        class="details-btn"
-        @click="handleViewDetails"
-      >
+      <button class="details-btn" @click="handleViewDetails">
         <Eye :size="15" />
         <span>Voir détails</span>
       </button>
@@ -168,9 +164,9 @@ function formatCarbon(kg) {
 .row-top {
   display: flex;
   align-items: center;
-  gap: 0.55rem;
+  gap: 0.75rem;
   white-space: nowrap;
-  overflow: hidden;
+  /* overflow: hidden; */
   padding-bottom: 0.65rem;
 }
 
@@ -206,6 +202,7 @@ function formatCarbon(kg) {
 .author-badge.clickable {
   cursor: pointer;
   transition: background 0.15s ease;
+  outline: 1px solid var(--primary);
 }
 
 .author-badge.clickable:hover {
@@ -216,15 +213,6 @@ function formatCarbon(kg) {
   background: #f1f5f9;
   color: #94a3b8;
   cursor: default;
-}
-
-.top-sep {
-  display: inline-block;
-  width: 1px;
-  height: 14px;
-  background: #e2e8f0;
-  flex-shrink: 0;
-  margin: 0 0.1rem;
 }
 
 .location {
@@ -268,7 +256,7 @@ function formatCarbon(kg) {
 .stats-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0.75rem;
 }
 
 .stat {

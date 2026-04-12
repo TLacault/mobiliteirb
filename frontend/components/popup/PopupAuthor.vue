@@ -5,7 +5,7 @@
         v-if="show"
         ref="rootEl"
         class="popauth"
-        :style="position"
+        :style="computedStyle"
         @click.stop
       >
         <!-- Header -->
@@ -71,7 +71,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, watch, nextTick, onMounted, onUnmounted } from "vue";
 import {
   User,
   X,
@@ -87,13 +87,56 @@ const props = defineProps({
   show: { type: Boolean, required: true },
   casLogin: { type: String, required: true },
   email: { type: String, default: null },
-  position: { type: Object, default: () => ({}) },
+  anchorRect: { type: Object, default: null },
 });
 
 const emit = defineEmits(["close"]);
 
 const rootEl = ref(null);
 const copied = ref(false);
+const computedStyle = ref({
+  position: "fixed",
+  top: "-9999px",
+  left: "-9999px",
+  zIndex: 9999,
+});
+
+const MARGIN = 8;
+
+watch(
+  () => props.show,
+  async (val) => {
+    if (!val) return;
+    await nextTick();
+    if (!rootEl.value || !props.anchorRect) return;
+
+    const popupHeight = rootEl.value.offsetHeight;
+    const popupWidth = rootEl.value.offsetWidth;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const { top, bottom, left } = props.anchorRect;
+
+    let topPos;
+    if (bottom + MARGIN + popupHeight <= vh) {
+      topPos = bottom + MARGIN;
+    } else {
+      topPos = Math.max(MARGIN, top - MARGIN - popupHeight);
+    }
+
+    let leftPos = left;
+    if (leftPos + popupWidth > vw - MARGIN) {
+      leftPos = vw - popupWidth - MARGIN;
+    }
+    leftPos = Math.max(MARGIN, leftPos);
+
+    computedStyle.value = {
+      position: "fixed",
+      top: `${topPos}px`,
+      left: `${leftPos}px`,
+      zIndex: 9999,
+    };
+  },
+);
 
 function handleOutsideClick(event) {
   if (!props.show) return;
@@ -107,14 +150,20 @@ function handleKeydown(event) {
   if (event.key === "Escape") emit("close");
 }
 
+function handleScroll() {
+  if (props.show) emit("close");
+}
+
 onMounted(() => {
   document.addEventListener("click", handleOutsideClick);
   document.addEventListener("keydown", handleKeydown);
+  window.addEventListener("scroll", handleScroll, true);
 });
 
 onUnmounted(() => {
   document.removeEventListener("click", handleOutsideClick);
   document.removeEventListener("keydown", handleKeydown);
+  window.removeEventListener("scroll", handleScroll, true);
 });
 
 async function copyEmail() {

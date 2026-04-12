@@ -17,7 +17,7 @@ erDiagram
         UUID user_id FK
         String name "ex: Stage Canada"
         Int year
-        Boolean is_public "Pour le partage V3"
+        Boolean is_anonymous "Mode anonyme"
     }
 
     TRIPS {

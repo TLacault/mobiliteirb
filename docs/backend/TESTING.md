@@ -30,7 +30,7 @@ curl -X POST http://localhost:3001/api/v1/mobilites \
     "name": "Échange Erasmus",
     "start": "Bordeaux",
     "end": "Stockholm",
-    "is_public": true,
+    "is_anonymous": false,
     "year": "2026-09-01",
     "userId": "REMPLACER_PAR_VOTRE_USER_ID"
   }'

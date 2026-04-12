@@ -3,51 +3,13 @@ import { faker } from "@faker-js/faker";
 
 const prisma = new PrismaClient();
 
-// Common locations for realistic mobility data
-const FRENCH_CITIES = [
-  "Paris",
-  "Lyon",
-  "Marseille",
-  "Toulouse",
-  "Nice",
-  "Nantes",
-  "Strasbourg",
-  "Montpellier",
-  "Bordeaux",
-  "Lille",
-  "Rennes",
-  "Reims",
-  "Le Havre",
-  "Saint-Étienne",
-  "Toulon",
-  "Grenoble",
-  "Dijon",
-  "Angers",
-  "Nîmes",
-  "Villeurbanne",
-];
-
-const EUROPEAN_CITIES = [
-  "Barcelona",
-  "Madrid",
-  "Berlin",
-  "Munich",
-  "Amsterdam",
-  "Brussels",
-  "London",
-  "Dublin",
-  "Rome",
-  "Milan",
-  "Lisbon",
-  "Porto",
-  "Vienna",
-  "Prague",
-  "Copenhagen",
-  "Stockholm",
-  "Oslo",
-  "Helsinki",
-  "Zurich",
-  "Geneva",
+// 5 predefined cities with real coordinates
+const CITIES = [
+  { name: "Bordeaux", lat: 44.8378, lng: -0.5792 },
+  { name: "Paris", lat: 48.8566, lng: 2.3522 },
+  { name: "New York", lat: 40.7128, lng: -74.006 },
+  { name: "Tokyo", lat: 35.6762, lng: 139.6503 },
+  { name: "Sydney", lat: -33.8688, lng: 151.2093 },
 ];
 
 const TRANSPORT_MODES = [
@@ -69,15 +31,13 @@ const TRANSPORT_MODES = [
   { label: "Flight (Long-haul)", carbonFactor: 0.15 },
 ];
 
-// Helper: Random coordinates around a city (simplified)
-function generateCoordinates() {
+function generateCoordinatesNear(city) {
   return {
-    lat: faker.location.latitude({ min: 43, max: 51 }), // France-ish
-    lng: faker.location.longitude({ min: -5, max: 8 }),
+    lat: city.lat + faker.number.float({ min: -0.05, max: 0.05 }),
+    lng: city.lng + faker.number.float({ min: -0.05, max: 0.05 }),
   };
 }
 
-// Helper: Random distance based on transport mode
 function getDistanceForMode(mode) {
   const label = mode.label.toLowerCase();
   if (label.includes("walk"))
@@ -101,15 +61,13 @@ function getDistanceForMode(mode) {
   return faker.number.float({ min: 1, max: 50, precision: 0.1 });
 }
 
-// Helper: Calculate carbon emissions
 function calculateCarbon(distance, carbonFactor) {
   return parseFloat((distance * carbonFactor).toFixed(3));
 }
 
-// Helper: Random duration for step based on transport mode
 function getDurationForMode(mode, distance) {
   const label = mode.label.toLowerCase();
-  let speed; // km/h
+  let speed;
   if (label.includes("walk")) speed = 5;
   else if (label.includes("bicycle") || label.includes("scooter")) speed = 15;
   else if (
@@ -125,10 +83,9 @@ function getDurationForMode(mode, distance) {
   else speed = 30;
 
   const hours = distance / speed;
-  return Math.round(hours * 60); // return duration in minutes
+  return Math.round(hours * 60);
 }
 
-// Helper: Generate a realistic trip name
 function generateTripName() {
   const prefixes = [
     "Morning",
@@ -148,8 +105,7 @@ function generateTripName() {
   );
 }
 
-// Helper: Generate location labels
-function generateLocationLabel() {
+function generateLocationLabel(cityName) {
   const placeTypes = [
     "Station",
     "Stop",
@@ -159,26 +115,20 @@ function generateLocationLabel() {
     "Center",
     "Plaza",
   ];
-  const cityPart = faker.helpers.arrayElement([
-    ...FRENCH_CITIES,
-    ...EUROPEAN_CITIES,
-  ]);
-  return `${cityPart} ${faker.helpers.arrayElement(placeTypes)}`;
+  return `${cityName} ${faker.helpers.arrayElement(placeTypes)}`;
+}
+
+// Pick two different cities from the predefined list
+function pickTwoCities() {
+  const start = faker.helpers.arrayElement(CITIES);
+  const end = faker.helpers.arrayElement(
+    CITIES.filter((c) => c.name !== start.name),
+  );
+  return { start, end };
 }
 
 async function main() {
-  console.log("➕ Appending data (existing data preserved)...");
-
-  const existingUser = await prisma.user.findFirst({
-    select: { id: true, casLogin: true },
-    orderBy: { createdAt: "asc" },
-  });
-
-  if (!existingUser) {
-    throw new Error(
-      "No users found. Log in once to create your account, then run seed again.",
-    );
-  }
+  console.log("🎓 Creating 10 student users with 5 mobilities each...\n");
 
   const timeColumnCheck = await prisma.$queryRaw`
     SELECT EXISTS (
@@ -191,85 +141,93 @@ async function main() {
   `;
   const hasStepTimeColumn = Boolean(timeColumnCheck?.[0]?.exists);
 
-  console.log(
-    `👤 Using existing user: ${existingUser.casLogin} (${existingUser.id})`,
-  );
   if (!hasStepTimeColumn) {
     console.log(
       "ℹ️  Column steps.time not found, storing duration only in metadata.duration",
     );
   }
 
-  console.log(`\n🚗 Creating mobilities...`);
-
+  let totalUsers = 0;
   let totalMobilities = 0;
   let totalTrips = 0;
   let totalSteps = 0;
 
-  const mobilityCount = faker.number.int({ min: 3, max: 8 });
-  for (let m = 0; m < mobilityCount; m++) {
-    const startCity = faker.helpers.arrayElement([
-      ...FRENCH_CITIES,
-      ...EUROPEAN_CITIES,
-    ]);
-    const endCity = faker.helpers.arrayElement(
-      [...FRENCH_CITIES, ...EUROPEAN_CITIES].filter((c) => c !== startCity),
-    );
+  for (let u = 0; u < 10; u++) {
+    const casLogin = `student${u + 1}`;
+    const email = `${casLogin}@enseirb-matmeca.fr`;
 
-    const mobility = await prisma.mobility.create({
-      data: {
-        name: `${startCity} → ${endCity}`,
-        year: faker.date.between({ from: "2023-01-01", to: "2026-12-31" }),
-        isAnonymous: faker.datatype.boolean(0.3), // 30% anonymous
-        startLocation: startCity,
-        endLocation: endCity,
-        userId: existingUser.id,
+    // Create or find user (upsert to be idempotent)
+    const user = await prisma.user.upsert({
+      where: { casLogin },
+      update: {},
+      create: {
+        casLogin,
+        email,
+        role: "student",
       },
     });
-    totalMobilities++;
+    totalUsers++;
+    console.log(`👤 User ${casLogin} (${user.id})`);
 
-    // Each mobility has 1-3 trips
-    const tripCount = faker.number.int({ min: 1, max: 3 });
-    const isSelectedIndex = faker.number.int({ min: 0, max: tripCount - 1 });
+    // 5 mobilities per user, each using predefined cities
+    for (let m = 0; m < 5; m++) {
+      const { start: startCity, end: endCity } = pickTwoCities();
 
-    for (let t = 0; t < tripCount; t++) {
-      const trip = await prisma.trip.create({
+      const mobility = await prisma.mobility.create({
         data: {
-          name: generateTripName(),
-          isSelected: t === isSelectedIndex,
-          mobilityId: mobility.id,
+          name: `${startCity.name} → ${endCity.name}`,
+          year: faker.date.between({ from: "2023-01-01", to: "2026-12-31" }),
+          isAnonymous: faker.datatype.boolean(0.3),
+          startLocation: startCity.name,
+          endLocation: endCity.name,
+          userId: user.id,
         },
       });
-      totalTrips++;
+      totalMobilities++;
 
-      // Each trip has 2-5 steps
-      const stepCount = faker.number.int({ min: 2, max: 5 });
+      // Each mobility has 5-7 trips
+      const tripCount = faker.number.int({ min: 5, max: 7 });
+      const isSelectedIndex = faker.number.int({ min: 0, max: tripCount - 1 });
 
-      for (let s = 0; s < stepCount; s++) {
-        const startCoords = generateCoordinates();
-        const endCoords = generateCoordinates();
-
-        // Select transport mode for this step
-        const transportMode = faker.helpers.arrayElement(TRANSPORT_MODES);
-        const distance = getDistanceForMode(transportMode);
-        const carbon = calculateCarbon(distance, transportMode.carbonFactor);
-        const durationMinutes = getDurationForMode(transportMode, distance);
-
-        const labelStart =
-          s === 0 ? mobility.startLocation : generateLocationLabel();
-        const labelEnd =
-          s === stepCount - 1 ? mobility.endLocation : generateLocationLabel();
-        const metadata = JSON.stringify({
-          duration: durationMinutes,
-          waitTime: faker.number.int({ min: 0, max: 30 }),
-          comfort: faker.helpers.arrayElement(["low", "medium", "high"]),
-          accessibility: faker.datatype.boolean(0.8),
+      for (let t = 0; t < tripCount; t++) {
+        const trip = await prisma.trip.create({
+          data: {
+            name: generateTripName(),
+            isSelected: t === isSelectedIndex,
+            mobilityId: mobility.id,
+          },
         });
+        totalTrips++;
 
-        // Use raw SQL for PostGIS geometry insertion.
-        // Some DB instances may not have the optional `time` column yet.
-        if (hasStepTimeColumn) {
-          await prisma.$queryRaw`
+        // Each trip has 2-5 steps
+        const stepCount = faker.number.int({ min: 2, max: 5 });
+
+        for (let s = 0; s < stepCount; s++) {
+          const startCoords = generateCoordinatesNear(startCity);
+          const endCoords = generateCoordinatesNear(endCity);
+
+          const transportMode = faker.helpers.arrayElement(TRANSPORT_MODES);
+          const distance = getDistanceForMode(transportMode);
+          const carbon = calculateCarbon(distance, transportMode.carbonFactor);
+          const durationMinutes = getDurationForMode(transportMode, distance);
+
+          const labelStart =
+            s === 0
+              ? startCity.name
+              : generateLocationLabel(faker.helpers.arrayElement(CITIES).name);
+          const labelEnd =
+            s === stepCount - 1
+              ? endCity.name
+              : generateLocationLabel(faker.helpers.arrayElement(CITIES).name);
+          const metadata = JSON.stringify({
+            duration: durationMinutes,
+            waitTime: faker.number.int({ min: 0, max: 30 }),
+            comfort: faker.helpers.arrayElement(["low", "medium", "high"]),
+            accessibility: faker.datatype.boolean(0.8),
+          });
+
+          if (hasStepTimeColumn) {
+            await prisma.$queryRaw`
               INSERT INTO steps (
                 id, sequence_order, label_start, label_end,
                 point_start, point_end, carbon, distance, metadata,
@@ -291,8 +249,8 @@ async function main() {
                 ${trip.id}::uuid
               )
             `;
-        } else {
-          await prisma.$queryRaw`
+          } else {
+            await prisma.$queryRaw`
               INSERT INTO steps (
                 id, sequence_order, label_start, label_end,
                 point_start, point_end, carbon, distance, metadata,
@@ -313,24 +271,25 @@ async function main() {
                 ${trip.id}::uuid
               )
             `;
+          }
+          totalSteps++;
         }
-        totalSteps++;
       }
     }
   }
 
   console.log("\n📊 Summary:");
-  console.log("  👥 Users created by seed: 0");
-  console.log(`  🆔 Mobilities attached to user ID: ${existingUser.id}`);
+  console.log(`  👥 Users: ${totalUsers}`);
   console.log(`  🚗 Mobilities: ${totalMobilities}`);
   console.log(`  🛣️  Trips: ${totalTrips}`);
   console.log(`  📍 Steps: ${totalSteps}`);
-  console.log("\n✨ Database seeded successfully!\n");
+  console.log(`  🌍 Cities used: ${CITIES.map((c) => c.name).join(", ")}`);
+  console.log("\n✨ Student data seeded successfully!\n");
 }
 
 main()
   .catch((e) => {
-    console.error("❌ Error seeding database:", e);
+    console.error("❌ Error seeding student data:", e);
     process.exit(1);
   })
   .finally(async () => {

@@ -18,6 +18,7 @@ import PopupDelete from "../popup/PopupDelete.vue";
 const showForm = ref(false);
 const emit = defineEmits(["mobility-deleted"]);
 
+const { notify } = useNotification();
 const { selectMobilite } = useMobiliteSession();
 
 const handleEdit = () => {
@@ -65,6 +66,7 @@ const formattedDate = computed(() => {
 async function deleteMobilite(uuid) {
   try {
     await deleteMobility(uuid);
+    notify("success", "Mobilité supprimée avec succès.");
     emit("mobility-deleted", uuid);
   } catch (err) {
     console.error("Erreur à la suppression de la mobilité", err);

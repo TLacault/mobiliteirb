@@ -133,7 +133,7 @@ model Mobility {
   year          DateTime
   startLocation String?
   endLocation   String?
-  isPublic      Boolean  @default(false)
+  isAnonymous  Boolean  @default(false)
   trips         Trip[]
   user          User     @relation(fields: [userId], references: [id])
   userId        String
@@ -220,7 +220,7 @@ curl -X POST http://localhost:3001/api/v1/mobilites \
     "name": "Mon Erasmus",
     "start": "Bordeaux",
     "end": "Stockholm",
-    "is_public": true,
+    "is_anonymous": false,
     "year": "2026-06-01",
     "userId": "UUID_USER"
   }'

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, watch, onUnmounted } from "vue";
 import {
   Filter,
   Route,
@@ -194,6 +194,42 @@ function toggleAllTransportModes() {
   selectAllTransportModes();
 }
 
+const filterState = computed(() => ({
+  departure: departure.value,
+  arrival: arrival.value,
+  modes: [...selectedTransportModes.value],
+  emissionsMin: emissionsMin.value,
+  emissionsMax: emissionsMax.value,
+  emissionsAny: emissionsAnyValue.value,
+  durationMin: durationMin.value,
+  durationMax: durationMax.value,
+  durationAny: durationAnyValue.value,
+  distanceMin: distanceMin.value,
+  distanceMax: distanceMax.value,
+  distanceAny: distanceAnyValue.value,
+  stepsMin: stepsMin.value,
+  stepsMax: stepsMax.value,
+  stepsAny: stepsAnyValue.value,
+}));
+
+let debounceTimer = null;
+
+watch(
+  filterState,
+  () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      if (!departure.value.trim() && !arrival.value.trim()) return;
+      triggerSearch();
+    }, 2000);
+  },
+  { deep: true },
+);
+
+onUnmounted(() => {
+  clearTimeout(debounceTimer);
+});
+
 function triggerSearch() {
   if (!departure.value.trim() && !arrival.value.trim()) {
     locationError.value = true;
@@ -254,6 +290,7 @@ function triggerSearch() {
                 class="filter-input"
                 :class="{ error: locationError }"
                 @input="clearLocationError"
+                @keyup.enter="triggerSearch"
               />
             </label>
 
@@ -265,6 +302,7 @@ function triggerSearch() {
                 class="filter-input"
                 :class="{ error: locationError }"
                 @input="clearLocationError"
+                @keyup.enter="triggerSearch"
               />
             </label>
           </div>

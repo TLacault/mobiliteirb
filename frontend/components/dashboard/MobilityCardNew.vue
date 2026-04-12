@@ -3,6 +3,7 @@ import { MapPlus } from "lucide-vue-next";
 import CreateMobilityForm from "../dashboard/CreateMobilityForm.vue";
 import { createMobility } from "../../utils/mobility_api.js";
 
+const { notify } = useNotification();
 const showForm = ref(false);
 const emit = defineEmits(["new-mobility-created"]);
 
@@ -12,13 +13,13 @@ async function createNewMobilite(form) {
     year: form.annee,
     startLocation: form.depart,
     endLocation: form.arrivee,
-    isPublic: form.visibilite,
-    isOriginal: true, // Par défault
+    isAnonymous: !form.visibilite,
   };
 
   try {
     const uuid = await createMobility(mobilite);
     console.log("Mobilité créée :", uuid);
+    notify("success", "Mobilité créée avec succès.");
     emit("new-mobility-created", uuid);
   } catch (err) {
     console.error("Erreur à la création de la mobilité", err);

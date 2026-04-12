@@ -26,12 +26,11 @@ model User {
 
 // --- Modèle MOBILITY ---
 model Mobility {
-    id         String   @id @default(uuid())
-    name       String
-    year       DateTime @db.Date // Juste la date, pas l'heure
-    isPublic   Boolean  @default(true) @map("is_public")
-    isOriginal Boolean? @map("is_original")
-    lastEdit   DateTime @updatedAt @map("last_edit")
+    id          String   @id @default(uuid())
+    name        String
+    year        DateTime @db.Date // Juste la date, pas l'heure
+    isAnonymous Boolean  @default(false) @map("is_anonymous")
+    lastEdit    DateTime @updatedAt @map("last_edit")
 
     startLocation String @map("start")
     endLocation   String @map("end")

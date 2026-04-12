@@ -29,7 +29,7 @@ async function getUsersWithMobilityCount() {
 // Get all public mobilities
 async function getPublicMobilities() {
   const mobilities = await prisma.mobility.findMany({
-    where: { isPublic: true },
+    where: { isAnonymous: false },
     include: {
       user: {
         select: { casLogin: true, email: true },

@@ -213,7 +213,7 @@ async function main() {
   let totalTrips = 0;
   let totalSteps = 0;
 
-  const mobilityCount = faker.number.int({ min: 3, max: 8 });
+  const mobilityCount = faker.number.int({ min: 5, max: 8 });
   for (let m = 0; m < mobilityCount; m++) {
     const startCity = faker.helpers.arrayElement([
       ...FRENCH_CITIES,
@@ -227,8 +227,7 @@ async function main() {
       data: {
         name: `${startCity} → ${endCity}`,
         year: faker.date.between({ from: "2023-01-01", to: "2026-12-31" }),
-        isPublic: faker.datatype.boolean(0.7), // 70% public
-        isOriginal: faker.datatype.boolean(0.8), // 80% original
+        isAnonymous: faker.datatype.boolean(0.3), // 30% anonymous
         startLocation: startCity,
         endLocation: endCity,
         userId: existingUser.id,
@@ -236,8 +235,8 @@ async function main() {
     });
     totalMobilities++;
 
-    // Each mobility has 1-3 trips
-    const tripCount = faker.number.int({ min: 1, max: 3 });
+    // Each mobility has 5-7 trips
+    const tripCount = faker.number.int({ min: 5, max: 7 });
     const isSelectedIndex = faker.number.int({ min: 0, max: tripCount - 1 });
 
     for (let t = 0; t < tripCount; t++) {

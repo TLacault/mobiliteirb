@@ -314,13 +314,12 @@ async function searchMobilty(req, res) {
       startLocation: mobility.startLocation,
       endLocation: mobility.endLocation,
       lastEdit: mobility.lastEdit,
-      isPublic: mobility.isPublic,
-      isOriginal: mobility.isOriginal,
+      isAnonymous: mobility.isAnonymous,
       author: {
-        casLogin: mobility.isPublic
-          ? (mobility.user?.casLogin ?? "Anonyme")
+        casLogin: !mobility.isAnonymous
+          ? mobility.user?.casLogin ?? "Anonyme"
           : "Anonyme",
-        email: mobility.isPublic ? (mobility.user?.email ?? null) : null,
+        email: !mobility.isAnonymous ? mobility.user?.email ?? null : null,
       },
       stats: {
         totalCarbon: mobility.stats.totalCarbon,
@@ -385,16 +384,11 @@ async function getMobility(req, res) {
     }
 
     if (preview === "true") {
-      if (!mobility.isPublic) {
-        return res.status(403).json({ error: "Forbidden" });
-      }
-
       return res.json({
         id: mobility.id,
         name: mobility.name,
         year: mobility.year,
-        isPublic: mobility.isPublic,
-        isOriginal: false,
+        isAnonymous: mobility.isAnonymous,
         lastEdit: mobility.lastEdit,
         startLocation: mobility.startLocation,
         endLocation: mobility.endLocation,
@@ -410,8 +404,7 @@ async function getMobility(req, res) {
       id: mobility.id,
       name: mobility.name,
       year: mobility.year,
-      isPublic: mobility.isPublic,
-      isOriginal: mobility.isOriginal,
+      isAnonymous: mobility.isAnonymous,
       lastEdit: mobility.lastEdit,
       startLocation: mobility.startLocation,
       endLocation: mobility.endLocation,
@@ -533,8 +526,7 @@ async function deleteMobility(req, res) {
 async function createMobility(req, res) {
   try {
     const userId = req.user.id;
-    const { name, year, isPublic, isOriginal, startLocation, endLocation } =
-      req.body;
+    const { name, year, isAnonymous, startLocation, endLocation } = req.body;
 
     if (!name || !year || !startLocation || !endLocation) {
       return res.status(400).json({ error: "Missing required fields" });
@@ -549,8 +541,7 @@ async function createMobility(req, res) {
       data: {
         name,
         year: parsedYear,
-        isPublic,
-        isOriginal,
+        isAnonymous,
         startLocation,
         endLocation,
         userId: req.user.id,
@@ -588,8 +579,7 @@ async function updateMobility(req, res) {
     const allowedFields = [
       "name",
       "year",
-      "isPublic",
-      "isOriginal",
+      "isAnonymous",
       "startLocation",
       "endLocation",
     ];
@@ -651,12 +641,11 @@ async function duplicateMobility(req, res) {
     const newMobility = await prisma.mobility.create({
       data: {
         user: { connect: { id: userId } },
-        name: mobilityToDuplicate.isPublic
+        name: !mobilityToDuplicate.isAnonymous
           ? `Copie de ${mobilityToDuplicate.name}`
           : "Copie anonyme",
         year: mobilityToDuplicate.year,
-        isPublic: true,
-        isOriginal: null,
+        isAnonymous: false,
         startLocation: mobilityToDuplicate.startLocation,
         endLocation: mobilityToDuplicate.endLocation,
         trips: {
@@ -983,7 +972,11 @@ async function generateMobilityPdf(mobility) {
       addSpacer(lines, 1);
 
       (trip.steps || []).forEach((step) => {
-        const info = `${step.transportMode} | ${formatWholeNumber(step.distance)}km | ${formatWholeNumber(step.carbon)}kg CO2 | ${formatTime(step.time)}`;
+        const info = `${step.transportMode} | ${formatWholeNumber(
+          step.distance,
+        )}km | ${formatWholeNumber(step.carbon)}kg CO2 | ${formatTime(
+          step.time,
+        )}`;
         addBody(lines, `- ${step.labelStart} => ${step.labelEnd}`, 20);
         addBody(lines, `  [ ${info} ]`, 30);
         addSpacer(lines, 1);
@@ -1031,7 +1024,9 @@ async function generateMobilityPdf(mobility) {
       (_, index) => 4 + index * 2,
     );
     objects.push(
-      `<< /Type /Pages /Kids [${pageObjectIds.map((id) => `${id} 0 R`).join(" ")}] /Count ${pages.length} >>`,
+      `<< /Type /Pages /Kids [${pageObjectIds
+        .map((id) => `${id} 0 R`)
+        .join(" ")}] /Count ${pages.length} >>`,
     );
     objects.push("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>");
 
@@ -1042,7 +1037,11 @@ async function generateMobilityPdf(mobility) {
       const contentLength = Buffer.byteLength(contentStream, "ascii");
 
       objects.push(
-        `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageWidth.toFixed(2)} ${pageHeight.toFixed(2)}] /Resources << /Font << /F1 3 0 R >> >> /Contents ${contentObjectId} 0 R >>`,
+        `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageWidth.toFixed(
+          2,
+        )} ${pageHeight.toFixed(
+          2,
+        )}] /Resources << /Font << /F1 3 0 R >> >> /Contents ${contentObjectId} 0 R >>`,
       );
       objects.push(
         `<< /Length ${contentLength} >>\nstream\n${contentStream}\nendstream`,
@@ -1064,7 +1063,9 @@ async function generateMobilityPdf(mobility) {
     for (let index = 1; index < offsets.length; index += 1) {
       pdf += `${String(offsets[index]).padStart(10, "0")} 00000 n \n`;
     }
-    pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF\n`;
+    pdf += `trailer\n<< /Size ${
+      objects.length + 1
+    } /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF\n`;
 
     return Buffer.from(pdf, "ascii");
   }

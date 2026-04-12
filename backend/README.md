@@ -46,7 +46,7 @@ curl -X POST http://localhost:3001/api/v1/mobilites \
     "name": "Vacances d'\''été",
     "start": "Bordeaux",
     "end": "Paris",
-    "is_public": true,
+    "is_anonymous": false,
     "year": "2026-06-01",
     "userId": "votre-user-id"
   }'
@@ -76,8 +76,7 @@ model Mobility {
     id         String   @id @default(uuid())
     name       String
     year       DateTime @db.Date
-    isPublic   Boolean  @default(true)
-    isOriginal Boolean  @default(true)
+    isAnonymous Boolean  @default(false)
     lastEdit   DateTime @updatedAt
 
     startLocation String

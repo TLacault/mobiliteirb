@@ -90,7 +90,7 @@ const newMobility = await $fetch(`${API_BASE}/mobilites`, {
     name: 'Ma mobilité',
     start: 'Bordeaux',
     end: 'Paris',
-    is_public: true,
+    is_anonymous: false,
     year: '2026-06-01',
     userId: 'user-id-here'
   }

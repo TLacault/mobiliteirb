@@ -99,7 +99,7 @@ GET /api/v1/users/:userId/mobilites # Ressources imbriquées
 
 #### Query Parameters (Filtrer, trier, paginer)
 ```
-GET /api/v1/mobilites?year=2026&is_public=true    # Filtres
+GET /api/v1/mobilites?year=2026&is_anonymous=false  # Filtres
 GET /api/v1/mobilites?sort=name&order=asc         # Tri
 GET /api/v1/mobilites?page=2&limit=20             # Pagination
 GET /api/v1/mobilites?search=stockholm            # Recherche
@@ -129,8 +129,8 @@ DELETE /api/v1/trajets/456                    # Opération sur le trajet directe
 - **Pas de trailing slash** : `/mobilites` (pas `/mobilites/`)
 
 #### Champs JSON
-- **camelCase** en JavaScript : `startLocation`, `isPublic`
-- **snake_case** en base de données : `start_location`, `is_public`
+- **camelCase** en JavaScript : `startLocation`, `isAnonymous`
+- **snake_case** en base de données : `start_location`, `is_anonymous`
 - **Adapter avec Prisma** : utiliser `@map()` dans le schema
 
 ### 9. Pagination

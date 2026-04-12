@@ -206,10 +206,11 @@ async function goToPage(page) {
         <header class="section-header">
           <div class="section-header-left">
             <Route class="section-icon" size="32" />
-            <h2 class="section-title gradient-cta">Résultats</h2>
-            <div class="section-title gradient-cta">
-              {{ searchResults?.data?.length ?? "" }}
-            </div>
+            <h2 class="section-title gradient-cta">
+              <span v-if="searchResults?.pagination?.total"
+                >{{ searchResults.pagination.total }}&nbsp;</span
+              >Résultats
+            </h2>
           </div>
 
           <div class="section-header-right">
@@ -418,9 +419,7 @@ async function goToPage(page) {
   font-size: var(--font-body);
   font-weight: 400;
   cursor: pointer;
-  transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
   white-space: nowrap;
 }
 
@@ -513,10 +512,7 @@ async function goToPage(page) {
   color: var(--primary);
   opacity: 0;
   flex-shrink: 0;
-  transition:
-    transform 0.2s ease,
-    color 0.2s ease,
-    opacity 0.2s ease;
+  transition: transform 0.2s ease, color 0.2s ease, opacity 0.2s ease;
 }
 
 .sort-state-icon.active,
@@ -531,9 +527,7 @@ async function goToPage(page) {
 
 .dropdown-enter-active,
 .dropdown-leave-active {
-  transition:
-    opacity 0.15s ease,
-    transform 0.15s ease;
+  transition: opacity 0.15s ease, transform 0.15s ease;
 }
 
 .dropdown-enter-from,

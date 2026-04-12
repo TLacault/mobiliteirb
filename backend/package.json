@@ -8,6 +8,7 @@
         "start": "node index.js",
         "postinstall": "prisma generate",
         "seed": "node prisma/seed.js",
+        "seed-students": "node prisma/seed-students.js",
         "db:seed": "npx prisma db seed",
         "db:reset": "npx prisma migrate reset --force"
     },

@@ -7,9 +7,12 @@ import {
   SquareKanban,
   FileDown,
   ChevronDown,
+  FileText,
+  FileSpreadsheet,
+  FileJson,
 } from "lucide-vue-next";
 import { exportMobility } from "~/utils/mobility_api";
-import { ref } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 
 const props = defineProps({
   stats: {
@@ -29,12 +32,30 @@ const formatValue = (value) =>
 
 const isDownloading = ref(false);
 const isDropdownOpen = ref(false);
+const dropdownContainerRef = ref(null);
 
 const options = [
-  { label: "PDF", value: "pdf" },
-  { label: "CSV", value: "csv" },
-  { label: "JSON", value: "json" },
+  { label: "PDF", value: "pdf", icon: FileText },
+  { label: "CSV", value: "csv", icon: FileSpreadsheet },
+  { label: "JSON", value: "json", icon: FileJson },
 ];
+
+const closeDropdown = (event) => {
+  if (
+    dropdownContainerRef.value &&
+    !dropdownContainerRef.value.contains(event.target)
+  ) {
+    isDropdownOpen.value = false;
+  }
+};
+
+onMounted(() => {
+  document.addEventListener("click", closeDropdown);
+});
+
+onUnmounted(() => {
+  document.removeEventListener("click", closeDropdown);
+});
 
 const handleDownload = async (mode) => {
   isDownloading.value = true;
@@ -86,10 +107,10 @@ const handleDownload = async (mode) => {
         <SquareKanban class="icon" size="var(--font-section-title)" />
         <h2 class="section-title gradient-cta">Statistiques</h2>
       </div>
-      <div class="dropdown-container">
+      <div ref="dropdownContainerRef" class="dropdown-container">
         <button
           class="btn"
-          @click="isDropdownOpen = !isDropdownOpen"
+          @click.stop="isDropdownOpen = !isDropdownOpen"
           :disabled="isDownloading"
         >
           <FileDown class="icon" size="20" color="var(--background)" />
@@ -103,16 +124,23 @@ const handleDownload = async (mode) => {
             :class="{ open: isDropdownOpen }"
           />
         </button>
-        <div v-if="isDropdownOpen" class="dropdown-menu">
-          <button
-            v-for="option in options"
-            :key="option.value"
-            class="dropdown-item"
-            @click="handleDownload(option.value)"
-          >
-            {{ option.label }}
-          </button>
-        </div>
+        <Transition name="dropdown">
+          <div v-if="isDropdownOpen" class="dropdown-menu">
+            <button
+              v-for="option in options"
+              :key="option.value"
+              class="dropdown-item"
+              @click="handleDownload(option.value)"
+            >
+              <component
+                :is="option.icon"
+                size="16"
+                class="dropdown-item-icon"
+              />
+              {{ option.label }}
+            </button>
+          </div>
+        </Transition>
       </div>
     </div>
 
@@ -202,29 +230,53 @@ const handleDownload = async (mode) => {
   position: absolute;
   top: calc(100% + 0.5rem);
   right: 0;
+  left: 0;
   background: white;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 1.5px solid #e5e7eb;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
-  min-width: 120px;
   overflow: hidden;
   z-index: 100;
 }
 
 .dropdown-item {
-  padding: 0.75rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.65rem 1rem;
   border: none;
   background: transparent;
   text-align: left;
   font-size: var(--font-body);
   color: var(--text-dark);
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: background 0.15s ease;
+}
+
+.dropdown-item:not(:last-child) {
+  border-bottom: 1px solid #f3f4f6;
 }
 
 .dropdown-item:hover {
-  background: var(--background);
+  background-color: #f9fafb;
+}
+
+.dropdown-item-icon {
+  flex-shrink: 0;
+  color: #9ca3af;
+}
+
+.dropdown-enter-active,
+.dropdown-leave-active {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.dropdown-enter-from,
+.dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
 }
 
 .chevron {
@@ -255,9 +307,7 @@ const handleDownload = async (mode) => {
   background: white;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
   border: 1px solid rgba(0, 0, 0, 0.08);
-  transition:
-    box-shadow 0.2s ease,
-    transform 0.2s ease;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
   position: relative;
   overflow: hidden;
 }
