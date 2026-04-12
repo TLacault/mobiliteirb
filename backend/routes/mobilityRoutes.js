@@ -485,5 +485,39 @@ router.post(
   authenticateJWT,
   mobilityController.duplicateMobility,
 );
+/**
+ * @openapi
+ * /mobilities/{id}/export:
+ *   get:
+ *     summary: Export a mobility
+ *     tags: [Mobilities]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Mobility UUID
+ *       - in: query
+ *         name: mode
+ *         required: true
+ *         schema:
+ *           type: string
+ *           enum: [csv, json, pdf]
+ *         description: Export mode
+ *     responses:
+ *       200:
+ *         description: Exported mobility data
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Mobility not found
+ */
+router.get("/:id/export", authenticateJWT, mobilityController.exportMobility);
 
 module.exports = router;

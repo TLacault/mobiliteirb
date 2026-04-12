@@ -196,3 +196,25 @@ export async function duplicateMobility(id) {
     throw error;
   }
 }
+
+/**
+ * Export a mobility by its ID in the specified format (pdf, json, etc.)
+ * @param {string} id - Mobility ID to export
+ * @param {string} mode - Export format (e.g., "pdf", "json")
+ * @returns {Promise<Blob>} The exported file as a Blob
+ */
+export async function exportMobility(id, mode) {
+  try {
+    const response = await authenticatedFetch(
+      `${API_BASE}/mobilities/${id}/export?mode=${mode}`,
+      {
+        method: "GET",
+        ...(mode === "pdf" || mode === "csv" ? { responseType: "blob" } : {}),
+      },
+    );
+    return response;
+  } catch (error) {
+    console.error(`Error exporting mobility ${id}:`, error);
+    throw error;
+  }
+}

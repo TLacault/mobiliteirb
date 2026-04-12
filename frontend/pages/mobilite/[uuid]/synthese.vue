@@ -119,7 +119,7 @@ onMounted(fetchTrips);
       />
 
       <section class="scene-content">
-        <SyntheseStatsSection :stats="mobilityStats" />
+        <SyntheseStatsSection :stats="mobilityStats" :mobility-id="uuid" />
 
         <div class="trip-container">
           <div class="trip-header">
