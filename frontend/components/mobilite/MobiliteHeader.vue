@@ -158,7 +158,14 @@ const handleDuplicate = async () => {
     notify("success", "Mobilité importée avec succès dans votre espace.");
     navigateTo(`/mobilite/${newUuid}/synthese`);
   } catch (e) {
-    console.error("Erreur confirmation import mobilité:", e);
+    if (e?.response?.status === 429) {
+      notify(
+        "error",
+        e.response._data?.error || "Limite de mobilités atteinte.",
+      );
+    } else {
+      console.error("Erreur confirmation import mobilité:", e);
+    }
   }
 };
 </script>

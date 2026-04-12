@@ -25,6 +25,8 @@ import {
 } from "../../utils/trip_api.js";
 import { getSteps, updateStep, createStep } from "../../utils/step_api.js";
 
+const { notify } = useNotification();
+
 const props = defineProps({
   mobilityId: {
     type: String,
@@ -84,8 +86,12 @@ async function handleTripSubmitted(tripName) {
     await nextTick();
     updateScrollState();
   } catch (e) {
-    console.error("Erreur lors de la création du trajet :", e);
-    alert("Erreur lors de la création du trajet");
+    if (e?.response?.status === 429) {
+      notify("error", e.response._data?.error || "Limite de trajets atteinte.");
+    } else {
+      console.error("Erreur lors de la création du trajet :", e);
+      alert("Erreur lors de la création du trajet");
+    }
   }
 }
 
@@ -207,8 +213,12 @@ async function handleCreateStep(tripId) {
     col.steps.sort((a, b) => a.sequenceOrder - b.sequenceOrder);
     col.trip.steps = col.steps.length;
   } catch (e) {
-    console.error("Erreur lors de la création d'une étape :", e);
-    alert("Erreur lors de la création de l'étape");
+    if (e?.response?.status === 429) {
+      notify("error", e.response._data?.error || "Limite d'étapes atteinte.");
+    } else {
+      console.error("Erreur lors de la création d'une étape :", e);
+      alert("Erreur lors de la création de l'étape");
+    }
   } finally {
     creatingStepTripIds.value.delete(tripId);
   }
@@ -653,9 +663,7 @@ onUnmounted(() => {
   font-size: var(--font-body);
   font-weight: 400;
   cursor: pointer;
-  transition:
-    background-color 0.2s ease,
-    color 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease;
   margin-left: 1rem;
   white-space: nowrap;
 }
@@ -689,9 +697,7 @@ onUnmounted(() => {
   font-size: var(--font-body);
   font-weight: 400;
   cursor: pointer;
-  transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
   white-space: nowrap;
 }
 
@@ -784,10 +790,7 @@ onUnmounted(() => {
   color: var(--primary);
   opacity: 0;
   flex-shrink: 0;
-  transition:
-    transform 0.2s ease,
-    color 0.2s ease,
-    opacity 0.2s ease;
+  transition: transform 0.2s ease, color 0.2s ease, opacity 0.2s ease;
 }
 
 .sort-state-icon.active,
@@ -803,9 +806,7 @@ onUnmounted(() => {
 /* dropdown open/close transition */
 .dropdown-enter-active,
 .dropdown-leave-active {
-  transition:
-    opacity 0.15s ease,
-    transform 0.15s ease;
+  transition: opacity 0.15s ease, transform 0.15s ease;
 }
 .dropdown-enter-from,
 .dropdown-leave-to {
@@ -963,9 +964,7 @@ onUnmounted(() => {
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition:
-    border-color 0.15s ease,
-    background-color 0.15s ease,
+  transition: border-color 0.15s ease, background-color 0.15s ease,
     color 0.15s ease;
 }
 

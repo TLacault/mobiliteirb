@@ -22,7 +22,14 @@ async function createNewMobilite(form) {
     notify("success", "Mobilité créée avec succès.");
     emit("new-mobility-created", uuid);
   } catch (err) {
-    console.error("Erreur à la création de la mobilité", err);
+    if (err?.response?.status === 429) {
+      notify(
+        "error",
+        err.response._data?.error || "Limite de mobilités atteinte.",
+      );
+    } else {
+      console.error("Erreur à la création de la mobilité", err);
+    }
   }
 }
 </script>

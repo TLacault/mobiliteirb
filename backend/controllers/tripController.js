@@ -285,6 +285,13 @@ async function createTrip(req, res) {
       return res.status(403).json({ error: "Forbidden" });
     }
 
+    const tripCount = await prisma.trip.count({ where: { mobilityId } });
+    if (tripCount >= 30) {
+      return res
+        .status(429)
+        .json({ error: "Limite atteinte : 30 trajets maximum par mobilité." });
+    }
+
     const newTrip = await prisma.trip.create({
       data: {
         mobilityId,

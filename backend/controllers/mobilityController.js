@@ -532,6 +532,15 @@ async function createMobility(req, res) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
+    const mobilityCount = await prisma.mobility.count({ where: { userId } });
+    if (mobilityCount >= 20) {
+      return res
+        .status(429)
+        .json({
+          error: "Limite atteinte : 20 mobilités maximum par utilisateur.",
+        });
+    }
+
     const parsedYear = parseMobilityYear(year);
     if (!parsedYear) {
       return res.status(400).json({ error: "Invalid year format" });
@@ -636,6 +645,15 @@ async function duplicateMobility(req, res) {
     });
     if (!mobilityToDuplicate) {
       return res.status(404).json({ error: "Mobility not found" });
+    }
+
+    const mobilityCount = await prisma.mobility.count({ where: { userId } });
+    if (mobilityCount >= 20) {
+      return res
+        .status(429)
+        .json({
+          error: "Limite atteinte : 20 mobilités maximum par utilisateur.",
+        });
     }
 
     const newMobility = await prisma.mobility.create({

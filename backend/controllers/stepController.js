@@ -142,6 +142,13 @@ async function createStep(req, res) {
       return res.status(403).json({ error: "Forbidden" });
     }
 
+    const stepCount = await prisma.step.count({ where: { tripId } });
+    if (stepCount >= 30) {
+      return res
+        .status(429)
+        .json({ error: "Limite atteinte : 30 étapes maximum par trajet." });
+    }
+
     const lastStep = await prisma.step.findFirst({
       where: { tripId },
       orderBy: { sequenceOrder: "desc" },
