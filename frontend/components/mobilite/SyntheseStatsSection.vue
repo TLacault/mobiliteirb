@@ -6,12 +6,19 @@ import {
   MapPin,
   SquareKanban,
   FileDown,
+  ChevronDown,
 } from "lucide-vue-next";
+import { exportMobility } from "~/utils/mobility_api";
+import { ref } from "vue";
 
-defineProps({
+const props = defineProps({
   stats: {
     type: Object,
     default: () => ({}),
+  },
+  mobilityId: {
+    type: String,
+    default: "",
   },
 });
 
@@ -19,6 +26,57 @@ const formatValue = (value) =>
   Number(value ?? 0).toLocaleString("fr-FR", {
     maximumFractionDigits: 2,
   });
+
+const isDownloading = ref(false);
+const isDropdownOpen = ref(false);
+
+const options = [
+  { label: "PDF", value: "pdf" },
+  { label: "CSV", value: "csv" },
+  { label: "JSON", value: "json" },
+];
+
+const handleDownload = async (mode) => {
+  isDownloading.value = true;
+  isDropdownOpen.value = false;
+  try {
+    if (!props.mobilityId) {
+      throw new Error("Identifiant de mobilite manquant pour l'export CSV");
+    }
+
+    const rawData = await exportMobility(props.mobilityId, mode);
+
+    let blob;
+    if (mode === "json") {
+      blob = new Blob([JSON.stringify(rawData, null, 2)], {
+        type: "application/json",
+      });
+    } else {
+      blob = rawData instanceof Blob ? rawData : new Blob([rawData]);
+    }
+
+    const url = window.URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute(
+      "download",
+      `Synthese_Mobilite_${props.mobilityId}.${mode}`,
+    );
+
+    document.body.appendChild(link);
+    link.click();
+
+    link.parentNode.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    const message =
+      error?.data?.message || error?.message || "Erreur lors de l'exportation.";
+    alert(message);
+  } finally {
+    isDownloading.value = false;
+  }
+};
 </script>
 
 <template>
@@ -28,11 +86,34 @@ const formatValue = (value) =>
         <SquareKanban class="icon" size="var(--font-section-title)" />
         <h2 class="section-title gradient-cta">Statistiques</h2>
       </div>
-
-      <button class="btn">
-        <FileDown class="icon" size="20" color="var(--background)" />
-        <p class="body">Generer PDF</p>
-      </button>
+      <div class="dropdown-container">
+        <button
+          class="btn"
+          @click="isDropdownOpen = !isDropdownOpen"
+          :disabled="isDownloading"
+        >
+          <FileDown class="icon" size="20" color="var(--background)" />
+          <p class="body">
+            {{ isDownloading ? "Generation..." : "Exporter" }}
+          </p>
+          <ChevronDown
+            size="20"
+            color="var(--background)"
+            class="chevron"
+            :class="{ open: isDropdownOpen }"
+          />
+        </button>
+        <div v-if="isDropdownOpen" class="dropdown-menu">
+          <button
+            v-for="option in options"
+            :key="option.value"
+            class="dropdown-item"
+            @click="handleDownload(option.value)"
+          >
+            {{ option.label }}
+          </button>
+        </div>
+      </div>
     </div>
 
     <div class="stats-cards">
@@ -41,7 +122,7 @@ const formatValue = (value) =>
           <Leaf class="icon" size="25" />
           <h3 class="subtitle gradient-cta">Emissions</h3>
         </div>
-        <p class="body">{{ formatValue(stats?.totalCarbon) }} kg CO2</p>
+        <p class="body">{{ formatValue(props.stats?.totalCarbon) }} kg CO2</p>
       </div>
 
       <div class="stat-card reveal-on-scroll delay-4">
@@ -49,7 +130,7 @@ const formatValue = (value) =>
           <MapPin class="icon" size="25" />
           <h3 class="subtitle gradient-cta">Etapes</h3>
         </div>
-        <p class="body">{{ formatValue(stats?.stepCount) }}</p>
+        <p class="body">{{ formatValue(props.stats?.stepCount) }}</p>
       </div>
 
       <div class="stat-card reveal-on-scroll delay-6">
@@ -57,7 +138,7 @@ const formatValue = (value) =>
           <Ruler class="icon" size="25" />
           <h3 class="subtitle gradient-cta">Distance</h3>
         </div>
-        <p class="body">{{ formatValue(stats?.totalDistance) }} km</p>
+        <p class="body">{{ formatValue(props.stats?.totalDistance) }} km</p>
       </div>
 
       <div class="stat-card reveal-on-scroll delay-8">
@@ -65,7 +146,7 @@ const formatValue = (value) =>
           <Timer class="icon" size="25" />
           <h3 class="subtitle gradient-cta">Temps</h3>
         </div>
-        <p class="body">{{ formatValue(stats?.totalTime ?? 0) }}</p>
+        <p class="body">{{ formatValue(props.stats?.totalTime ?? 0) }}</p>
       </div>
     </div>
   </section>
@@ -103,12 +184,54 @@ const formatValue = (value) =>
   line-height: 1;
   border-radius: 100px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
 
   transition: all 0.3s ease-in-out;
   &:hover {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     transform: translateY(-3px);
   }
+}
+
+.dropdown-container {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  min-width: 120px;
+  overflow: hidden;
+  z-index: 100;
+}
+
+.dropdown-item {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  background: transparent;
+  text-align: left;
+  font-size: var(--font-body);
+  color: var(--text-dark);
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.dropdown-item:hover {
+  background: var(--background);
+}
+
+.chevron {
+  transition: transform 0.3s ease;
+}
+.chevron.open {
+  transform: rotate(180deg);
 }
 
 .stats-cards {
@@ -132,7 +255,9 @@ const formatValue = (value) =>
   background: white;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
   border: 1px solid rgba(0, 0, 0, 0.08);
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
   position: relative;
   overflow: hidden;
 }
