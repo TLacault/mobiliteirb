@@ -183,7 +183,15 @@ function handleStepUpdated(tripId, updated) {
   if (!col) return;
   const updatedId = getStepId(updated);
   const idx = col.steps.findIndex((s) => getStepId(s) === updatedId);
-  if (idx !== -1) col.steps.splice(idx, 1, { ...col.steps[idx], ...updated });
+  if (idx !== -1) {
+    col.steps.splice(idx, 1, { ...col.steps[idx], ...updated });
+    col.trip = {
+      ...col.trip,
+      emissions: col.steps.reduce((sum, s) => sum + (Number(s.carbon) || 0), 0),
+      distance: col.steps.reduce((sum, s) => sum + (Number(s.distance) || 0), 0),
+      time: col.steps.reduce((sum, s) => sum + (Number(s.time) || 0), 0)
+    };
+  }
 }
 
 async function handleCreateStep(tripId) {
