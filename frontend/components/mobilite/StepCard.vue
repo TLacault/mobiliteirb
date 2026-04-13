@@ -24,6 +24,10 @@ import {
   CheckCheck,
 } from "lucide-vue-next";
 import { deleteStep, updateStep } from "../../utils/step_api.js";
+import {
+  formatPlaceSuggestion,
+  usePlaceAutocomplete,
+} from "../../utils/place";
 
 const props = defineProps({
   step: {
@@ -156,6 +160,33 @@ async function selectTransportMode(mode) {
   await saveField("transportMode", mode.value);
 }
 
+function handleLabelStartBlur() {
+  labelStartAutocomplete.handleBlur();
+  saveField("labelStart", labelStart.value);
+}
+
+function handleLabelEndBlur() {
+  labelEndAutocomplete.handleBlur();
+  saveField("labelEnd", labelEnd.value);
+}
+
+const labelStartAutocomplete = usePlaceAutocomplete();
+const labelEndAutocomplete = usePlaceAutocomplete();
+const labelStartSuggestions = labelStartAutocomplete.suggestions;
+const labelStartSuggestionsNotEmpty = labelStartAutocomplete.suggestionsNotEmpty;
+const labelEndSuggestions = labelEndAutocomplete.suggestions;
+const labelEndSuggestionsNotEmpty = labelEndAutocomplete.suggestionsNotEmpty;
+
+function selectLabelStartSuggestion(suggestion) {
+  labelStart.value = formatPlaceSuggestion(suggestion);
+  labelStartAutocomplete.close();
+}
+
+function selectLabelEndSuggestion(suggestion) {
+  labelEnd.value = formatPlaceSuggestion(suggestion);
+  labelEndAutocomplete.close();
+}
+
 const isDirtyNotes = () => {
   return localNotes.value.trim() !== committedNotes.value.trim();
 };
@@ -286,26 +317,60 @@ onUnmounted(() => {
             <PlaneTakeoff size="16" />
             Départ
           </span>
-          <input
-            v-model="labelStart"
-            type="text"
-            placeholder="Lieu de départ"
-            class="location-input"
-            @blur="saveField('labelStart', labelStart)"
-          />
+          <div class="location-input-wrapper">
+            <input
+              v-model="labelStart"
+              type="text"
+              class="location-input"
+              @input="(e) => labelStartAutocomplete.handleInput(e.target.value)"
+              @focus="labelStartAutocomplete.handleFocus"
+              @blur="handleLabelStartBlur"
+            />
+
+            <ul
+              v-if="labelStartSuggestionsNotEmpty && labelStartSuggestions.length"
+              class="autocomplete-dropdown"
+            >
+              <li
+                v-for="s in labelStartSuggestions"
+                :key="`${s.cityName}-${s.countryName}`"
+                class="autocomplete-item"
+                  @mousedown.prevent="selectLabelStartSuggestion(s)"
+              >
+                {{ s.cityName }}, {{ s.countryName }}
+              </li>
+            </ul>
+          </div>
         </label>
         <label class="location-row">
           <span class="location-label">
             <PlaneLanding size="16" />
             Arrivée
           </span>
-          <input
-            v-model="labelEnd"
-            type="text"
-            placeholder="Lieu d'arrivée"
-            class="location-input"
-            @blur="saveField('labelEnd', labelEnd)"
-          />
+          <div class="location-input-wrapper">
+            <input
+              v-model="labelEnd"
+              type="text"
+              class="location-input"
+              @input="(e) => labelEndAutocomplete.handleInput(e.target.value)"
+              @focus="labelEndAutocomplete.handleFocus"
+              @blur="handleLabelEndBlur"
+            />
+
+            <ul
+              v-if="labelEndSuggestionsNotEmpty && labelEndSuggestions.length"
+              class="autocomplete-dropdown"
+            >
+              <li
+                v-for="s in labelEndSuggestions"
+                :key="`${s.cityName}-${s.countryName}`"
+                class="autocomplete-item"
+                  @mousedown.prevent="selectLabelEndSuggestion(s)"
+              >
+                {{ s.cityName }}, {{ s.countryName }}
+              </li>
+            </ul>
+          </div>
         </label>
 
         <label class="location-row transport-row">
@@ -540,6 +605,12 @@ onUnmounted(() => {
   gap: 0.45rem;
 }
 
+.location-input-wrapper {
+  position: relative;
+  width: 95%;
+  margin-left: 5%;
+}
+
 .location-label {
   display: inline-flex;
   align-items: center;
@@ -560,7 +631,7 @@ onUnmounted(() => {
 
 .location-input {
   width: 95%;
-  margin-left: 5%;
+  margin-left: 0;
   box-sizing: border-box;
   border: 1px solid #e5e7eb;
   border-radius: 10px;
@@ -581,6 +652,34 @@ onUnmounted(() => {
 
 .location-input::placeholder {
   color: #9ca3af;
+}
+
+.autocomplete-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 30;
+  margin: 0;
+  padding: 0.35rem 0;
+  list-style: none;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.autocomplete-item {
+  padding: 0.55rem 0.7rem;
+  cursor: pointer;
+  font-size: 0.84rem;
+  color: #0f172a;
+}
+
+.autocomplete-item:hover {
+  background: #f8fafc;
 }
 
 .transport-row {
