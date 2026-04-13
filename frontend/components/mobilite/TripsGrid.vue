@@ -134,7 +134,13 @@ async function handleStepDeleted(tripId, stepId) {
       sequenceOrder: newSequenceOrder,
     };
   });
-  col.trip.steps = col.steps.length;
+  col.trip = {
+    ...col.trip,
+    steps: col.steps.length,
+    emissions: col.steps.reduce((sum, s) => sum + (Number(s.carbon) || 0), 0),
+    distance: col.steps.reduce((sum, s) => sum + (Number(s.distance) || 0), 0),
+    time: col.steps.reduce((sum, s) => sum + (Number(s.time) || 0), 0)
+  };
 
   for (const step of stepsToPatch) {
     try {
