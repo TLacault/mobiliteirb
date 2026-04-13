@@ -33,7 +33,7 @@ const travelModeMap = {
 
 /**
  * Calculates the great-circle distance between two points (Haversine formula)
- * Used for FLIGHT and BOAT modes where roads do not apply.
+ * Used for FLIGHT modes where roads do not apply.
  */
 const calculateHaversine = (lat1, lon1, lat2, lon2) => {
   const R = 6371;
@@ -78,13 +78,18 @@ async function getStepEstimation(data) {
   let distanceKm = 0;
   let durationMin = 0;
 
-  if (["plane", "boat"].includes(transportMode)) {
-    const startCoords = typeof origin === "string" ? await getCoordinates(origin) : origin;
-    const endCoords = typeof destination === "string" ? await getCoordinates(destination) : destination;
-    
-    distanceKm = calculateHaversine(startCoords.lat, startCoords.lng, endCoords.lat, endCoords.lng);
-    const speed = transportMode.startsWith('plane') ? 800 : 35; // 800 km/h for planes, 35 km/h for boats
-    durationMin = (distanceKm / speed) * 60;
+  if (["plane"].includes(transportMode)) {
+    try {
+      const startCoords = typeof origin === "string" ? await getCoordinates(origin) : origin;
+      const endCoords = typeof destination === "string" ? await getCoordinates(destination) : destination;
+      
+      distanceKm = calculateHaversine(startCoords.lat, startCoords.lng, endCoords.lat, endCoords.lng);
+      const speed = 800; // 800 km/h for planes mean speed
+      durationMin = (distanceKm / speed) * 60;
+    } catch (error) {
+      console.error("Geocoding error for plane/boat:", error.message);
+      throw new Error(`Impossible de géolocaliser les adresses "${origin}" ou "${destination}". Vérifiez l'orthographe.`);
+    }
   } else {
     const googleTravelMode = travelModeMap[transportMode] || 'DRIVE';
     try {
@@ -103,9 +108,13 @@ async function getStepEstimation(data) {
       });
       
       const result = await response.json();
+      if (!response.ok) {
+        console.error("Google Routes API error:", result);
+        throw new Error(`Erreur API Google Maps (${response.status}). Vérifiez votre quota ou votre clé API.`);
+      }
       if (!result.routes || result.routes.length === 0) {
         console.log("No route found:", result);
-        throw new Error("No route found");
+        throw new Error(`Aucun itinéraire trouvé ${googleTravelMode} entre "${origin}" et "${destination}". Essayez un autre mode de transport ou vérifiez les adresses.`);
       }
 
       distanceKm = result.routes[0].distanceMeters / 1000;
@@ -113,7 +122,10 @@ async function getStepEstimation(data) {
         
     } catch (error) {
       console.error("ComputeRoutes Error:", error.message);
-      throw error;
+      if (error.message.includes('Aucun itinéraire') || error.message.includes('Erreur API')) {
+        throw error;
+      }
+      throw new Error(`Erreur lors du calcul de l'itinéraire : ${error.message}`);
     }
   }
 
@@ -123,7 +135,7 @@ async function getStepEstimation(data) {
     carbonEmissions = await getEmissionsCO2(distanceKm, transportMode);
   } catch (error) {
     console.error("Error calculating emissions:", error.message);
-    throw new Error(`Unable to calculate emissions for transport mode: ${transportMode}`);
+    throw new Error(`Impossible de calculer les émissions CO₂ pour le mode "${transportMode}". Vérifiez que ce mode est supporté.`);
   }
 
 
