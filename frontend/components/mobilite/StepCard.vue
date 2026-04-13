@@ -18,6 +18,7 @@ import {
   TramFront,
   Ship,
   Bike,
+  Motorbike,
   Footprints,
   NotebookPen,
   CheckCheck,
@@ -44,14 +45,29 @@ const stepId = computed(() => props.step?.id ?? props.step?.uuid);
 
 const TRANSPORT_MODES = [
   { value: "plane", label: "Avion", icon: Plane },
-  { value: "train", label: "Train", icon: TrainFront },
-  { value: "car", label: "Voiture", icon: CarFront },
-  { value: "bus", label: "Bus", icon: BusFront },
-  { value: "carpool", label: "Covoiturage", icon: Users },
-  { value: "taxi", label: "Taxi / VTC", icon: CarFront },
-  { value: "metro", label: "Métro / Tram", icon: TramFront },
-  { value: "ferry", label: "Bateau", icon: Ship },
+  { value: "train_high_speed", label: "TGV", icon: TrainFront },
+  { value: "train_intercity", label: "Intercités", icon: TrainFront },
+  { value: "car_gasoline", label: "Voiture (Essence)", icon: CarFront },
+  { value: "car_electric", label: "Voiture (Electrique)", icon: CarFront },
+  { value: "bus_gasoline_long_haul", label: "Autocar", icon: BusFront },
   { value: "bike", label: "Vélo", icon: Bike },
+  { value: "bike_electric", label: "Vélo (Electrique)", icon: Bike },
+  { value: "bus_gasoline", label: "Bus de ville (Essence)", icon: BusFront },
+  { value: "tram", label: "Tram", icon: TramFront },
+  { value: "metro", label: "Métro", icon: TramFront },
+  { value: "scooter_gasoline", label: "Scooter (Essence)", icon: Motorbike },
+  { value: "motorcycle_gasoline", label: "Moto (Essence)", icon: Motorbike },
+  { value: "train_paris", label: "RER", icon: TrainFront },
+  { value: "train_regional", label: "TER", icon: TrainFront },  
+  { value: "bus_electric", label: "Bus de ville (Electrique)", icon: BusFront },
+  { value: "car_gasoline_1_passenger", label: "Voiture essence (1 personne))", icon: CarFront },
+  { value: "car_gasoline_2_passengers", label: "Voiture essence (2 personnes)", icon: CarFront },
+  { value: "car_gasoline_3_passengers", label: "Voiture essence (3 personnes)", icon: CarFront },
+  { value: "car_gasoline_4_passengers", label: "Voiture essence (4 personnes)", icon: CarFront },
+  { value: "car_electric_1_passenger", label: "Voiture électrique (1 personne))", icon: CarFront },
+  { value: "car_electric_2_passengers", label: "Voiture electrique (2 personnes)", icon: CarFront },
+  { value: "car_electric_3_passengers", label: "Voiture electrique (3 personnes)", icon: CarFront },
+  { value: "car_electric_4_passengers", label: "Voiture electrique (4 personnes)", icon: CarFront },
   { value: "walk", label: "Marche", icon: Footprints },
 ];
 
@@ -112,7 +128,11 @@ async function saveField(field, value) {
     const updated = await updateStep(stepId.value, { [field]: value });
     emit("updated", updated);
   } catch (e) {
-    console.error(`Erreur lors de la mise à jour du step (${field}):`, e);
+    console.error(`Error updating step (${field}):`, e);
+    const details = e.response?.data?.details || e.response?.data?.error || e.data?.details || e.data?.error;
+    const defaultMessage = "Impossible de calculer l'itinéraire";
+    const errorMessage = details || defaultMessage;
+    alert(`Erreur : ${errorMessage}`);
   }
 }
 
