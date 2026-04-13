@@ -223,68 +223,52 @@ async function updateStep(req, res) {
       return res.status(403).json({ error: "Forbidden" });
     }
 
-    const { sequenceOrder, labelStart, labelEnd, 
-      pointStart, pointEnd, metadata, transportMode 
-    } = req.body;
+    const { labelStart, labelEnd, transportMode, metadata, sequenceOrder } = req.body;
     
     let updateData = {
-      sequenceOrder,
-      labelStart,
-      labelEnd,
-      metadata,
-      transportMode
+      labelStart: labelStart !== undefined ? labelStart : step.labelStart,
+      labelEnd: labelEnd !== undefined ? labelEnd : step.labelEnd,
+      transportMode: transportMode !== undefined ? transportMode : step.transportMode,
+      metadata: metadata !== undefined ? metadata : step.metadata,
+      sequenceOrder: sequenceOrder !== undefined ? sequenceOrder : step.sequenceOrder
     };
 
-    const newStart = labelStart !== undefined ? labelStart : step.labelStart;
-    const newEnd = labelEnd !== undefined ? labelEnd : step.labelEnd;
-    const newPointStart = pointStart !== undefined ? pointStart : step.pointStart;
-    const newPointEnd = pointEnd !== undefined ? pointEnd : step.pointEnd;
-    const newMode = transportMode !== undefined ? transportMode : step.transportMode;
-
-    const hasNewInput = 
-      labelStart !== undefined || 
-      labelEnd !== undefined || 
-      transportMode !== undefined;
+    const hasNewInput = labelStart || labelEnd || transportMode || metadata || sequenceOrder;
 
     if (hasNewInput) {
-      const isHaversineMode = newMode.startsWith('plane') || newMode.startsWith('boat');
-            
-      const estimation = await getStepEstimation({
-        origin: isHaversineMode ? newPointStart : newStart,
-        destination: isHaversineMode ? newPointEnd : newEnd,
-        transportMode: newMode
-      });
+      try {
+        const estimation = await getStepEstimation({
+          origin: updateData.labelStart,
+          destination: updateData.labelEnd,
+          transportMode: updateData.transportMode
+        });
 
-      if (isHaversineMode) {
-        updateData.pointStart = newPointStart;
-        updateData.pointEnd = newPointEnd;
-      }
-
-      updateData.carbon = estimation.carbon;
-      updateData.distance = estimation.distance;
-      updateData.time = estimation.time;
-      updateData.transportCarbonFactor = estimation.transportCarbonFactor;
+        updateData.carbon = estimation.carbon;
+        updateData.distance = estimation.distance;
+        updateData.time = estimation.time;
+      } catch (err) {
+        console.error("Error during estimation:", err.message);
+        return res.status(400).json({ 
+          error: "Erreur lors du calcul",
+          details: err.message 
+        });
+      }      
     }
 
     const updated = await prisma.step.update({
       where: { id: stepId },
       data: updateData,
-      select: {
+      select: { 
         id: true,
-        sequenceOrder: true,
         labelStart: true,
         labelEnd: true,
-        pointStart: true,
-        pointEnd: true,
+        transportMode: true,
         carbon: true,
         distance: true,
         time: true,
-        metadata: true,
-        transportMode: true,
-        transportCarbonFactor: true,
+        metadata: true
       },
     });
-
     res.json({ id: updated.id, ...updated });
   } catch (error) {
     console.error("Error updating step:", error);
