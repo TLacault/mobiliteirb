@@ -233,16 +233,16 @@ async function updateStep(req, res) {
       sequenceOrder: sequenceOrder !== undefined ? sequenceOrder : step.sequenceOrder
     };
 
-    const hasNewInput = labelStart || labelEnd || transportMode || metadata || sequenceOrder;
+    const hasNewInput = labelStart || labelEnd || transportMode;
+    const hasRequiredData = updateData.labelStart && updateData.labelEnd && updateData.transportMode;
 
-    if (hasNewInput) {
+    if (hasRequiredData && hasNewInput) {
       try {
         const estimation = await getStepEstimation({
           origin: updateData.labelStart,
           destination: updateData.labelEnd,
           transportMode: updateData.transportMode
         });
-
         updateData.carbon = estimation.carbon;
         updateData.distance = estimation.distance;
         updateData.time = estimation.time;
