@@ -377,6 +377,7 @@ async function getMobility(req, res) {
 
     const mobility = await prisma.mobility.findUnique({
       where: { id },
+      include: { user: { select: { casLogin: true, email: true } } },
     });
 
     if (!mobility) {
@@ -393,6 +394,12 @@ async function getMobility(req, res) {
         startLocation: mobility.startLocation,
         endLocation: mobility.endLocation,
         notes: null,
+        author: {
+          casLogin: !mobility.isAnonymous
+            ? mobility.user?.casLogin ?? "Anonyme"
+            : "Anonyme",
+          email: !mobility.isAnonymous ? mobility.user?.email ?? null : null,
+        },
       });
     }
 
@@ -534,11 +541,9 @@ async function createMobility(req, res) {
 
     const mobilityCount = await prisma.mobility.count({ where: { userId } });
     if (mobilityCount >= 20) {
-      return res
-        .status(429)
-        .json({
-          error: "Limite atteinte : 20 mobilités maximum par utilisateur.",
-        });
+      return res.status(429).json({
+        error: "Limite atteinte : 20 mobilités maximum par utilisateur.",
+      });
     }
 
     const parsedYear = parseMobilityYear(year);
@@ -649,11 +654,9 @@ async function duplicateMobility(req, res) {
 
     const mobilityCount = await prisma.mobility.count({ where: { userId } });
     if (mobilityCount >= 20) {
-      return res
-        .status(429)
-        .json({
-          error: "Limite atteinte : 20 mobilités maximum par utilisateur.",
-        });
+      return res.status(429).json({
+        error: "Limite atteinte : 20 mobilités maximum par utilisateur.",
+      });
     }
 
     const newMobility = await prisma.mobility.create({

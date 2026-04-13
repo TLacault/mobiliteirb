@@ -7,8 +7,10 @@ import {
   CheckCheck,
   HatGlasses,
   FilePen,
+  User,
 } from "lucide-vue-next";
 import PopupDelete from "../popup/PopupDelete.vue";
+import PopupAuthor from "../popup/PopupAuthor.vue";
 import {
   deleteMobility,
   updateMobility,
@@ -45,6 +47,34 @@ const localYear = ref(
   props.mobility?.year ? new Date(props.mobility.year).getFullYear() : "",
 );
 const localAnonymous = ref(Boolean(props.mobility?.isAnonymous));
+
+const authorLabel = computed(
+  () => props.mobility?.author?.casLogin ?? "Anonyme",
+);
+const authorEmail = computed(() => props.mobility?.author?.email ?? null);
+const isAnonymousAuthor = computed(
+  () =>
+    !props.mobility?.author?.casLogin ||
+    props.mobility.author.casLogin === "Anonyme",
+);
+
+const showAuthorPopup = ref(false);
+const badgeRef = ref(null);
+const anchorRect = ref(null);
+
+function openAuthorPopup() {
+  if (isAnonymousAuthor.value) return;
+  if (badgeRef.value) {
+    const rect = badgeRef.value.getBoundingClientRect();
+    anchorRect.value = {
+      top: rect.top,
+      bottom: rect.bottom,
+      left: rect.left,
+      right: rect.right,
+    };
+  }
+  showAuthorPopup.value = true;
+}
 
 // Last committed values — used to skip saves when nothing changed
 const committedName = ref(localName.value);
@@ -273,6 +303,26 @@ const handleDuplicate = async () => {
           <Route size="16" />
           Trajets
         </button>
+        <span
+          v-if="isPreview"
+          ref="badgeRef"
+          class="header-author-badge"
+          :class="{
+            anonymous: isAnonymousAuthor,
+            clickable: !isAnonymousAuthor,
+          }"
+          @click.stop="openAuthorPopup"
+        >
+          <User :size="15" />{{ authorLabel }}
+        </span>
+        <PopupAuthor
+          v-if="isPreview"
+          :show="showAuthorPopup"
+          :cas-login="authorLabel"
+          :email="authorEmail"
+          :anchor-rect="anchorRect"
+          @close="showAuthorPopup = false"
+        />
       </nav>
     </div>
 
@@ -510,7 +560,37 @@ const handleDuplicate = async () => {
 .header-tabs {
   display: flex;
   justify-content: center;
+  align-items: center;
   gap: 0.5rem;
+}
+
+.header-author-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  background: oklch(70.62% 0.139 158.37 / 15%);
+  color: var(--primary);
+
+  &.clickable {
+    cursor: pointer;
+    outline: 1px solid var(--primary);
+    transition: background 0.15s ease;
+
+    &:hover {
+      background: oklch(70.62% 0.139 158.37 / 25%);
+    }
+  }
+
+  &.anonymous {
+    background: #f1f5f9;
+    color: #94a3b8;
+    cursor: default;
+  }
 }
 
 .tab-btn {
