@@ -1,21 +1,13 @@
 <script setup>
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, onMounted } from "vue";
 import {
   Filter,
   Route,
-  BusFront,
-  TrainFront,
-  CarFront,
-  Plane,
-  Bike,
-  Footprints,
-  Users,
   Clock3,
   Search,
   Leaf,
   ListOrdered,
   Ruler,
-  CheckCheck,
   MapPin,
   ArrowUpDown,
   Infinity,
@@ -30,19 +22,14 @@ watch([departure, arrival], () => {
   if (locationError.value) locationError.value = false;
 });
 
-const transportOptions = [
-  { value: "plane", label: "Avion", icon: Plane },
-  { value: "train", label: "Train", icon: TrainFront },
-  { value: "car", label: "Voiture", icon: CarFront },
-  { value: "bus", label: "Bus", icon: BusFront },
-  { value: "carpool", label: "Covoiturage", icon: Users },
-  { value: "bike", label: "Velo", icon: Bike },
-  { value: "walk", label: "Marche", icon: Footprints },
-];
+const transportPickerRef = ref(null);
+const selectedTransportModes = ref([]);
 
-const selectedTransportModes = ref(
-  transportOptions.map((option) => option.value),
-);
+onMounted(() => {
+  if (transportPickerRef.value?.allModeValues) {
+    selectedTransportModes.value = [...transportPickerRef.value.allModeValues];
+  }
+});
 
 const emissionsMin = ref(0);
 const emissionsMax = ref(10000);
@@ -60,9 +47,10 @@ const stepsMin = ref(1);
 const stepsMax = ref(12);
 const stepsAnyValue = ref(true);
 
-const allTransportModesSelected = computed(
-  () => selectedTransportModes.value.length === transportOptions.length,
-);
+const allTransportModesSelected = computed(() => {
+  const total = transportPickerRef.value?.allModeValues?.length ?? 0;
+  return selectedTransportModes.value.length >= total;
+});
 
 const formattedDurationMin = computed(() => formatMinutes(durationMin.value));
 const formattedDurationMax = computed(() => formatMinutes(durationMax.value));
@@ -165,34 +153,6 @@ function swapLocations() {
   arrival.value = previousDeparture;
 }
 
-function toggleTransportMode(mode) {
-  const isSelected = selectedTransportModes.value.includes(mode);
-  if (isSelected) {
-    selectedTransportModes.value = selectedTransportModes.value.filter(
-      (value) => value !== mode,
-    );
-    return;
-  }
-
-  selectedTransportModes.value = [...selectedTransportModes.value, mode];
-}
-
-function selectAllTransportModes() {
-  selectedTransportModes.value = transportOptions.map((option) => option.value);
-}
-
-function unselectAllTransportModes() {
-  selectedTransportModes.value = [];
-}
-
-function toggleAllTransportModes() {
-  if (allTransportModesSelected.value) {
-    unselectAllTransportModes();
-    return;
-  }
-  selectAllTransportModes();
-}
-
 function triggerSearch() {
   if (!departure.value.trim() && !arrival.value.trim()) {
     locationError.value = true;
@@ -266,30 +226,13 @@ function triggerSearch() {
           <div class="filter-group-header">
             <Route size="16" />
             <h3>Modes de transport</h3>
-            <button
-              type="button"
-              class="all-transport-btn"
-              :class="{ active: allTransportModesSelected }"
-              @click="toggleAllTransportModes"
-            >
-              <CheckCheck size="14" />
-              <span>Tous</span>
-            </button>
           </div>
 
-          <div class="transport-grid">
-            <button
-              v-for="mode in transportOptions"
-              :key="mode.value"
-              type="button"
-              class="transport-mode-btn"
-              :class="{ active: selectedTransportModes.includes(mode.value) }"
-              @click="toggleTransportMode(mode.value)"
-            >
-              <component :is="mode.icon" size="16" />
-              <span>{{ mode.label }}</span>
-            </button>
-          </div>
+          <TransportModePicker
+            ref="transportPickerRef"
+            v-model="selectedTransportModes"
+            :multiple="true"
+          />
         </section>
 
         <section class="filter-group">
@@ -670,38 +613,6 @@ function triggerSearch() {
   border-color: #16a34a;
   background: #f0fdf4;
   color: #16a34a;
-}
-
-.transport-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.45rem;
-}
-
-.transport-mode-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  min-height: 34px;
-  padding: 0 0.55rem;
-  border-radius: 9px;
-  border: 1.5px solid #dbe3ec;
-  background: #ffffff;
-  color: #475569;
-  font-size: 0.75rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.transport-mode-btn:hover {
-  border-color: var(--primary);
-}
-
-.transport-mode-btn.active {
-  border-color: var(--primary);
-  background: oklch(70.62% 0.139 158.37 / 10%);
-  color: var(--primary);
 }
 
 .range-row {

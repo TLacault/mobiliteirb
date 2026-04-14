@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, computed, onMounted, onUnmounted } from "vue";
+import { ref, watch, computed } from "vue";
 import {
   Trash2,
   Leaf,
@@ -7,19 +7,9 @@ import {
   Ruler,
   ChevronUp,
   ChevronDown,
-  Check,
   PlaneTakeoff,
   PlaneLanding,
   Plane,
-  TrainFront,
-  CarFront,
-  BusFront,
-  Users,
-  TramFront,
-  Ship,
-  Bike,
-  Motorbike,
-  Footprints,
   NotebookPen,
   CheckCheck,
 } from "lucide-vue-next";
@@ -43,71 +33,9 @@ const props = defineProps({
 const emit = defineEmits(["deleted", "updated", "move"]);
 const stepId = computed(() => props.step?.id ?? props.step?.uuid);
 
-const TRANSPORT_MODES = [
-  { value: "plane", label: "Avion", icon: Plane },
-  { value: "train_high_speed", label: "TGV", icon: TrainFront },
-  { value: "train_intercity", label: "Intercités", icon: TrainFront },
-  { value: "car_gasoline", label: "Voiture (Essence)", icon: CarFront },
-  { value: "car_electric", label: "Voiture (Electrique)", icon: CarFront },
-  { value: "bus_gasoline_long_haul", label: "Autocar", icon: BusFront },
-  { value: "bike", label: "Vélo", icon: Bike },
-  { value: "bike_electric", label: "Vélo (Electrique)", icon: Bike },
-  { value: "bus_gasoline", label: "Bus de ville (Essence)", icon: BusFront },
-  { value: "tram", label: "Tram", icon: TramFront },
-  { value: "metro", label: "Métro", icon: TramFront },
-  { value: "scooter_gasoline", label: "Scooter (Essence)", icon: Motorbike },
-  { value: "motorcycle_gasoline", label: "Moto (Essence)", icon: Motorbike },
-  { value: "train_paris", label: "RER", icon: TrainFront },
-  { value: "train_regional", label: "TER", icon: TrainFront },
-  { value: "bus_electric", label: "Bus de ville (Electrique)", icon: BusFront },
-  {
-    value: "car_gasoline_1_passenger",
-    label: "Voiture essence (1 personne))",
-    icon: CarFront,
-  },
-  {
-    value: "car_gasoline_2_passengers",
-    label: "Voiture essence (2 personnes)",
-    icon: CarFront,
-  },
-  {
-    value: "car_gasoline_3_passengers",
-    label: "Voiture essence (3 personnes)",
-    icon: CarFront,
-  },
-  {
-    value: "car_gasoline_4_passengers",
-    label: "Voiture essence (4 personnes)",
-    icon: CarFront,
-  },
-  {
-    value: "car_electric_1_passenger",
-    label: "Voiture électrique (1 personne))",
-    icon: CarFront,
-  },
-  {
-    value: "car_electric_2_passengers",
-    label: "Voiture electrique (2 personnes)",
-    icon: CarFront,
-  },
-  {
-    value: "car_electric_3_passengers",
-    label: "Voiture electrique (3 personnes)",
-    icon: CarFront,
-  },
-  {
-    value: "car_electric_4_passengers",
-    label: "Voiture electrique (4 personnes)",
-    icon: CarFront,
-  },
-  { value: "walk", label: "Marche", icon: Footprints },
-];
-
 const labelStart = ref(props.step.labelStart ?? "");
 const labelEnd = ref(props.step.labelEnd ?? "");
 const transportMode = ref(props.step.transportMode ?? "");
-const transportMenuOpen = ref(false);
-const transportDropdownRef = ref(null);
 
 // Notes management
 const showNotes = ref(false);
@@ -146,15 +74,6 @@ watch(
   },
 );
 
-const selectedTransport = computed(
-  () =>
-    TRANSPORT_MODES.find((mode) => mode.value === transportMode.value) ?? {
-      value: "",
-      label: "Mode de transport",
-      icon: Plane,
-    },
-);
-
 async function saveField(field, value) {
   try {
     const updated = await updateStep(stepId.value, { [field]: value });
@@ -179,17 +98,6 @@ async function handleDelete() {
   } catch (e) {
     console.error("Erreur lors de la suppression du step:", e);
   }
-}
-
-async function selectTransportMode(mode) {
-  if (transportMode.value === mode.value) {
-    transportMenuOpen.value = false;
-    return;
-  }
-
-  transportMode.value = mode.value;
-  transportMenuOpen.value = false;
-  await saveField("transportMode", mode.value);
 }
 
 function handleLabelStartSelect() {
@@ -234,23 +142,6 @@ const scheduleSaveNotes = () => {
   clearTimeout(debounceTimers.notes);
   debounceTimers.notes = setTimeout(() => saveNotes(), 1000);
 };
-
-function closeTransportMenu(event) {
-  if (
-    transportDropdownRef.value &&
-    !transportDropdownRef.value.contains(event.target)
-  ) {
-    transportMenuOpen.value = false;
-  }
-}
-
-onMounted(() => {
-  document.addEventListener("click", closeTransportMenu);
-});
-
-onUnmounted(() => {
-  document.removeEventListener("click", closeTransportMenu);
-});
 </script>
 
 <template>
@@ -357,40 +248,11 @@ onUnmounted(() => {
             Transport
           </span>
 
-          <div ref="transportDropdownRef" class="transport-dropdown">
-            <button
-              class="transport-trigger"
-              @click.stop="transportMenuOpen = !transportMenuOpen"
-            >
-              <span class="transport-trigger-main">
-                <component :is="selectedTransport.icon" size="16" />
-                <span>{{ selectedTransport.label }}</span>
-              </span>
-              <ChevronDown
-                size="15"
-                class="trigger-chevron"
-                :class="{ open: transportMenuOpen }"
-              />
-            </button>
-
-            <Transition name="transport-menu">
-              <div v-if="transportMenuOpen" class="transport-menu">
-                <button
-                  v-for="mode in TRANSPORT_MODES"
-                  :key="mode.value"
-                  class="transport-option"
-                  :class="{ active: transportMode === mode.value }"
-                  @click="selectTransportMode(mode)"
-                >
-                  <span class="transport-option-main">
-                    <component :is="mode.icon" size="16" />
-                    <span>{{ mode.label }}</span>
-                  </span>
-                  <Check v-if="transportMode === mode.value" size="14" />
-                </button>
-              </div>
-            </Transition>
-          </div>
+          <TransportModePicker
+            v-model="transportMode"
+            class="transport-picker-wrapper"
+            @select="(mode) => saveField('transportMode', mode.value)"
+          />
         </label>
       </div>
     </div>
@@ -636,115 +498,9 @@ onUnmounted(() => {
   align-items: stretch;
 }
 
-/* ── Transport dropdown ── */
-.transport-dropdown {
-  position: relative;
+.transport-picker-wrapper {
   width: 95%;
   margin-left: 5%;
-  min-width: 0;
-  max-width: 100%;
-}
-
-.transport-trigger {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 0.42rem 0.6rem;
-  font-size: 0.82rem;
-  font-family: var(--font-inter);
-  color: var(--text);
-  background: #f8fafc;
-  cursor: pointer;
-  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
-}
-
-.transport-trigger:hover,
-.transport-trigger:focus {
-  border-color: var(--primary);
-  background: #ffffff;
-  box-shadow: 0 0 0 3px oklch(70.62% 0.139 158.37 / 0.1);
-  outline: none;
-}
-
-.transport-trigger-main,
-.transport-option-main {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.55rem;
-}
-
-.transport-trigger-main :deep(svg),
-.transport-option-main :deep(svg) {
-  color: var(--primary);
-  flex-shrink: 0;
-}
-
-.trigger-chevron {
-  color: #94a3b8;
-  transition: transform 0.2s ease;
-}
-
-.trigger-chevron.open {
-  transform: rotate(180deg);
-}
-
-.transport-menu {
-  position: absolute;
-  top: calc(100% + 0.45rem);
-  left: 0;
-  right: 0;
-  padding: 0.35rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 14px;
-  background: #ffffff;
-  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.12);
-  z-index: 20;
-}
-
-.transport-option {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  border: none;
-  border-radius: 8px;
-  background: transparent;
-  color: #334155;
-  padding: 0.5rem 0.58rem;
-  font-size: 0.84rem;
-  font-family: var(--font-inter);
-  cursor: pointer;
-  transition: background-color 0.15s ease, color 0.15s ease;
-}
-
-.transport-option:hover {
-  background: #f8fafc;
-}
-
-.transport-option.active {
-  background: oklch(70.62% 0.139 158.37 / 0.08);
-  color: var(--primary);
-  font-weight: 600;
-}
-
-.transport-option.active :deep(svg:last-child) {
-  color: var(--primary);
-}
-
-.transport-menu-enter-active,
-.transport-menu-leave-active {
-  transition: opacity 0.16s ease, transform 0.16s ease;
-}
-
-.transport-menu-enter-from,
-.transport-menu-leave-to {
-  opacity: 0;
-  transform: translateY(-4px);
 }
 
 .stat-icon {
