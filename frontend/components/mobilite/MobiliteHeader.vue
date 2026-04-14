@@ -8,6 +8,8 @@ import {
   HatGlasses,
   FilePen,
   User,
+  PlaneTakeoff,
+  PlaneLanding,
 } from "lucide-vue-next";
 import PopupDelete from "../popup/PopupDelete.vue";
 import PopupAuthor from "../popup/PopupAuthor.vue";
@@ -47,6 +49,8 @@ const localYear = ref(
   props.mobility?.year ? new Date(props.mobility.year).getFullYear() : "",
 );
 const localAnonymous = ref(Boolean(props.mobility?.isAnonymous));
+const localStartLocation = ref(props.mobility?.startLocation ?? "");
+const localEndLocation = ref(props.mobility?.endLocation ?? "");
 
 const authorLabel = computed(
   () => props.mobility?.author?.casLogin ?? "Anonyme",
@@ -80,6 +84,8 @@ function openAuthorPopup() {
 const committedName = ref(localName.value);
 const committedYear = ref(localYear.value);
 const committedAnonymous = ref(localAnonymous.value);
+const committedStartLocation = ref(localStartLocation.value);
+const committedEndLocation = ref(localEndLocation.value);
 
 // Synchronise si la prop change (premier chargement différé)
 watch(
@@ -92,6 +98,10 @@ watch(
       committedYear.value = localYear.value;
       localAnonymous.value = Boolean(m.isAnonymous);
       committedAnonymous.value = localAnonymous.value;
+      localStartLocation.value = m.startLocation ?? "";
+      committedStartLocation.value = localStartLocation.value;
+      localEndLocation.value = m.endLocation ?? "";
+      committedEndLocation.value = localEndLocation.value;
     }
   },
 );
@@ -120,6 +130,12 @@ const isDirty = (field) => {
     );
   if (field === "anonymous")
     return localAnonymous.value !== committedAnonymous.value;
+  if (field === "startLocation")
+    return (
+      localStartLocation.value.trim() !== committedStartLocation.value.trim()
+    );
+  if (field === "endLocation")
+    return localEndLocation.value.trim() !== committedEndLocation.value.trim();
   return false;
 };
 
@@ -128,6 +144,10 @@ const saveField = async (field, inputEl = null) => {
   clearTimeout(debounceTimers[field]);
   // Apply trim in-place before any comparison or save
   if (field === "name") localName.value = localName.value.trim();
+  if (field === "startLocation")
+    localStartLocation.value = localStartLocation.value.trim();
+  if (field === "endLocation")
+    localEndLocation.value = localEndLocation.value.trim();
   if (inputEl) inputEl.blur();
   if (!isDirty(field)) return;
   const payload = {};
@@ -135,6 +155,9 @@ const saveField = async (field, inputEl = null) => {
   if (field === "year" && localYear.value)
     payload.year = `${localYear.value}-01-01`;
   if (field === "anonymous") payload.isAnonymous = localAnonymous.value;
+  if (field === "startLocation")
+    payload.startLocation = localStartLocation.value;
+  if (field === "endLocation") payload.endLocation = localEndLocation.value;
   if (!Object.keys(payload).length) return;
   try {
     await updateMobility(props.uuid, payload);
@@ -142,6 +165,10 @@ const saveField = async (field, inputEl = null) => {
     if (field === "name") committedName.value = localName.value;
     if (field === "year") committedYear.value = localYear.value;
     if (field === "anonymous") committedAnonymous.value = localAnonymous.value;
+    if (field === "startLocation")
+      committedStartLocation.value = localStartLocation.value;
+    if (field === "endLocation")
+      committedEndLocation.value = localEndLocation.value;
     emit("updated", payload);
     flashSaved(field);
   } catch (e) {
@@ -198,19 +225,22 @@ const handleDuplicate = async () => {
     }
   }
 };
+
+function handleStartLocationSelect() {
+  saveField("startLocation");
+}
+
+function handleEndLocationSelect() {
+  saveField("endLocation");
+}
 </script>
 
 <template>
   <header class="mobilite-header">
-    <!-- Niveau 1 : navigation + champs + suppression -->
-    <div class="header-top">
-      <div class="header-container">
-        <button class="back-btn" @click="goBack">
-          <ArrowLeft size="18" />
-          <span>Retour</span>
-        </button>
-
-        <div class="mobility-fields">
+    <!-- Row 1 : (nom, année) | (départ, arrivée) | (badge étudiant / toggle anonyme) -->
+    <div class="header-row1">
+      <div class="row1-container">
+        <div class="identity-fields">
           <div class="field-wrap">
             <Transition name="badge">
               <span v-if="savedField === 'name'" class="saved-badge badge-left">
@@ -222,6 +252,7 @@ const handleDuplicate = async () => {
               v-model="localName"
               class="field-input field-name"
               placeholder="Nom de la mobilité"
+              :disabled="isPreview"
               @input="scheduleSave('name')"
               @blur="saveField('name')"
               @keydown.enter.prevent="(e) => saveField('name', e.target)"
@@ -235,6 +266,7 @@ const handleDuplicate = async () => {
               type="number"
               min="2000"
               max="2100"
+              :disabled="isPreview"
               @input="scheduleSave('year')"
               @blur="saveField('year')"
               @keydown.enter.prevent="(e) => saveField('year', e.target)"
@@ -249,81 +281,136 @@ const handleDuplicate = async () => {
               </span>
             </Transition>
           </div>
+        </div>
 
-          <div class="field-wrap">
-            <label class="anonymous-toggle" title="Mode anonyme">
-              <span class="anonymous-label">
-                <HatGlasses size="13" />
-                <span class="anonymous-text"> Anonyme </span>
+        <div class="location-fields">
+          <div class="location-field-wrap">
+            <PlaneTakeoff size="15" class="location-icon" />
+            <PlaceAutocompleteInput
+              v-model="localStartLocation"
+              class="field-input field-location"
+              placeholder="Ville de départ"
+              :disabled="isPreview"
+              @select="handleStartLocationSelect"
+            />
+            <Transition name="badge">
+              <span
+                v-if="savedField === 'startLocation'"
+                class="saved-badge badge-right"
+              >
+                <CheckCheck size="13" color="var(--primary)" />
+                saved
               </span>
-              <input
-                v-model="localAnonymous"
-                type="checkbox"
-                @change="saveField('anonymous')"
-              />
-              <span class="anonymous-track"></span>
-            </label>
+            </Transition>
+          </div>
+          <div class="location-field-wrap">
+            <PlaneLanding size="15" class="location-icon" />
+            <PlaceAutocompleteInput
+              v-model="localEndLocation"
+              class="field-input field-location"
+              placeholder="Ville d'arrivée"
+              :disabled="isPreview"
+              @select="handleEndLocationSelect"
+            />
+            <Transition name="badge">
+              <span
+                v-if="savedField === 'endLocation'"
+                class="saved-badge badge-right"
+              >
+                <CheckCheck size="13" color="var(--primary)" />
+                saved
+              </span>
+            </Transition>
           </div>
         </div>
 
-        <div class="header-actions">
+        <div class="row1-right">
+          <span
+            v-if="isPreview"
+            ref="badgeRef"
+            class="header-author-badge"
+            :class="{
+              anonymous: isAnonymousAuthor,
+              clickable: !isAnonymousAuthor,
+            }"
+            @click.stop="openAuthorPopup"
+          >
+            <User :size="15" />{{ authorLabel }}
+          </span>
+          <PopupAuthor
+            v-if="isPreview"
+            :show="showAuthorPopup"
+            :cas-login="authorLabel"
+            :email="authorEmail"
+            :anchor-rect="anchorRect"
+            @close="showAuthorPopup = false"
+          />
+          <label
+            v-if="!isPreview"
+            class="anonymous-toggle"
+            title="Mode anonyme"
+          >
+            <span class="anonymous-label">
+              <HatGlasses size="13" />
+              <span class="anonymous-text"> Anonyme </span>
+            </span>
+            <input
+              v-model="localAnonymous"
+              type="checkbox"
+              @change="saveField('anonymous')"
+            />
+            <span class="anonymous-track"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 2 : (retour) | (synthèse, trajets) | (supprimer / dupliquer) -->
+    <div class="header-row2">
+      <div class="row2-container">
+        <button class="back-btn" @click="goBack">
+          <ArrowLeft size="18" />
+          <span>Retour</span>
+        </button>
+
+        <nav class="header-tabs">
           <button
-            v-if="mobility && isPreview"
+            class="tab-btn"
+            :class="{ active: activeTab === 'synthese' }"
+            @click="goToTab('synthese')"
+          >
+            <FileText size="16" />
+            Synthèse
+          </button>
+          <button
+            class="tab-btn"
+            :class="{ active: activeTab === 'trajets' }"
+            @click="goToTab('trajets')"
+          >
+            <Route size="16" />
+            Trajets
+          </button>
+        </nav>
+
+        <div class="row2-right">
+          <button
+            v-if="!isPreview"
+            class="delete-btn"
+            @click="showDeletePopup = true"
+          >
+            <Trash2 size="16" />
+            <span>Supprimer</span>
+          </button>
+          <button
+            v-if="isPreview && mobility"
             class="duplicate-btn"
             @click="handleDuplicate"
           >
             <FilePen size="16" color="var(--background)" />
             <span>Dupliquer</span>
           </button>
-
-          <button class="delete-btn" @click="showDeletePopup = true">
-            <Trash2 size="16" />
-            <span>Supprimer</span>
-          </button>
         </div>
       </div>
-    </div>
-
-    <!-- Niveau 2 : onglets -->
-    <div class="header-tabs-wrapper">
-      <nav class="header-tabs">
-        <button
-          class="tab-btn"
-          :class="{ active: activeTab === 'synthese' }"
-          @click="goToTab('synthese')"
-        >
-          <FileText size="16" />
-          Synthèse
-        </button>
-        <button
-          class="tab-btn"
-          :class="{ active: activeTab === 'trajets' }"
-          @click="goToTab('trajets')"
-        >
-          <Route size="16" />
-          Trajets
-        </button>
-        <span
-          v-if="isPreview"
-          ref="badgeRef"
-          class="header-author-badge"
-          :class="{
-            anonymous: isAnonymousAuthor,
-            clickable: !isAnonymousAuthor,
-          }"
-          @click.stop="openAuthorPopup"
-        >
-          <User :size="15" />{{ authorLabel }}
-        </span>
-        <PopupAuthor
-          v-if="isPreview"
-          :show="showAuthorPopup"
-          :cas-login="authorLabel"
-          :email="authorEmail"
-          :anchor-rect="anchorRect"
-          @close="showAuthorPopup = false"
-        />
-      </nav>
     </div>
 
     <PopupDelete v-model="showDeletePopup" @confirm="handleDelete" />
@@ -331,63 +418,83 @@ const handleDuplicate = async () => {
 </template>
 
 <style scoped>
-/* --- Container commun (limite la largeur) --- */
-.header-container {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 0 2rem;
-}
-
-/* --- Niveau 1 --- */
-.header-top {
+/* --- Row 1 --- */
+.header-row1 {
   padding: 0.85rem 0;
   background: white;
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
-.header-container {
-  display: grid;
-  grid-template-columns: 1fr auto 2fr;
+.row1-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.identity-fields {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.location-fields {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.location-field-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.location-icon {
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.row1-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+/* --- Row 2 --- */
+.header-row2 {
+  padding: 0.65rem 0;
+  background: transparent;
+}
+
+.row2-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: flex;
   align-items: center;
   gap: 1rem;
 }
 
-.header-actions {
-  display: flex;
-  justify-content: end;
-  gap: 0.75rem;
-}
-
-.back-btn {
-  justify-self: start;
+.row2-right {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  background: none;
-  border: 1.5px solid var(--primary);
-  color: var(--primary);
-  padding: 0.4rem 0.9rem;
-  border-radius: 100px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-
-  &:hover {
-    background: var(--primary);
-    color: white;
-  }
-}
-
-.mobility-fields {
-  display: flex;
   gap: 0.75rem;
-  align-items: center;
-  justify-content: center;
+  margin-left: auto;
 }
 
+/* --- Shared field styles --- */
 .field-wrap {
   position: relative;
 }
@@ -444,17 +551,46 @@ const handleDuplicate = async () => {
     border-color: var(--primary);
     background: white;
   }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: default;
+  }
 }
 
 .field-name {
-  width: 500px;
+  width: 280px;
   font-weight: 600;
 }
 
 .field-year {
-  width: 90px;
+  width: 80px;
 }
 
+:deep(.field-location) {
+  width: 100%;
+  border: 1.5px solid transparent;
+  border-radius: 8px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.88rem;
+  font-family: inherit;
+  background: #f8f9fa;
+  color: var(--text);
+  transition: border-color 0.2s, background 0.2s;
+  outline: none;
+}
+
+:deep(.field-location:focus) {
+  border-color: var(--primary);
+  background: white;
+}
+
+:deep(.field-location:disabled) {
+  opacity: 0.7;
+  cursor: default;
+}
+
+/* --- Anonymous toggle --- */
 .anonymous-toggle {
   display: inline-flex;
   align-items: center;
@@ -505,12 +641,33 @@ const handleDuplicate = async () => {
   transform: translateX(16px);
 }
 
-.duplicate-btn {
-  justify-self: end;
+/* --- Buttons --- */
+.back-btn {
   display: flex;
   align-items: center;
   gap: 0.4rem;
+  background: none;
+  border: 1.5px solid var(--primary);
+  color: var(--primary);
   padding: 0.4rem 0.9rem;
+  border-radius: 100px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+
+  &:hover {
+    background: var(--primary);
+    color: white;
+  }
+}
+
+.duplicate-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.75rem 0.9rem;
   border: none;
   background: var(--gradientCallToAction);
   color: white;
@@ -519,10 +676,9 @@ const handleDuplicate = async () => {
   font-size: 0.85rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
   white-space: nowrap;
-
   transition: all 0.3s ease-in-out;
+
   &:hover {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     transform: translateY(-2px);
@@ -530,7 +686,6 @@ const handleDuplicate = async () => {
 }
 
 .delete-btn {
-  justify-self: end;
   display: flex;
   align-items: center;
   gap: 0.4rem;
@@ -551,19 +706,45 @@ const handleDuplicate = async () => {
   }
 }
 
-/* --- Niveau 2 : onglets --- */
-.header-tabs-wrapper {
-  padding: 0.75rem 2rem;
-  background: transparent;
-}
-
+/* --- Tabs --- */
 .header-tabs {
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 0.5rem;
+  flex: 1;
 }
 
+.tab-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 280px;
+  background: none;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 100px;
+  padding: 0.55rem 1.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+
+  &.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+    font-weight: 600;
+  }
+}
+
+/* --- Author badge --- */
 .header-author-badge {
   display: inline-flex;
   align-items: center;
@@ -593,32 +774,55 @@ const handleDuplicate = async () => {
   }
 }
 
-.tab-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  width: 400px;
-  background: none;
-  border: 1.5px solid #e5e7eb;
-  border-radius: 100px;
-  padding: 0.55rem 1.5rem;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #6b7280;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover {
-    border-color: var(--primary);
-    color: var(--primary);
+/* --- Responsive --- */
+@media (max-width: 1100px) {
+  .row1-container {
+    flex-wrap: wrap;
   }
 
-  &.active {
-    background: var(--primary);
-    border-color: var(--primary);
-    color: white;
-    font-weight: 600;
+  .field-name {
+    width: 200px;
+  }
+
+  .tab-btn {
+    width: 200px;
+  }
+}
+
+@media (max-width: 768px) {
+  .row1-container,
+  .row2-container {
+    padding: 0 1rem;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .identity-fields,
+  .location-fields {
+    flex-direction: column;
+  }
+
+  .field-name {
+    width: 100%;
+  }
+
+  .row1-right {
+    margin-left: 0;
+    justify-content: flex-start;
+  }
+
+  .row2-right {
+    margin-left: 0;
+    justify-content: flex-end;
+  }
+
+  .header-tabs {
+    flex-direction: column;
+  }
+
+  .tab-btn {
+    width: 100%;
   }
 }
 </style>
