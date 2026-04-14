@@ -18,11 +18,16 @@ import {
   TramFront,
   Ship,
   Bike,
+  Motorbike,
   Footprints,
   NotebookPen,
   CheckCheck,
 } from "lucide-vue-next";
 import { deleteStep, updateStep } from "../../utils/step_api.js";
+import {
+  formatPlaceSuggestion,
+  usePlaceAutocomplete,
+} from "../../utils/place";
 
 const props = defineProps({
   step: {
@@ -44,14 +49,29 @@ const stepId = computed(() => props.step?.id ?? props.step?.uuid);
 
 const TRANSPORT_MODES = [
   { value: "plane", label: "Avion", icon: Plane },
-  { value: "train", label: "Train", icon: TrainFront },
-  { value: "car", label: "Voiture", icon: CarFront },
-  { value: "bus", label: "Bus", icon: BusFront },
-  { value: "carpool", label: "Covoiturage", icon: Users },
-  { value: "taxi", label: "Taxi / VTC", icon: CarFront },
-  { value: "metro", label: "Métro / Tram", icon: TramFront },
-  { value: "ferry", label: "Bateau", icon: Ship },
+  { value: "train_high_speed", label: "TGV", icon: TrainFront },
+  { value: "train_intercity", label: "Intercités", icon: TrainFront },
+  { value: "car_gasoline", label: "Voiture (Essence)", icon: CarFront },
+  { value: "car_electric", label: "Voiture (Electrique)", icon: CarFront },
+  { value: "bus_gasoline_long_haul", label: "Autocar", icon: BusFront },
   { value: "bike", label: "Vélo", icon: Bike },
+  { value: "bike_electric", label: "Vélo (Electrique)", icon: Bike },
+  { value: "bus_gasoline", label: "Bus de ville (Essence)", icon: BusFront },
+  { value: "tram", label: "Tram", icon: TramFront },
+  { value: "metro", label: "Métro", icon: TramFront },
+  { value: "scooter_gasoline", label: "Scooter (Essence)", icon: Motorbike },
+  { value: "motorcycle_gasoline", label: "Moto (Essence)", icon: Motorbike },
+  { value: "train_paris", label: "RER", icon: TrainFront },
+  { value: "train_regional", label: "TER", icon: TrainFront },  
+  { value: "bus_electric", label: "Bus de ville (Electrique)", icon: BusFront },
+  { value: "car_gasoline_1_passenger", label: "Voiture essence (1 personne))", icon: CarFront },
+  { value: "car_gasoline_2_passengers", label: "Voiture essence (2 personnes)", icon: CarFront },
+  { value: "car_gasoline_3_passengers", label: "Voiture essence (3 personnes)", icon: CarFront },
+  { value: "car_gasoline_4_passengers", label: "Voiture essence (4 personnes)", icon: CarFront },
+  { value: "car_electric_1_passenger", label: "Voiture électrique (1 personne))", icon: CarFront },
+  { value: "car_electric_2_passengers", label: "Voiture electrique (2 personnes)", icon: CarFront },
+  { value: "car_electric_3_passengers", label: "Voiture electrique (3 personnes)", icon: CarFront },
+  { value: "car_electric_4_passengers", label: "Voiture electrique (4 personnes)", icon: CarFront },
   { value: "walk", label: "Marche", icon: Footprints },
 ];
 
@@ -112,7 +132,11 @@ async function saveField(field, value) {
     const updated = await updateStep(stepId.value, { [field]: value });
     emit("updated", updated);
   } catch (e) {
-    console.error(`Erreur lors de la mise à jour du step (${field}):`, e);
+    console.error(`Error updating step (${field}):`, e);
+    const details = e.response?.data?.details || e.response?.data?.error || e.data?.details || e.data?.error;
+    const defaultMessage = "Impossible de calculer l'itinéraire";
+    const errorMessage = details || defaultMessage;
+    alert(`Erreur : ${errorMessage}`);
   }
 }
 
@@ -134,6 +158,33 @@ async function selectTransportMode(mode) {
   transportMode.value = mode.value;
   transportMenuOpen.value = false;
   await saveField("transportMode", mode.value);
+}
+
+function handleLabelStartBlur() {
+  labelStartAutocomplete.handleBlur();
+  saveField("labelStart", labelStart.value);
+}
+
+function handleLabelEndBlur() {
+  labelEndAutocomplete.handleBlur();
+  saveField("labelEnd", labelEnd.value);
+}
+
+const labelStartAutocomplete = usePlaceAutocomplete();
+const labelEndAutocomplete = usePlaceAutocomplete();
+const labelStartSuggestions = labelStartAutocomplete.suggestions;
+const labelStartSuggestionsNotEmpty = labelStartAutocomplete.suggestionsNotEmpty;
+const labelEndSuggestions = labelEndAutocomplete.suggestions;
+const labelEndSuggestionsNotEmpty = labelEndAutocomplete.suggestionsNotEmpty;
+
+function selectLabelStartSuggestion(suggestion) {
+  labelStart.value = formatPlaceSuggestion(suggestion);
+  labelStartAutocomplete.close();
+}
+
+function selectLabelEndSuggestion(suggestion) {
+  labelEnd.value = formatPlaceSuggestion(suggestion);
+  labelEndAutocomplete.close();
 }
 
 const isDirtyNotes = () => {
@@ -265,26 +316,60 @@ onUnmounted(() => {
             <PlaneTakeoff size="16" />
             Départ
           </span>
-          <input
-            v-model="labelStart"
-            type="text"
-            placeholder="Lieu de départ"
-            class="location-input"
-            @blur="saveField('labelStart', labelStart)"
-          />
+          <div class="location-input-wrapper">
+            <input
+              v-model="labelStart"
+              type="text"
+              class="location-input"
+              @input="(e) => labelStartAutocomplete.handleInput(e.target.value)"
+              @focus="labelStartAutocomplete.handleFocus"
+              @blur="handleLabelStartBlur"
+            />
+
+            <ul
+              v-if="labelStartSuggestionsNotEmpty && labelStartSuggestions.length"
+              class="autocomplete-dropdown"
+            >
+              <li
+                v-for="s in labelStartSuggestions"
+                :key="`${s.cityName}-${s.countryName}`"
+                class="autocomplete-item"
+                  @mousedown.prevent="selectLabelStartSuggestion(s)"
+              >
+                {{ s.cityName }}, {{ s.countryName }}
+              </li>
+            </ul>
+          </div>
         </label>
         <label class="location-row">
           <span class="location-label">
             <PlaneLanding size="16" />
             Arrivée
           </span>
-          <input
-            v-model="labelEnd"
-            type="text"
-            placeholder="Lieu d'arrivée"
-            class="location-input"
-            @blur="saveField('labelEnd', labelEnd)"
-          />
+          <div class="location-input-wrapper">
+            <input
+              v-model="labelEnd"
+              type="text"
+              class="location-input"
+              @input="(e) => labelEndAutocomplete.handleInput(e.target.value)"
+              @focus="labelEndAutocomplete.handleFocus"
+              @blur="handleLabelEndBlur"
+            />
+
+            <ul
+              v-if="labelEndSuggestionsNotEmpty && labelEndSuggestions.length"
+              class="autocomplete-dropdown"
+            >
+              <li
+                v-for="s in labelEndSuggestions"
+                :key="`${s.cityName}-${s.countryName}`"
+                class="autocomplete-item"
+                  @mousedown.prevent="selectLabelEndSuggestion(s)"
+              >
+                {{ s.cityName }}, {{ s.countryName }}
+              </li>
+            </ul>
+          </div>
         </label>
 
         <label class="location-row transport-row">
@@ -519,6 +604,12 @@ onUnmounted(() => {
   gap: 0.45rem;
 }
 
+.location-input-wrapper {
+  position: relative;
+  width: 95%;
+  margin-left: 5%;
+}
+
 .location-label {
   display: inline-flex;
   align-items: center;
@@ -539,7 +630,7 @@ onUnmounted(() => {
 
 .location-input {
   width: 95%;
-  margin-left: 5%;
+  margin-left: 0;
   box-sizing: border-box;
   border: 1px solid #e5e7eb;
   border-radius: 10px;
@@ -560,6 +651,34 @@ onUnmounted(() => {
 
 .location-input::placeholder {
   color: #9ca3af;
+}
+
+.autocomplete-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 30;
+  margin: 0;
+  padding: 0.35rem 0;
+  list-style: none;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.autocomplete-item {
+  padding: 0.55rem 0.7rem;
+  cursor: pointer;
+  font-size: 0.84rem;
+  color: #0f172a;
+}
+
+.autocomplete-item:hover {
+  background: #f8fafc;
 }
 
 .transport-row {

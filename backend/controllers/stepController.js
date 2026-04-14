@@ -1,5 +1,6 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
+const { getStepEstimation } = require("../utils/emissionDatas");
 
 function isMissingStepTimeColumnError(error) {
   if (!error || error.code !== "P2022") return false;
@@ -327,30 +328,52 @@ async function updateStep(req, res) {
       return res.status(403).json({ error: "Forbidden" });
     }
 
-    const { labelStart, labelEnd, transportMode, sequenceOrder, metadata } =
-      req.body;
+    const { labelStart, labelEnd, transportMode, metadata, sequenceOrder } = req.body;
+    
+    let updateData = {
+      labelStart: labelStart !== undefined ? labelStart : step.labelStart,
+      labelEnd: labelEnd !== undefined ? labelEnd : step.labelEnd,
+      transportMode: transportMode !== undefined ? transportMode : step.transportMode,
+      metadata: metadata !== undefined ? metadata : step.metadata,
+      sequenceOrder: sequenceOrder !== undefined ? sequenceOrder : step.sequenceOrder
+    };
+
+    const hasNewInput = labelStart || labelEnd || transportMode;
+    const hasRequiredData = updateData.labelStart && updateData.labelEnd && updateData.transportMode;
+
+    if (hasRequiredData && hasNewInput) {
+      try {
+        const estimation = await getStepEstimation({
+          origin: updateData.labelStart,
+          destination: updateData.labelEnd,
+          transportMode: updateData.transportMode
+        });
+        updateData.carbon = estimation.carbon;
+        updateData.distance = estimation.distance;
+        updateData.time = estimation.time;
+      } catch (err) {
+        console.error("Error during estimation:", err.message);
+        return res.status(400).json({ 
+          error: "Erreur lors du calcul",
+          details: err.message 
+        });
+      }      
+    }
 
     const updated = await prisma.step.update({
       where: { id: stepId },
-      data: {
-        ...(labelStart !== undefined && { labelStart }),
-        ...(labelEnd !== undefined && { labelEnd }),
-        ...(transportMode !== undefined && { transportMode }),
-        ...(sequenceOrder !== undefined && { sequenceOrder }),
-        ...(metadata !== undefined && { metadata }),
-      },
-      select: {
+      data: updateData,
+      select: { 
         id: true,
-        sequenceOrder: true,
+        labelStart: true,
+        labelEnd: true,
         transportMode: true,
         carbon: true,
         distance: true,
-        labelStart: true,
-        labelEnd: true,
-        metadata: true,
+        time: true,
+        metadata: true
       },
     });
-
     res.json({ id: updated.id, ...updated });
   } catch (error) {
     console.error("Error updating step:", error);
