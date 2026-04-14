@@ -100,12 +100,10 @@ const submit = () => {
         <label class="popup-label" data-required for="pm-depart">
           Point de départ
         </label>
-        <input
-          id="pm-depart"
-          class="popup-input"
-          type="text"
-          placeholder="Bordeaux"
+        <PlaceAutocompleteInput
           v-model="form.depart"
+          placeholder="Bordeaux"
+          class="popup-input"
           required
         />
       </div>
@@ -114,12 +112,10 @@ const submit = () => {
         <label class="popup-label" data-required for="pm-arrivee">
           Point d'arrivée
         </label>
-        <input
-          id="pm-arrivee"
-          class="popup-input"
-          type="text"
-          placeholder="New York"
+        <PlaceAutocompleteInput
           v-model="form.arrivee"
+          placeholder="New York"
+          class="popup-input"
           required
         />
       </div>

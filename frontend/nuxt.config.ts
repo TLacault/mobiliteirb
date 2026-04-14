@@ -60,6 +60,7 @@ export default defineNuxtConfig({
       // Variables exposées côté client
       // URL relative : passe par nginx en prod, par le proxy Vite en dev
       apiBase: process.env.NUXT_PUBLIC_API_BASE || "/api/v1",
+      gmapsApiKey: process.env.NUXT_PUBLIC_GMAPS_API_KEY || "",
     },
   },
 

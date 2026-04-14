@@ -24,10 +24,6 @@ import {
   CheckCheck,
 } from "lucide-vue-next";
 import { deleteStep, updateStep } from "../../utils/step_api.js";
-import {
-  formatPlaceSuggestion,
-  usePlaceAutocomplete,
-} from "../../utils/place";
 
 const props = defineProps({
   step: {
@@ -62,16 +58,48 @@ const TRANSPORT_MODES = [
   { value: "scooter_gasoline", label: "Scooter (Essence)", icon: Motorbike },
   { value: "motorcycle_gasoline", label: "Moto (Essence)", icon: Motorbike },
   { value: "train_paris", label: "RER", icon: TrainFront },
-  { value: "train_regional", label: "TER", icon: TrainFront },  
+  { value: "train_regional", label: "TER", icon: TrainFront },
   { value: "bus_electric", label: "Bus de ville (Electrique)", icon: BusFront },
-  { value: "car_gasoline_1_passenger", label: "Voiture essence (1 personne))", icon: CarFront },
-  { value: "car_gasoline_2_passengers", label: "Voiture essence (2 personnes)", icon: CarFront },
-  { value: "car_gasoline_3_passengers", label: "Voiture essence (3 personnes)", icon: CarFront },
-  { value: "car_gasoline_4_passengers", label: "Voiture essence (4 personnes)", icon: CarFront },
-  { value: "car_electric_1_passenger", label: "Voiture électrique (1 personne))", icon: CarFront },
-  { value: "car_electric_2_passengers", label: "Voiture electrique (2 personnes)", icon: CarFront },
-  { value: "car_electric_3_passengers", label: "Voiture electrique (3 personnes)", icon: CarFront },
-  { value: "car_electric_4_passengers", label: "Voiture electrique (4 personnes)", icon: CarFront },
+  {
+    value: "car_gasoline_1_passenger",
+    label: "Voiture essence (1 personne))",
+    icon: CarFront,
+  },
+  {
+    value: "car_gasoline_2_passengers",
+    label: "Voiture essence (2 personnes)",
+    icon: CarFront,
+  },
+  {
+    value: "car_gasoline_3_passengers",
+    label: "Voiture essence (3 personnes)",
+    icon: CarFront,
+  },
+  {
+    value: "car_gasoline_4_passengers",
+    label: "Voiture essence (4 personnes)",
+    icon: CarFront,
+  },
+  {
+    value: "car_electric_1_passenger",
+    label: "Voiture électrique (1 personne))",
+    icon: CarFront,
+  },
+  {
+    value: "car_electric_2_passengers",
+    label: "Voiture electrique (2 personnes)",
+    icon: CarFront,
+  },
+  {
+    value: "car_electric_3_passengers",
+    label: "Voiture electrique (3 personnes)",
+    icon: CarFront,
+  },
+  {
+    value: "car_electric_4_passengers",
+    label: "Voiture electrique (4 personnes)",
+    icon: CarFront,
+  },
   { value: "walk", label: "Marche", icon: Footprints },
 ];
 
@@ -133,7 +161,11 @@ async function saveField(field, value) {
     emit("updated", updated);
   } catch (e) {
     console.error(`Error updating step (${field}):`, e);
-    const details = e.response?.data?.details || e.response?.data?.error || e.data?.details || e.data?.error;
+    const details =
+      e.response?.data?.details ||
+      e.response?.data?.error ||
+      e.data?.details ||
+      e.data?.error;
     const defaultMessage = "Impossible de calculer l'itinéraire";
     const errorMessage = details || defaultMessage;
     alert(`Erreur : ${errorMessage}`);
@@ -160,31 +192,12 @@ async function selectTransportMode(mode) {
   await saveField("transportMode", mode.value);
 }
 
-function handleLabelStartBlur() {
-  labelStartAutocomplete.handleBlur();
+function handleLabelStartSelect() {
   saveField("labelStart", labelStart.value);
 }
 
-function handleLabelEndBlur() {
-  labelEndAutocomplete.handleBlur();
+function handleLabelEndSelect() {
   saveField("labelEnd", labelEnd.value);
-}
-
-const labelStartAutocomplete = usePlaceAutocomplete();
-const labelEndAutocomplete = usePlaceAutocomplete();
-const labelStartSuggestions = labelStartAutocomplete.suggestions;
-const labelStartSuggestionsNotEmpty = labelStartAutocomplete.suggestionsNotEmpty;
-const labelEndSuggestions = labelEndAutocomplete.suggestions;
-const labelEndSuggestionsNotEmpty = labelEndAutocomplete.suggestionsNotEmpty;
-
-function selectLabelStartSuggestion(suggestion) {
-  labelStart.value = formatPlaceSuggestion(suggestion);
-  labelStartAutocomplete.close();
-}
-
-function selectLabelEndSuggestion(suggestion) {
-  labelEnd.value = formatPlaceSuggestion(suggestion);
-  labelEndAutocomplete.close();
 }
 
 const isDirtyNotes = () => {
@@ -317,28 +330,11 @@ onUnmounted(() => {
             Départ
           </span>
           <div class="location-input-wrapper">
-            <input
+            <PlaceAutocompleteInput
               v-model="labelStart"
-              type="text"
               class="location-input"
-              @input="(e) => labelStartAutocomplete.handleInput(e.target.value)"
-              @focus="labelStartAutocomplete.handleFocus"
-              @blur="handleLabelStartBlur"
+              @select="handleLabelStartSelect"
             />
-
-            <ul
-              v-if="labelStartSuggestionsNotEmpty && labelStartSuggestions.length"
-              class="autocomplete-dropdown"
-            >
-              <li
-                v-for="s in labelStartSuggestions"
-                :key="`${s.cityName}-${s.countryName}`"
-                class="autocomplete-item"
-                  @mousedown.prevent="selectLabelStartSuggestion(s)"
-              >
-                {{ s.cityName }}, {{ s.countryName }}
-              </li>
-            </ul>
           </div>
         </label>
         <label class="location-row">
@@ -347,28 +343,11 @@ onUnmounted(() => {
             Arrivée
           </span>
           <div class="location-input-wrapper">
-            <input
+            <PlaceAutocompleteInput
               v-model="labelEnd"
-              type="text"
               class="location-input"
-              @input="(e) => labelEndAutocomplete.handleInput(e.target.value)"
-              @focus="labelEndAutocomplete.handleFocus"
-              @blur="handleLabelEndBlur"
+              @select="handleLabelEndSelect"
             />
-
-            <ul
-              v-if="labelEndSuggestionsNotEmpty && labelEndSuggestions.length"
-              class="autocomplete-dropdown"
-            >
-              <li
-                v-for="s in labelEndSuggestions"
-                :key="`${s.cityName}-${s.countryName}`"
-                class="autocomplete-item"
-                  @mousedown.prevent="selectLabelEndSuggestion(s)"
-              >
-                {{ s.cityName }}, {{ s.countryName }}
-              </li>
-            </ul>
           </div>
         </label>
 
@@ -628,8 +607,8 @@ onUnmounted(() => {
   flex-shrink: 0;
 }
 
-.location-input {
-  width: 95%;
+:deep(.location-input) {
+  width: 100%;
   margin-left: 0;
   box-sizing: border-box;
   border: 1px solid #e5e7eb;
@@ -643,42 +622,14 @@ onUnmounted(() => {
   transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
 }
 
-.location-input:focus {
+:deep(.location-input:focus) {
   border-color: var(--primary);
   background: #ffffff;
   box-shadow: 0 0 0 3px oklch(70.62% 0.139 158.37 / 0.1);
 }
 
-.location-input::placeholder {
+:deep(.location-input::placeholder) {
   color: #9ca3af;
-}
-
-.autocomplete-dropdown {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  right: 0;
-  z-index: 30;
-  margin: 0;
-  padding: 0.35rem 0;
-  list-style: none;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
-  max-height: 220px;
-  overflow-y: auto;
-}
-
-.autocomplete-item {
-  padding: 0.55rem 0.7rem;
-  cursor: pointer;
-  font-size: 0.84rem;
-  color: #0f172a;
-}
-
-.autocomplete-item:hover {
-  background: #f8fafc;
 }
 
 .transport-row {

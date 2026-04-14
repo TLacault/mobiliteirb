@@ -10,13 +10,10 @@ import { ref } from "vue";
  * @returns {Promise<Array>}
  */
 
-export async function fetchCitySuggestions(input) {
-    if (!input || input.length < 2) {
-        return [];
-    }
-
-  const { public: publicConfig } = useRuntimeConfig();
-  const apiKey = publicConfig?.gmapsApiKey;
+export async function fetchCitySuggestions(input, apiKey) {
+  if (!input || input.length < 2) {
+    return [];
+  }
 
   if (!apiKey) {
     throw new Error("Missing NUXT_PUBLIC_GMAPS_API_KEY runtime config");
@@ -42,11 +39,14 @@ export async function fetchCitySuggestions(input) {
     );
 
     const suggestions = (response?.suggestions ?? [])
-      .map(({ place}) => {
-        const cityName = place.structuredFormat.mainText.text.trim();
-        const countryName = place.structuredFormat.secondaryText.text.trim();
+      .map(({ placePrediction }) => {
+        if (!placePrediction?.structuredFormat) return null;
+        const cityName = placePrediction.structuredFormat.mainText.text.trim();
+        const countryName =
+          placePrediction.structuredFormat.secondaryText.text.trim();
         return { cityName, countryName };
       })
+      .filter(Boolean)
       .filter((s) => s.cityName && s.countryName)
       .filter(
         (s, index, arr) =>
@@ -59,7 +59,10 @@ export async function fetchCitySuggestions(input) {
 
     return suggestions;
   } catch (error) {
-    console.error(`Error fetching place suggestions for input ${input}:`, error);
+    console.error(
+      `Error fetching place suggestions for input ${input}:`,
+      error,
+    );
     throw error;
   }
 }
@@ -73,6 +76,9 @@ export function useCityAutocomplete() {
   const suggestionsNotEmpty = ref(false);
   const timer = ref(null);
 
+  const { public: publicConfig } = useRuntimeConfig();
+  const apiKey = publicConfig?.gmapsApiKey;
+
   async function fetchSuggestions(query) {
     const normalizedQuery = query.trim();
 
@@ -83,7 +89,7 @@ export function useCityAutocomplete() {
     }
 
     try {
-      const list = await fetchCitySuggestions(normalizedQuery);
+      const list = await fetchCitySuggestions(normalizedQuery, apiKey);
       suggestions.value = list;
       suggestionsNotEmpty.value = list.length > 0;
       return list;
