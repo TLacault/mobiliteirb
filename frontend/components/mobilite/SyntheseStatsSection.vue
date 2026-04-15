@@ -10,7 +10,9 @@ import {
   FileText,
   FileSpreadsheet,
   FileJson,
+  Globe,
 } from "lucide-vue-next";
+import GlobePopup from "./GlobePopup.vue";
 import { exportMobility } from "~/utils/mobility_api";
 import { ref, onMounted, onUnmounted } from "vue";
 
@@ -23,7 +25,17 @@ const props = defineProps({
     type: String,
     default: "",
   },
+  trips: {
+    type: Array,
+    default: () => [],
+  },
+  isPreview: {
+    type: Boolean,
+    default: false,
+  },
 });
+
+const showGlobe = ref(false);
 
 const formatValue = (value) =>
   Number(value ?? 0).toLocaleString("fr-FR", {
@@ -107,42 +119,55 @@ const handleDownload = async (mode) => {
         <SquareKanban class="icon" size="var(--font-section-title)" />
         <h2 class="section-title gradient-cta">Statistiques</h2>
       </div>
-      <div ref="dropdownContainerRef" class="dropdown-container">
-        <button
-          class="btn"
-          @click.stop="isDropdownOpen = !isDropdownOpen"
-          :disabled="isDownloading"
-        >
-          <FileDown class="icon" size="20" color="var(--background)" />
-          <p class="body">
-            {{ isDownloading ? "Generation..." : "Exporter" }}
-          </p>
-          <ChevronDown
-            size="20"
-            color="var(--background)"
-            class="chevron"
-            :class="{ open: isDropdownOpen }"
-          />
+      <div class="header-actions">
+        <button class="btn btn-globe" @click="showGlobe = true">
+          <Globe class="icon" size="20" color="var(--background)" />
+          <p class="body">Globe</p>
         </button>
-        <Transition name="dropdown">
-          <div v-if="isDropdownOpen" class="dropdown-menu">
-            <button
-              v-for="option in options"
-              :key="option.value"
-              class="dropdown-item"
-              @click="handleDownload(option.value)"
-            >
-              <component
-                :is="option.icon"
-                size="16"
-                class="dropdown-item-icon"
-              />
-              {{ option.label }}
-            </button>
-          </div>
-        </Transition>
+
+        <div ref="dropdownContainerRef" class="dropdown-container">
+          <button
+            class="btn"
+            @click.stop="isDropdownOpen = !isDropdownOpen"
+            :disabled="isDownloading"
+          >
+            <FileDown class="icon" size="20" color="var(--background)" />
+            <p class="body">
+              {{ isDownloading ? "Generation..." : "Exporter" }}
+            </p>
+            <ChevronDown
+              size="20"
+              color="var(--background)"
+              class="chevron"
+              :class="{ open: isDropdownOpen }"
+            />
+          </button>
+          <Transition name="dropdown">
+            <div v-if="isDropdownOpen" class="dropdown-menu">
+              <button
+                v-for="option in options"
+                :key="option.value"
+                class="dropdown-item"
+                @click="handleDownload(option.value)"
+              >
+                <component
+                  :is="option.icon"
+                  size="16"
+                  class="dropdown-item-icon"
+                />
+                {{ option.label }}
+              </button>
+            </div>
+          </Transition>
+        </div>
       </div>
     </div>
+
+    <GlobePopup
+      v-model="showGlobe"
+      :trips="props.trips"
+      :is-preview="props.isPreview"
+    />
 
     <div class="stats-cards">
       <div class="stat-card reveal-on-scroll delay-2">
@@ -199,6 +224,12 @@ const handleDownload = async (mode) => {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .btn {
