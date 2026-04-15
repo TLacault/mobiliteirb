@@ -93,6 +93,27 @@ async function getStepEstimation(data) {
   } else {
     const googleTravelMode = travelModeMap[transportMode] || 'DRIVE';
     try {
+      const nextMonday = new Date();
+      nextMonday.setDate(nextMonday.getDate() + ((7 - nextMonday.getDay() + 1) % 7 || 7));
+      nextMonday.setHours(9, 0, 0, 0);
+
+      const requestBody = {
+        origin: { address: origin },
+        destination: { address: destination },
+        travelMode: googleTravelMode,
+      };
+
+      if (googleTravelMode === 'TRANSIT') {
+        requestBody.departureTime = nextMonday.toISOString();
+        requestBody.transitPreferences = {
+          allowedTravelModes: ["RAIL"],
+          routingPreference: "FEWER_TRANSFERS"
+        };
+      }
+
+      if (googleTravelMode === 'DRIVE') {
+        requestBody.routingPreference = "TRAFFIC_AWARE_OPTIMAL";
+      }
       const response = await fetch("https://routes.googleapis.com/directions/v2:computeRoutes", {
         method: "POST",
         headers: {
@@ -100,11 +121,7 @@ async function getStepEstimation(data) {
           "Content-Type": "application/json",
           "X-Goog-FieldMask": "routes.distanceMeters,routes.duration",
         },
-        body: JSON.stringify({
-          origin: { address: origin },
-          destination: { address: destination },
-          travelMode: googleTravelMode,
-        }),
+        body: JSON.stringify(requestBody)
       });
       
       const result = await response.json();
