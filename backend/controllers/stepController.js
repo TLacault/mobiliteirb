@@ -318,7 +318,16 @@ async function updateStep(req, res) {
     const { stepId } = req.params;
     const userId = req.user.id;
 
-    const step = await getStepForOwnership(stepId);
+    const step = await prisma.step.findUnique({
+      where: { id: stepId },
+      include: {
+        trip: {
+          include: {
+            mobility: { select: { userId: true } },
+          },
+        },
+      },
+    });
 
     if (!step) {
       return res.status(404).json({ error: "Step not found" });
