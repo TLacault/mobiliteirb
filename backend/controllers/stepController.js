@@ -337,42 +337,46 @@ async function updateStep(req, res) {
       return res.status(403).json({ error: "Forbidden" });
     }
 
-    const { labelStart, labelEnd, transportMode, metadata, sequenceOrder } = req.body;
-    
+    const { labelStart, labelEnd, transportMode, metadata, sequenceOrder } =
+      req.body;
+
     let updateData = {
       labelStart: labelStart !== undefined ? labelStart : step.labelStart,
       labelEnd: labelEnd !== undefined ? labelEnd : step.labelEnd,
-      transportMode: transportMode !== undefined ? transportMode : step.transportMode,
+      transportMode:
+        transportMode !== undefined ? transportMode : step.transportMode,
       metadata: metadata !== undefined ? metadata : step.metadata,
-      sequenceOrder: sequenceOrder !== undefined ? sequenceOrder : step.sequenceOrder
+      sequenceOrder:
+        sequenceOrder !== undefined ? sequenceOrder : step.sequenceOrder,
     };
 
     const hasNewInput = labelStart || labelEnd || transportMode;
-    const hasRequiredData = updateData.labelStart && updateData.labelEnd && updateData.transportMode;
+    const hasRequiredData =
+      updateData.labelStart && updateData.labelEnd && updateData.transportMode;
 
     if (hasRequiredData && hasNewInput) {
       try {
         const estimation = await getStepEstimation({
           origin: updateData.labelStart,
           destination: updateData.labelEnd,
-          transportMode: updateData.transportMode
+          transportMode: updateData.transportMode,
         });
         updateData.carbon = estimation.carbon;
         updateData.distance = estimation.distance;
         updateData.time = estimation.time;
       } catch (err) {
-        console.error("Error during estimation:", err.message);
-        return res.status(400).json({ 
-          error: "Erreur lors du calcul",
-          details: err.message 
-        });
-      }      
+        console.error(
+          "Estimation failed, saving step without stats:",
+          err.message,
+        );
+        // Ne pas bloquer la sauvegarde : on enregistre sans CO2/distance/time
+      }
     }
 
     const updated = await prisma.step.update({
       where: { id: stepId },
       data: updateData,
-      select: { 
+      select: {
         id: true,
         labelStart: true,
         labelEnd: true,
@@ -380,7 +384,7 @@ async function updateStep(req, res) {
         carbon: true,
         distance: true,
         time: true,
-        metadata: true
+        metadata: true,
       },
     });
     res.json({ id: updated.id, ...updated });
