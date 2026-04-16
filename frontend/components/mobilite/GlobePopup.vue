@@ -252,8 +252,8 @@ async function initGlobe() {
   globeInstance = Globe()(globeContainer.value)
     .width(width)
     .height(height)
-    .globeImageUrl("//unpkg.com/three-globe/example/img/earth-blue-marble.jpg")
-    .backgroundImageUrl("//unpkg.com/three-globe/example/img/night-sky.png")
+    .globeImageUrl("/globe/earth-blue-marble.jpg")
+    .backgroundImageUrl("/globe/night-sky.png")
     .arcColor("color")
     .arcAltitude((d) => {
       const toRad = Math.PI / 180;
