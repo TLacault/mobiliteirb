@@ -25,7 +25,13 @@
 
     <!-- Account/Connection Section -->
     <div class="account-hero reveal-on-scroll reveal-up delay-2">
-      <NuxtLink to="/connexion" class="btn-connexion">
+      <NuxtLink v-if="isAuthenticated" to="/dashboard" class="btn-connexion">
+        <div class="btn-text">
+          <LayoutDashboard />
+          <p>Mon espace</p>
+        </div>
+      </NuxtLink>
+      <NuxtLink v-else to="/connexion" class="btn-connexion">
         <div class="btn-text">
           <User />
           <p>Se Connecter</p>
@@ -43,7 +49,9 @@
 </template>
 
 <script setup>
-import { User, MoveDown } from "lucide-vue-next";
+import { User, MoveDown, LayoutDashboard } from "lucide-vue-next";
+
+const { isAuthenticated } = useAuth();
 </script>
 
 <style scoped>

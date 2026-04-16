@@ -50,7 +50,7 @@ async function createNewMobilite(form) {
 <style scoped>
 .card-container {
   flex-wrap: wrap;
-  height: 240px;
+  height: 258px;
   max-width: 500px;
   position: relative;
   display: flex;
@@ -58,7 +58,7 @@ async function createNewMobilite(form) {
   justify-content: center;
   gap: 1rem;
   padding: 1rem;
-  border-radius: 0.5rem;
+  border-radius: 15px;
   background-color: white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   border: 1px dashed var(--primary);

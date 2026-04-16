@@ -5,7 +5,27 @@ const navLinks = [
   { name: "Recherche", path: "/recherche" },
 ];
 
-import { Github, Copyright, Mail, MessagesSquare } from "lucide-vue-next";
+const developers = [
+  { name: "Tim Lacault", url: "https://linkedin.com/in/tim-lacault/" },
+  { name: "Eve Turchet", url: "https://linkedin.com/in/eve-turchet/" },
+  {
+    name: "Margaux Lopez",
+    url: "https://linkedin.com/in/margaux-lopez-ing%C3%A9nieur-info/",
+  },
+  { name: "Yoann Moresco", url: "https://linkedin.com/in/yoannmoresco/" },
+  {
+    name: "Mano Domingo",
+    url: "https://linkedin.com/in/mano-domingo-753050333/",
+  },
+];
+
+import {
+  Github,
+  Copyright,
+  Mail,
+  MessagesSquare,
+  Linkedin,
+} from "lucide-vue-next";
 </script>
 
 <template>
@@ -32,7 +52,6 @@ import { Github, Copyright, Mail, MessagesSquare } from "lucide-vue-next";
         </span>
       </div>
 
-      <!-- Liens de navigation et icône GitHub -->
       <div class="icon-links">
         <a href="#" class="mail" target="_blank" rel="noopener">
           <Mail color="var(--background)" size="20" stroke-width="2" />
@@ -46,7 +65,7 @@ import { Github, Copyright, Mail, MessagesSquare } from "lucide-vue-next";
           <Github color="var(--background)" size="20" stroke-width="2" />
         </a>
         <a href="#" class="telegram" target="_blank" rel="noopener">
-          <messagesSquare
+          <MessagesSquare
             color="var(--background)"
             size="20"
             stroke-width="2"
@@ -63,6 +82,20 @@ import { Github, Copyright, Mail, MessagesSquare } from "lucide-vue-next";
         >
           {{ link.name }}
         </NuxtLink>
+      </div>
+
+      <div class="developer-badges">
+        <a
+          v-for="dev in developers"
+          :key="dev.name"
+          :href="dev.url"
+          target="_blank"
+          rel="noopener"
+          class="dev-badge"
+        >
+          <Linkedin size="13" fill="currentColor" />
+          <span>{{ dev.name }}</span>
+        </a>
       </div>
 
       <div class="copyright-section">
@@ -174,5 +207,34 @@ import { Github, Copyright, Mail, MessagesSquare } from "lucide-vue-next";
   color: var(--text);
   opacity: 0.7;
   font-size: 0.9rem;
+}
+
+.developer-badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6rem;
+}
+
+.dev-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 100px;
+  border: 1.5px solid #d1d5db;
+  background: white;
+  color: #6b7280;
+  font-size: 0.78rem;
+  font-weight: 500;
+  line-height: 1;
+  text-decoration: none;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: oklch(70.62% 0.139 158.37 / 0.08);
+  }
 }
 </style>

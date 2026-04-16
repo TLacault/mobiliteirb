@@ -31,6 +31,7 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["deleted", "updated", "move"]);
+const { notify } = useNotification();
 const stepId = computed(() => props.step?.id ?? props.step?.uuid);
 
 const labelStart = ref(props.step.labelStart ?? "");
@@ -87,7 +88,10 @@ async function saveField(field, value) {
       e.data?.error;
     const defaultMessage = "Impossible de calculer l'itinéraire";
     const errorMessage = details || defaultMessage;
-    alert(`Erreur : ${errorMessage}`);
+    notify(
+      "error",
+      `Aucun itinéraire disponible. Vérifiez les adresses ou essayez un autre mode de transport.`,
+    );
   }
 }
 

@@ -10,6 +10,8 @@ import {
   User,
   PlaneTakeoff,
   PlaneLanding,
+  TicketsPlane,
+  CalendarDays,
 } from "lucide-vue-next";
 import PopupDelete from "../popup/PopupDelete.vue";
 import PopupAuthor from "../popup/PopupAuthor.vue";
@@ -241,45 +243,54 @@ function handleEndLocationSelect() {
     <div class="header-row1">
       <div class="row1-container">
         <div class="identity-fields">
-          <div class="field-wrap">
-            <Transition name="badge">
-              <span v-if="savedField === 'name'" class="saved-badge badge-left">
-                <CheckCheck size="13" />
-                saved
-              </span>
-            </Transition>
-            <input
-              v-model="localName"
-              class="field-input field-name"
-              placeholder="Nom de la mobilité"
-              :disabled="isPreview"
-              @input="scheduleSave('name')"
-              @blur="saveField('name')"
-              @keydown.enter.prevent="(e) => saveField('name', e.target)"
-            />
+          <div class="identity-field-wrap">
+            <TicketsPlane size="15" class="identity-icon" />
+            <div class="field-wrap">
+              <Transition name="badge">
+                <span
+                  v-if="savedField === 'name'"
+                  class="saved-badge badge-left"
+                >
+                  <CheckCheck size="13" />
+                  saved
+                </span>
+              </Transition>
+              <input
+                v-model="localName"
+                class="field-input field-name"
+                placeholder="Nom de la mobilité"
+                :disabled="isPreview"
+                @input="scheduleSave('name')"
+                @blur="saveField('name')"
+                @keydown.enter.prevent="(e) => saveField('name', e.target)"
+              />
+            </div>
           </div>
-          <div class="field-wrap">
-            <input
-              v-model="localYear"
-              class="field-input field-year"
-              placeholder="Année"
-              type="number"
-              min="2000"
-              max="2100"
-              :disabled="isPreview"
-              @input="scheduleSave('year')"
-              @blur="saveField('year')"
-              @keydown.enter.prevent="(e) => saveField('year', e.target)"
-            />
-            <Transition name="badge">
-              <span
-                v-if="savedField === 'year'"
-                class="saved-badge badge-right"
-              >
-                <CheckCheck size="13" color="var(--primary)" />
-                saved
-              </span>
-            </Transition>
+          <div class="identity-field-wrap">
+            <CalendarDays size="15" class="identity-icon" />
+            <div class="field-wrap">
+              <input
+                v-model="localYear"
+                class="field-input field-year"
+                placeholder="Année"
+                type="number"
+                min="2000"
+                max="2100"
+                :disabled="isPreview"
+                @input="scheduleSave('year')"
+                @blur="saveField('year')"
+                @keydown.enter.prevent="(e) => saveField('year', e.target)"
+              />
+              <Transition name="badge">
+                <span
+                  v-if="savedField === 'year'"
+                  class="saved-badge badge-right"
+                >
+                  <CheckCheck size="13" color="var(--primary)" />
+                  saved
+                </span>
+              </Transition>
+            </div>
           </div>
         </div>
 
@@ -432,21 +443,32 @@ function handleEndLocationSelect() {
   padding: 0 2rem;
   display: flex;
   align-items: center;
-  gap: 1.25rem;
+  gap: 2rem;
 }
 
 .identity-fields {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 2rem;
+  flex-shrink: 0;
+}
+
+.identity-field-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.identity-icon {
+  color: var(--primary);
   flex-shrink: 0;
 }
 
 .location-fields {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  flex: 1;
+  gap: 2rem;
+  flex: 500px;
   min-width: 0;
 }
 
@@ -559,12 +581,12 @@ function handleEndLocationSelect() {
 }
 
 .field-name {
-  width: 280px;
+  width: 300px;
   font-weight: 600;
 }
 
 .field-year {
-  width: 80px;
+  width: 90px;
 }
 
 :deep(.field-location) {
@@ -720,7 +742,7 @@ function handleEndLocationSelect() {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  width: 280px;
+  width: clamp(200px, 25vw, 400px);
   background: none;
   border: 1.5px solid #e5e7eb;
   border-radius: 100px;
@@ -781,11 +803,11 @@ function handleEndLocationSelect() {
   }
 
   .field-name {
-    width: 200px;
+    width: 180px;
   }
 
   .tab-btn {
-    width: 200px;
+    width: 240px;
   }
 }
 

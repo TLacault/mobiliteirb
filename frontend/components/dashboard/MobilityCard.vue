@@ -1,12 +1,15 @@
 <script setup>
 import {
   Trash2,
-  Briefcase,
+  TicketsPlane,
   Leaf,
   Timer,
   MapPin,
+  Ruler,
   PencilRuler,
   CalendarCheck2,
+  PlaneTakeoff,
+  PlaneLanding,
 } from "lucide-vue-next";
 import {
   getMobility,
@@ -94,51 +97,57 @@ async function deleteMobilite(uuid) {
   <!-- Données -->
   <div v-else-if="mobility" class="card-container reveal-on-scroll reveal-up">
     <!-- Boutton-->
-    <div class="trash-button" @click="showForm = true">
-      <Trash2 color="red" />
-    </div>
+    <button class="trash-button" @click="showForm = true">
+      <Trash2 size="15" />
+    </button>
     <PopupDelete v-model="showForm" @confirm="deleteMobilite(props.uuid)" />
     <div class="card-title">
-      <div class="icon"><Briefcase color="var(--primary)" /></div>
+      <div class="icon"><TicketsPlane color="var(--primary)" /></div>
       <p>{{ mobility.name }}</p>
     </div>
     <div class="stats-section">
-      <div class="stat-section">
-        <div class="icon"><Leaf size="18" /></div>
-        <p>{{ mobility.stats.totalCarbon }} kg CO₂</p>
+      <div class="stat-badge">
+        <Leaf size="12" class="stat-icon" />
+        <span>{{ mobility.stats.totalCarbon }} kg CO₂</span>
       </div>
-      <div class="stat-section">
-        <div class="icon"><Timer size="18" /></div>
-        <p>
+      <div class="stat-badge">
+        <Timer size="12" class="stat-icon" />
+        <span>
           {{
             Math.floor(mobility.stats.totalTime / 60) > 0
               ? Math.floor(mobility.stats.totalTime / 60) + "h "
               : ""
-          }}
-          {{ mobility.stats.totalTime % 60 }} min
-        </p>
+          }}{{ mobility.stats.totalTime % 60 }} min
+        </span>
       </div>
-      <div class="stat-section">
-        <div class="icon"><MapPin size="18" /></div>
-        <p>
+      <div class="stat-badge">
+        <Ruler size="12" class="stat-icon" />
+        <span>{{ mobility.stats.totalDistance }} km</span>
+      </div>
+      <div class="stat-badge">
+        <MapPin size="12" class="stat-icon" />
+        <span>
           {{ mobility.stats.stepCount }} étape{{
             mobility.stats.stepCount !== 1 ? "s" : ""
           }}
-        </p>
+        </span>
       </div>
     </div>
 
     <div class="traject-section">
-      <div class="departure-point etape">
-        <p>{{ mobility.startLocation }}</p>
+      <div class="location-row">
+        <span class="location-label">
+          <PlaneTakeoff size="14" />
+          Départ
+        </span>
+        <span class="location-value">{{ mobility.startLocation || "—" }}</span>
       </div>
-      <div class="route-visual">
-        <div class="start-dot"></div>
-        <div class="line"></div>
-        <div class="arrow-head"></div>
-      </div>
-      <div class="destination-point etape">
-        <p>{{ mobility.endLocation }}</p>
+      <div class="location-row">
+        <span class="location-label">
+          <PlaneLanding size="14" />
+          Arrivée
+        </span>
+        <span class="location-value">{{ mobility.endLocation || "—" }}</span>
       </div>
     </div>
 
@@ -178,107 +187,122 @@ async function deleteMobilite(uuid) {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  padding: 1.5rem;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
   border-radius: 15px;
   background-color: white;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   border: 1px solid var(--primary);
-  align-items: center;
+  align-items: flex-start;
 }
 .trash-button {
   position: absolute;
-  top: 1.3rem;
-  right: 1.3rem;
-  padding: 0.4rem;
-  border-radius: 100px;
-  transition: all 0.3s ease-in-out;
+  top: 1.5rem;
+  right: 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  cursor: pointer;
+  color: #9ca3af;
+  border-radius: 999px;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
 
   &:hover {
-    background-color: rgba(255, 0, 0, 0.1);
+    color: #ef4444;
+    border-color: oklch(63.066% 0.194 29.425 / 0.25);
+    background: oklch(63.066% 0.194 29.425 / 0.08);
   }
 }
 
 .card-title {
   display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 600;
+  padding-right: 2.5rem;
 }
 
 .stats-section {
   display: flex;
-  gap: 2rem;
-  flex: 1;
-  margin-bottom: -0.5rem;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  justify-content: flex-start;
 }
 
-.stat-section {
+.stat-badge {
   display: flex;
   align-items: center;
-  gap: 0.3rem;
-  font-size: 15px;
-  color: #9ca3af;
+  gap: 0.45rem;
+  color: #374151;
+  white-space: nowrap;
+  padding: 0.5rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: #f9fafb;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.stat-badge :deep(svg) {
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.stat-icon {
+  flex-shrink: 0;
+  color: var(--primary);
 }
 
 .traject-section {
-  /* outline: 1px solid red; */
   display: flex;
-  align-items: center;
-  /* gap: 0.5rem; */
-}
-.etape {
-  padding: 0.25rem 1rem;
-  min-width: 120px;
-  text-align: center;
-  border-radius: 100px;
-  color: white;
-  background-color: var(--accent);
+  flex-direction: column;
+  gap: 0.45rem;
+  width: 100%;
 }
 
-.route-visual {
-  display: flex;
+.location-row {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
   align-items: center;
-  color: #7299cf;
-  margin: 0 1rem;
+  gap: 0.45rem;
 }
 
-/* Le petit cercle au début */
-.start-dot {
-  width: 15px;
-  aspect-ratio: 1;
-  background-color: white;
-  border: 4px solid currentColor;
-  border-radius: 50%;
+.location-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  width: 88px;
   flex-shrink: 0;
-  position: relative;
-  z-index: 1;
 }
 
-/* La ligne horizontale */
-.line {
-  height: 4px;
-  width: 70px;
-  background-color: currentColor;
-  margin: 0 -4px;
-  border-radius: 1.5rem;
+.location-label svg {
+  color: var(--primary);
+  flex-shrink: 0;
 }
 
-.arrow-head {
-  width: 14px;
-  height: 14px;
-  border-top: 4px solid currentColor;
-  border-right: 4px solid currentColor;
-
-  border-top-right-radius: 3px;
-  border-bottom-left-radius: 2px;
-  border-top-left-radius: 2px;
-
-  transform: rotate(45deg);
-  margin-left: -8px;
+.location-value {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 0.42rem 0.6rem;
+  font-size: 0.82rem;
+  font-family: var(--font-inter);
+  color: var(--text);
+  background: #f8fafc;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .footer-section {
@@ -289,19 +313,22 @@ async function deleteMobilite(uuid) {
 
 .modifier-btn {
   display: flex;
-  padding: 0.2rem 1rem;
+  padding: 0.4rem 1.2rem;
   min-width: 120px;
   text-align: center;
-  border-radius: 5px;
+  border-radius: 100px;
   color: white;
-  background: var(--primary);
+  background: var(--gradientCallToAction);
   align-items: center;
   gap: 0.5rem;
   cursor: pointer;
+  font-size: 0.88rem;
+  font-weight: 500;
 
   transition: all 0.3s ease-in-out;
   &:hover {
-    background-color: var(--tertiary);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    transform: translateY(-1px);
   }
 }
 

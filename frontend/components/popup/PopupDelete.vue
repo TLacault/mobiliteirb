@@ -1,9 +1,5 @@
 <template>
-  <PopupWrapper
-    v-model="open"
-    title="Supprimer la mobilité"
-    icon-variant="danger"
-  >
+  <PopupWrapper v-model="open" :title="title" icon-variant="danger">
     <template #icon>
       <Trash2 size="20" />
     </template>
@@ -36,6 +32,10 @@ const props = defineProps({
   itemName: {
     type: String,
     default: "cet élément",
+  },
+  title: {
+    type: String,
+    default: "Supprimer la mobilité",
   },
 });
 

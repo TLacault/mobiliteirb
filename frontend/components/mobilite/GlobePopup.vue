@@ -22,8 +22,26 @@
                 <h2 class="globe-title">Globe des trajets</h2>
               </div>
 
-              <!-- Trip selector -->
-              <div class="trip-selector">
+              <button
+                class="trip-filter-btn"
+                @click="showTripSelector = !showTripSelector"
+              >
+                <ListFilter :size="16" />
+                <span>Trajets</span>
+              </button>
+
+              <button
+                class="globe-close"
+                @click="$emit('update:modelValue', false)"
+                aria-label="Fermer"
+              >
+                <X :size="18" />
+              </button>
+            </div>
+
+            <!-- Trip selector panel -->
+            <Transition name="panel-slide">
+              <div v-if="showTripSelector" class="trip-panel">
                 <button class="trip-toggle-all" @click="toggleAll">
                   {{ allVisible ? "Tout masquer" : "Tout afficher" }}
                 </button>
@@ -38,15 +56,7 @@
                   <span class="trip-name">{{ t.name }}</span>
                 </div>
               </div>
-
-              <button
-                class="globe-close"
-                @click="$emit('update:modelValue', false)"
-                aria-label="Fermer"
-              >
-                <X :size="18" />
-              </button>
-            </div>
+            </Transition>
 
             <!-- Body -->
             <div class="globe-body">
@@ -70,7 +80,7 @@
 
 <script setup>
 import { ref, reactive, computed, watch, onBeforeUnmount, nextTick } from "vue";
-import { Globe, X } from "lucide-vue-next";
+import { Globe, X, ListFilter } from "lucide-vue-next";
 import { getSteps } from "~/utils/step_api";
 import { geocodePlaces } from "~/utils/geocode";
 
@@ -86,6 +96,7 @@ const globeContainer = ref(null);
 const loading = ref(false);
 const allArcs = ref([]);
 const allPoints = ref([]);
+const showTripSelector = ref(false);
 let globeInstance = null;
 
 // ── Trip visibility ──
@@ -254,8 +265,9 @@ async function initGlobe() {
         Math.sin(dlat / 2) ** 2 +
         Math.cos(lat1) * Math.cos(lat2) * Math.sin(dlng / 2) ** 2;
       const angDist = 2 * Math.asin(Math.sqrt(a));
-      // Slight curve: short arcs ≈ 0.08, transatlantic ≈ 0.3
-      return Math.max(0.05, (angDist / Math.PI) * 0.35);
+      const t = angDist / Math.PI; // 0..1
+      // Non-linear: gentle for short, higher for long/antipodal arcs
+      return Math.max(0.06, t * 0.3 + t * t * 0.5);
     })
     .arcDashLength(0.4)
     .arcDashGap(0.2)
@@ -379,14 +391,56 @@ onBeforeUnmount(() => {
   white-space: nowrap;
 }
 
-/* Trip selector chips */
-.trip-selector {
+/* Trip filter button */
+.trip-filter-btn {
   display: flex;
   align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.85rem;
+  border: 1.5px solid #d1d5db;
+  background: white;
+  border-radius: 100px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  white-space: nowrap;
+  margin-left: 0.75rem;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.trip-filter-btn:hover {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+/* Trip selector panel */
+.trip-panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 0.5rem;
-  flex: 1;
-  overflow-x: auto;
-  padding: 0 0.5rem;
+  padding: 0.6rem 1.5rem;
+  border-bottom: 1px solid #f3f4f6;
+  background: #fafbfc;
+  flex-shrink: 0;
+}
+
+.panel-slide-enter-active,
+.panel-slide-leave-active {
+  transition: all 0.2s ease;
+  overflow: hidden;
+}
+.panel-slide-enter-from,
+.panel-slide-leave-to {
+  opacity: 0;
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+.panel-slide-enter-to,
+.panel-slide-leave-from {
+  max-height: 200px;
 }
 
 .trip-toggle-all {

@@ -229,6 +229,7 @@ function requestSort(statField) {
     <PopupDelete
       v-model="showDeletePopup"
       :item-name="trip.name || 'ce trajet'"
+      title="Supprimer le trajet"
       @confirm="confirmDelete"
     />
   </div>
