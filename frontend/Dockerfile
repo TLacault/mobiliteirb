@@ -14,10 +14,6 @@ RUN pnpm install --frozen-lockfile
 # Copy project files
 COPY . .
 
-# Build-time env vars (public config baked into the static bundle)
-ARG NUXT_PUBLIC_GMAPS_API_KEY
-ENV NUXT_PUBLIC_GMAPS_API_KEY=$NUXT_PUBLIC_GMAPS_API_KEY
-
 # Generate static site
 RUN pnpm run generate
 
