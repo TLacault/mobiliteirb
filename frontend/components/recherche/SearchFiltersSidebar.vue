@@ -191,258 +191,252 @@ function triggerSearch() {
 
     <div class="filters-section">
       <div class="filters-content">
-        <div class="filters-group">
-          <section class="filter-group">
-            <div class="filter-group-header">
-              <MapPin size="16" />
-              <h3>Lieux</h3>
-              <button
-                type="button"
-                class="all-transport-btn"
-                @click="swapLocations"
-              >
-                <ArrowUpDown size="14" />
-                <span>Inverser</span>
-              </button>
-            </div>
-            <div class="places-fields">
-              <PlaceAutocompleteInput
-                v-model="departure"
-                placeholder="Ville de depart"
-                class="filter-input"
-              />
-
-              <PlaceAutocompleteInput
-                v-model="arrival"
-                placeholder="Ville d'arrivee"
-                class="filter-input"
-              />
-            </div>
-            <p v-if="locationError" class="location-error">
-              Indiquez au moins une ville de départ ou d'arrivée.
-            </p>
-          </section>
-        </div>
-
-        <div class="filters-group">
-          <section class="filter-group">
-            <div class="filter-group-header">
-              <Route size="16" />
-              <h3>Modes de transport</h3>
-            </div>
-
-            <TransportModePicker
-              ref="transportPickerRef"
-              v-model="selectedTransportModes"
-              :multiple="true"
+        <section class="filter-group">
+          <div class="filter-group-header">
+            <MapPin size="16" />
+            <h3>Lieux</h3>
+            <button
+              type="button"
+              class="all-transport-btn"
+              @click="swapLocations"
+            >
+              <ArrowUpDown size="14" />
+              <span>Inverser</span>
+            </button>
+          </div>
+          <div class="places-fields">
+            <PlaceAutocompleteInput
+              v-model="departure"
+              placeholder="Ville de depart"
+              class="filter-input"
             />
-          </section>
-        </div>
 
-        <div class="filters-group">
-          <section class="filter-group">
-            <div class="filter-group-header">
-              <Leaf size="16" />
-              <h3>Emissions (kg CO2)</h3>
-              <button
-                type="button"
-                class="any-value-btn"
-                :class="{ active: emissionsAnyValue }"
-                @click="toggleEmissionsAnyValue"
-              >
-                <Infinity size="13" />
-                <span>Sans limite</span>
-              </button>
+            <PlaceAutocompleteInput
+              v-model="arrival"
+              placeholder="Ville d'arrivee"
+              class="filter-input"
+            />
+          </div>
+          <p v-if="locationError" class="location-error">
+            Indiquez au moins une ville de départ ou d'arrivée.
+          </p>
+        </section>
+
+        <section class="filter-group">
+          <div class="filter-group-header">
+            <Route size="16" />
+            <h3>Modes de transport</h3>
+          </div>
+
+          <TransportModePicker
+            ref="transportPickerRef"
+            v-model="selectedTransportModes"
+            :multiple="true"
+          />
+        </section>
+
+        <section class="filter-group">
+          <div class="filter-group-header">
+            <Leaf size="16" />
+            <h3>Emissions (kg CO2)</h3>
+            <button
+              type="button"
+              class="any-value-btn"
+              :class="{ active: emissionsAnyValue }"
+              @click="toggleEmissionsAnyValue"
+            >
+              <Infinity size="13" />
+              <span>Sans limite</span>
+            </button>
+          </div>
+          <div
+            class="range-row"
+            :class="{ 'range-disabled': emissionsAnyValue }"
+          >
+            <div class="range-values-inline">
+              <span>
+                Min: <strong>{{ emissionsMin }} kg CO2</strong>
+              </span>
+              <span>
+                Max: <strong>{{ emissionsMax }} kg CO2</strong>
+              </span>
             </div>
             <div
-              class="range-row"
-              :class="{ 'range-disabled': emissionsAnyValue }"
+              class="dual-range"
+              :style="rangeTrackStyle(emissionsMin, emissionsMax, 0, 10000)"
             >
-              <div class="range-values-inline">
-                <span>
-                  Min: <strong>{{ emissionsMin }} kg CO2</strong>
-                </span>
-                <span>
-                  Max: <strong>{{ emissionsMax }} kg CO2</strong>
-                </span>
-              </div>
-              <div
-                class="dual-range"
-                :style="rangeTrackStyle(emissionsMin, emissionsMax, 0, 10000)"
-              >
-                <input
-                  :value="emissionsMin"
-                  type="range"
-                  min="0"
-                  max="10000"
-                  step="100"
-                  @input="onEmissionsMinInput"
-                />
-                <input
-                  :value="emissionsMax"
-                  type="range"
-                  min="0"
-                  max="10000"
-                  step="100"
-                  @input="onEmissionsMaxInput"
-                />
-              </div>
+              <input
+                :value="emissionsMin"
+                type="range"
+                min="0"
+                max="10000"
+                step="100"
+                @input="onEmissionsMinInput"
+              />
+              <input
+                :value="emissionsMax"
+                type="range"
+                min="0"
+                max="10000"
+                step="100"
+                @input="onEmissionsMaxInput"
+              />
             </div>
-          </section>
+          </div>
+        </section>
 
-          <section class="filter-group">
-            <div class="filter-group-header">
-              <Clock3 size="16" />
-              <h3>Temps de trajet</h3>
-              <button
-                type="button"
-                class="any-value-btn"
-                :class="{ active: durationAnyValue }"
-                @click="toggleDurationAnyValue"
-              >
-                <Infinity size="13" />
-                <span>Sans limite</span>
-              </button>
+        <section class="filter-group">
+          <div class="filter-group-header">
+            <Clock3 size="16" />
+            <h3>Temps de trajet</h3>
+            <button
+              type="button"
+              class="any-value-btn"
+              :class="{ active: durationAnyValue }"
+              @click="toggleDurationAnyValue"
+            >
+              <Infinity size="13" />
+              <span>Sans limite</span>
+            </button>
+          </div>
+          <div
+            class="range-row"
+            :class="{ 'range-disabled': durationAnyValue }"
+          >
+            <div class="range-values-inline">
+              <span>
+                Min: <strong>{{ formattedDurationMin }}</strong>
+              </span>
+              <span>
+                Max: <strong>{{ formattedDurationMax }}</strong>
+              </span>
             </div>
             <div
-              class="range-row"
-              :class="{ 'range-disabled': durationAnyValue }"
+              class="dual-range"
+              :style="rangeTrackStyle(durationMin, durationMax, 0, 6000)"
             >
-              <div class="range-values-inline">
-                <span>
-                  Min: <strong>{{ formattedDurationMin }}</strong>
-                </span>
-                <span>
-                  Max: <strong>{{ formattedDurationMax }}</strong>
-                </span>
-              </div>
-              <div
-                class="dual-range"
-                :style="rangeTrackStyle(durationMin, durationMax, 0, 6000)"
-              >
-                <input
-                  :value="durationMin"
-                  type="range"
-                  min="0"
-                  max="6000"
-                  step="60"
-                  @input="onDurationMinInput"
-                />
-                <input
-                  :value="durationMax"
-                  type="range"
-                  min="0"
-                  max="6000"
-                  step="60"
-                  @input="onDurationMaxInput"
-                />
-              </div>
+              <input
+                :value="durationMin"
+                type="range"
+                min="0"
+                max="6000"
+                step="60"
+                @input="onDurationMinInput"
+              />
+              <input
+                :value="durationMax"
+                type="range"
+                min="0"
+                max="6000"
+                step="60"
+                @input="onDurationMaxInput"
+              />
             </div>
-          </section>
+          </div>
+        </section>
 
-          <section class="filter-group">
-            <div class="filter-group-header">
-              <Ruler size="16" />
-              <h3>Distance (km)</h3>
-              <button
-                type="button"
-                class="any-value-btn"
-                :class="{ active: distanceAnyValue }"
-                @click="toggleDistanceAnyValue"
-              >
-                <Infinity size="13" />
-                <span>Sans limite</span>
-              </button>
+        <section class="filter-group">
+          <div class="filter-group-header">
+            <Ruler size="16" />
+            <h3>Distance (km)</h3>
+            <button
+              type="button"
+              class="any-value-btn"
+              :class="{ active: distanceAnyValue }"
+              @click="toggleDistanceAnyValue"
+            >
+              <Infinity size="13" />
+              <span>Sans limite</span>
+            </button>
+          </div>
+          <div
+            class="range-row"
+            :class="{ 'range-disabled': distanceAnyValue }"
+          >
+            <div class="range-values-inline">
+              <span>
+                Min: <strong>{{ distanceMin }} km</strong>
+              </span>
+              <span>
+                Max: <strong>{{ distanceMax }} km</strong>
+              </span>
             </div>
             <div
-              class="range-row"
-              :class="{ 'range-disabled': distanceAnyValue }"
+              class="dual-range"
+              :style="rangeTrackStyle(distanceMin, distanceMax, 0, 10000)"
             >
-              <div class="range-values-inline">
-                <span>
-                  Min: <strong>{{ distanceMin }} km</strong>
-                </span>
-                <span>
-                  Max: <strong>{{ distanceMax }} km</strong>
-                </span>
-              </div>
-              <div
-                class="dual-range"
-                :style="rangeTrackStyle(distanceMin, distanceMax, 0, 10000)"
-              >
-                <input
-                  :value="distanceMin"
-                  type="range"
-                  min="0"
-                  max="10000"
-                  step="50"
-                  @input="onDistanceMinInput"
-                />
-                <input
-                  :value="distanceMax"
-                  type="range"
-                  min="0"
-                  max="10000"
-                  step="50"
-                  @input="onDistanceMaxInput"
-                />
-              </div>
+              <input
+                :value="distanceMin"
+                type="range"
+                min="0"
+                max="10000"
+                step="50"
+                @input="onDistanceMinInput"
+              />
+              <input
+                :value="distanceMax"
+                type="range"
+                min="0"
+                max="10000"
+                step="50"
+                @input="onDistanceMaxInput"
+              />
             </div>
-          </section>
+          </div>
+        </section>
 
-          <section class="filter-group">
-            <div class="filter-group-header">
-              <ListOrdered size="16" />
-              <h3>Nombre d'etapes</h3>
-              <button
-                type="button"
-                class="any-value-btn"
-                :class="{ active: stepsAnyValue }"
-                @click="toggleStepsAnyValue"
-              >
-                <Infinity size="13" />
-                <span>Sans limite</span>
-              </button>
+        <section class="filter-group">
+          <div class="filter-group-header">
+            <ListOrdered size="16" />
+            <h3>Nombre d'etapes</h3>
+            <button
+              type="button"
+              class="any-value-btn"
+              :class="{ active: stepsAnyValue }"
+              @click="toggleStepsAnyValue"
+            >
+              <Infinity size="13" />
+              <span>Sans limite</span>
+            </button>
+          </div>
+          <div class="range-row" :class="{ 'range-disabled': stepsAnyValue }">
+            <div class="range-values-inline">
+              <span>
+                Min:
+                <strong
+                  >{{ stepsMin }} etape{{ stepsMin > 1 ? "s" : "" }}</strong
+                >
+              </span>
+              <span>
+                Max:
+                <strong
+                  >{{ stepsMax }} etape{{ stepsMax > 1 ? "s" : "" }}</strong
+                >
+              </span>
             </div>
-            <div class="range-row" :class="{ 'range-disabled': stepsAnyValue }">
-              <div class="range-values-inline">
-                <span>
-                  Min:
-                  <strong
-                    >{{ stepsMin }} etape{{ stepsMin > 1 ? "s" : "" }}</strong
-                  >
-                </span>
-                <span>
-                  Max:
-                  <strong
-                    >{{ stepsMax }} etape{{ stepsMax > 1 ? "s" : "" }}</strong
-                  >
-                </span>
-              </div>
-              <div
-                class="dual-range"
-                :style="rangeTrackStyle(stepsMin, stepsMax, 1, 12)"
-              >
-                <input
-                  :value="stepsMin"
-                  type="range"
-                  min="1"
-                  max="12"
-                  step="1"
-                  @input="onStepsMinInput"
-                />
-                <input
-                  :value="stepsMax"
-                  type="range"
-                  min="1"
-                  max="12"
-                  step="1"
-                  @input="onStepsMaxInput"
-                />
-              </div>
+            <div
+              class="dual-range"
+              :style="rangeTrackStyle(stepsMin, stepsMax, 1, 12)"
+            >
+              <input
+                :value="stepsMin"
+                type="range"
+                min="1"
+                max="12"
+                step="1"
+                @input="onStepsMinInput"
+              />
+              <input
+                :value="stepsMax"
+                type="range"
+                min="1"
+                max="12"
+                step="1"
+                @input="onStepsMaxInput"
+              />
             </div>
-          </section>
-        </div>
+          </div>
+        </section>
       </div>
     </div>
 
@@ -516,14 +510,8 @@ function triggerSearch() {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 1.5rem;
+  gap: 1.25rem;
   flex: 1;
-}
-
-.filters-group {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
 }
 
 .filter-group {

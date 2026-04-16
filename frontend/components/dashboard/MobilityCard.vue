@@ -183,7 +183,7 @@ async function deleteMobilite(uuid) {
 
 .card-container {
   flex-wrap: wrap;
-  max-width: 500px;
+  max-width: 550px;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -231,7 +231,6 @@ async function deleteMobilite(uuid) {
 .stats-section {
   display: flex;
   gap: 0.4rem;
-  flex-wrap: wrap;
   justify-content: flex-start;
 }
 
