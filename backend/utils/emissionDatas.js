@@ -121,6 +121,7 @@ async function getStepEstimation(data) {
           routingPreference: "FEWER_TRANSFERS",
           allowedTravelModes: transitModeMapping[transportMode]
         };
+
       }
 
       if (googleTravelMode === 'DRIVE') {
@@ -148,6 +149,9 @@ async function getStepEstimation(data) {
       }
 
       distanceKm = result.routes[0].distanceMeters / 1000;
+      if ((['tram', 'metro', 'bus_gasoline', 'bus_electric'].includes(transportMode) && distanceKm > 100) || (['train_paris'].includes(transportMode) && distanceKm > 150)) {
+        throw new Error(`Le mode "${transportMode}" n'est pas réaliste pour une distance de ${Math.round(distanceKm)}km.`);
+      }
       durationMin = parseInt(result.routes[0].duration) / 60;
       if (transportMode === 'bus_gasoline_long_haul')
         durationMin *= 1.2;
