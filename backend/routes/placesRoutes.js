@@ -4,9 +4,49 @@ const router = express.Router();
 const GMAPS_API_KEY = process.env.GMAPS_API_KEY;
 
 /**
- * POST /api/v1/places/autocomplete
- * Proxy vers Google Places Autocomplete (New) pour éviter les problèmes CSP
- * Body: { input: string }
+ * @openapi
+ * tags:
+ *   - name: Places
+ *     description: Proxy endpoints for geocoding and place autocomplete (CSP-safe)
+ */
+
+/**
+ * @openapi
+ * /places/autocomplete:
+ *   post:
+ *     summary: City autocomplete suggestions
+ *     description: Proxies Google Places (New) Autocomplete API to avoid CSP restrictions in the browser.
+ *     tags: [Places]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [input]
+ *             properties:
+ *               input:
+ *                 type: string
+ *                 example: Borde
+ *                 description: Partial city name (min 2 characters)
+ *     responses:
+ *       200:
+ *         description: List of city suggestions from Google Places
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 suggestions:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       400:
+ *         description: Input too short
+ *       500:
+ *         description: GMAPS_API_KEY not configured
+ *       502:
+ *         description: Failed to reach Google Places API
  */
 router.post("/autocomplete", async (req, res) => {
   const { input } = req.body;
@@ -52,8 +92,40 @@ router.post("/autocomplete", async (req, res) => {
 });
 
 /**
- * GET /api/v1/places/geocode?q=...
- * Proxy vers Nominatim pour éviter les problèmes CSP côté client
+ * @openapi
+ * /places/geocode:
+ *   get:
+ *     summary: Geocode a place name to coordinates
+ *     description: Proxies Nominatim (OpenStreetMap) geocoding API to avoid CSP restrictions in the browser.
+ *     tags: [Places]
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: New York
+ *         description: Place name to geocode (min 2 characters)
+ *     responses:
+ *       200:
+ *         description: Array of Nominatim results (lat/lon per result)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   lat:
+ *                     type: string
+ *                     example: "48.8566"
+ *                   lon:
+ *                     type: string
+ *                     example: "2.3522"
+ *       400:
+ *         description: Query too short
+ *       502:
+ *         description: Failed to reach Nominatim API
  */
 router.get("/geocode", async (req, res) => {
   const { q } = req.query;
