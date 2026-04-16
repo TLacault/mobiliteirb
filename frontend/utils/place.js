@@ -10,33 +10,17 @@ import { ref } from "vue";
  * @returns {Promise<Array>}
  */
 
-export async function fetchCitySuggestions(input, apiKey) {
+export async function fetchCitySuggestions(input) {
   if (!input || input.length < 2) {
     return [];
   }
 
-  if (!apiKey) {
-    throw new Error("Missing NUXT_PUBLIC_GMAPS_API_KEY runtime config");
-  }
-
   try {
-    const response = await $fetch(
-      "https://places.googleapis.com/v1/places:autocomplete",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Goog-Api-Key": apiKey,
-          "X-Goog-FieldMask":
-            "suggestions.placePrediction.placeId,suggestions.placePrediction.text.text,suggestions.placePrediction.structuredFormat.mainText.text,suggestions.placePrediction.structuredFormat.secondaryText.text",
-        },
-        body: {
-          input: input.trim(),
-          languageCode: "fr",
-          includedPrimaryTypes: ["(cities)"],
-        },
-      },
-    );
+    const response = await $fetch("/api/v1/places/autocomplete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: { input: input.trim() },
+    });
 
     const suggestions = (response?.suggestions ?? [])
       .map(({ placePrediction }) => {
@@ -76,9 +60,6 @@ export function useCityAutocomplete() {
   const suggestionsNotEmpty = ref(false);
   const timer = ref(null);
 
-  const { public: publicConfig } = useRuntimeConfig();
-  const apiKey = publicConfig?.gmapsApiKey;
-
   async function fetchSuggestions(query) {
     const normalizedQuery = query.trim();
 
@@ -89,7 +70,7 @@ export function useCityAutocomplete() {
     }
 
     try {
-      const list = await fetchCitySuggestions(normalizedQuery, apiKey);
+      const list = await fetchCitySuggestions(normalizedQuery);
       suggestions.value = list;
       suggestionsNotEmpty.value = list.length > 0;
       return list;

@@ -9,6 +9,7 @@ const authRoutes = require("./routes/authRoutes");
 const mobilityRoutes = require("./routes/mobilityRoutes");
 const tripRoutes = require("./routes/tripRoutes");
 const stepRoutes = require("./routes/stepRoutes");
+const placesRoutes = require("./routes/placesRoutes");
 
 // Initialisation de l'application Express
 const app = express();
@@ -44,6 +45,7 @@ app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/mobilities", mobilityRoutes);
 app.use("/api/v1/trips", tripRoutes);
 app.use("/api/v1/steps", stepRoutes);
+app.use("/api/v1/places", placesRoutes);
 
 // Démarrage du serveur
 app.listen(port, "0.0.0.0", () => {

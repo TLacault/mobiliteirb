@@ -24,6 +24,8 @@ services:
       FRONTEND_URL: https://mobilit.eirb.fr
       EIRB_CONNECT_CLIENT_ID: ${EIRB_CLIENT_ID}
       EIRB_CONNECT_CLIENT_SECRET: ${EIRB_CLIENT_SECRET}
+      GMAPS_API_KEY: ${GMAPS_API_KEY}
+      IMPACT_CO2_API_KEY: ${IMPACT_CO2_API_KEY}
     networks:
       - app-network
     depends_on:
