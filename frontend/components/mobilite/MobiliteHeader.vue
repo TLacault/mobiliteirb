@@ -244,7 +244,7 @@ function handleEndLocationSelect() {
       <div class="row1-container">
         <div class="identity-fields">
           <div class="identity-field-wrap">
-            <TicketsPlane size="15" class="identity-icon" />
+            <TicketsPlane size="20" class="identity-icon" />
             <div class="field-wrap">
               <Transition name="badge">
                 <span
@@ -267,7 +267,7 @@ function handleEndLocationSelect() {
             </div>
           </div>
           <div class="identity-field-wrap">
-            <CalendarDays size="15" class="identity-icon" />
+            <CalendarDays size="20" class="identity-icon" />
             <div class="field-wrap">
               <input
                 v-model="localYear"
@@ -296,7 +296,7 @@ function handleEndLocationSelect() {
 
         <div class="location-fields">
           <div class="location-field-wrap">
-            <PlaneTakeoff size="15" class="location-icon" />
+            <PlaneTakeoff size="20" class="location-icon" />
             <PlaceAutocompleteInput
               v-model="localStartLocation"
               class="field-input field-location"
@@ -315,7 +315,7 @@ function handleEndLocationSelect() {
             </Transition>
           </div>
           <div class="location-field-wrap">
-            <PlaneLanding size="15" class="location-icon" />
+            <PlaneLanding size="20" class="location-icon" />
             <PlaceAutocompleteInput
               v-model="localEndLocation"
               class="field-input field-location"
