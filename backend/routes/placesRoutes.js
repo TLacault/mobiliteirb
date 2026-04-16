@@ -51,4 +51,44 @@ router.post("/autocomplete", async (req, res) => {
   }
 });
 
+/**
+ * GET /api/v1/places/geocode?q=...
+ * Proxy vers Nominatim pour éviter les problèmes CSP côté client
+ */
+router.get("/geocode", async (req, res) => {
+  const { q } = req.query;
+
+  if (!q || q.trim().length < 2) {
+    return res.json([]);
+  }
+
+  try {
+    const params = new URLSearchParams({
+      q: q.trim(),
+      format: "json",
+      limit: "1",
+      "accept-language": "fr",
+    });
+
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?${params}`,
+      {
+        headers: {
+          "User-Agent": "MobilitEirb/1.0 (student project)",
+        },
+      },
+    );
+
+    if (!response.ok) {
+      return res.status(response.status).json([]);
+    }
+
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error("Nominatim proxy error:", error);
+    res.status(502).json([]);
+  }
+});
+
 module.exports = router;
