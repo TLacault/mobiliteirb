@@ -12,14 +12,14 @@ const travelModeMap = {
   'bus_gasoline_long_haul': 'DRIVE',
   'bike': 'BICYCLE',
   'bike_electric': 'BICYCLE',
-  'bus_gasoline': 'DRIVE',
+  'bus_gasoline': 'TRANSIT',
   'tram': 'TRANSIT',
   'metro': 'TRANSIT',
   'scooter_gasoline': 'DRIVE',
   'motorcycle_gasoline': 'DRIVE',
   'train_paris': 'TRANSIT',
   'train_regional': 'TRANSIT',
-  'bus_electric': 'DRIVE',
+  'bus_electric': 'TRANSIT',
   'car_gasoline_1_passenger': 'DRIVE',
   'car_gasoline_2_passengers': 'DRIVE',
   'car_gasoline_3_passengers': 'DRIVE',
@@ -85,7 +85,7 @@ async function getStepEstimation(data) {
       
       distanceKm = calculateHaversine(startCoords.lat, startCoords.lng, endCoords.lat, endCoords.lng);
       const speed = 800; // 800 km/h for planes mean speed
-      durationMin = (distanceKm / speed) * 60;
+      durationMin = ((distanceKm / speed) * 60) + 40; //40min for take-off and landing phases
     } catch (error) {
       console.error("Geocoding error for plane/boat:", error.message);
       throw new Error(`Impossible de géolocaliser les adresses "${origin}" ou "${destination}". Vérifiez l'orthographe.`);
@@ -105,15 +105,28 @@ async function getStepEstimation(data) {
 
       if (googleTravelMode === 'TRANSIT') {
         requestBody.departureTime = nextMonday.toISOString();
+
+        const transitModeMapping = {
+          'tram': ["LIGHT_RAIL"],
+          'metro': ["SUBWAY"],
+          'bus_gasoline': ["BUS"],
+          'bus_electric': ["BUS"],
+          'train_paris': ["RAIL"],
+          'train_regional': ["RAIL"],
+          'train_intercity': ["RAIL"],
+          'train_high_speed': ["RAIL"]
+        };
+
         requestBody.transitPreferences = {
-          allowedTravelModes: ["RAIL"],
-          routingPreference: "FEWER_TRANSFERS"
+          routingPreference: "FEWER_TRANSFERS",
+          allowedTravelModes: transitModeMapping[transportMode]
         };
       }
 
       if (googleTravelMode === 'DRIVE') {
         requestBody.routingPreference = "TRAFFIC_AWARE_OPTIMAL";
       }
+
       const response = await fetch("https://routes.googleapis.com/directions/v2:computeRoutes", {
         method: "POST",
         headers: {
@@ -136,6 +149,8 @@ async function getStepEstimation(data) {
 
       distanceKm = result.routes[0].distanceMeters / 1000;
       durationMin = parseInt(result.routes[0].duration) / 60;
+      if (transportMode === 'bus_gasoline_long_haul')
+        durationMin *= 1.2;
         
     } catch (error) {
       console.error("ComputeRoutes Error:", error.message);
