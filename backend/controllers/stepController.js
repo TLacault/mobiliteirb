@@ -354,6 +354,8 @@ async function updateStep(req, res) {
     const hasRequiredData =
       updateData.labelStart && updateData.labelEnd && updateData.transportMode;
 
+    let estimationError = null;
+
     if (hasRequiredData && hasNewInput) {
       try {
         const estimation = await getStepEstimation({
@@ -365,11 +367,12 @@ async function updateStep(req, res) {
         updateData.distance = estimation.distance;
         updateData.time = estimation.time;
       } catch (err) {
-        console.error(
-          "Estimation failed, saving step without stats:",
-          err.message,
-        );
-        // Ne pas bloquer la sauvegarde : on enregistre sans CO2/distance/time
+        estimationError = err.message;
+        console.error("Estimation failed:", err.message);
+        // Reset stale stats so the frontend shows "—" instead of old values
+        updateData.carbon = null;
+        updateData.distance = null;
+        updateData.time = null;
       }
     }
 
@@ -387,7 +390,7 @@ async function updateStep(req, res) {
         metadata: true,
       },
     });
-    res.json({ id: updated.id, ...updated });
+    res.json({ id: updated.id, ...updated, estimationError });
   } catch (error) {
     console.error("Error updating step:", error);
     res.status(500).json({ error: "Internal server error" });

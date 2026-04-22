@@ -79,6 +79,10 @@ async function saveField(field, value) {
   try {
     const updated = await updateStep(stepId.value, { [field]: value });
     emit("updated", updated);
+
+    if (updated?.estimationError) {
+      notify("warning", updated.estimationError);
+    }
   } catch (e) {
     console.error(`Error updating step (${field}):`, e);
     const details =
@@ -89,7 +93,7 @@ async function saveField(field, value) {
     const defaultMessage = "Impossible de calculer l'itinéraire";
     const errorMessage = details || defaultMessage;
     notify(
-      "error",
+      "warning",
       `Aucun itinéraire disponible. Vérifiez les adresses ou essayez un autre mode de transport.`,
     );
   }
