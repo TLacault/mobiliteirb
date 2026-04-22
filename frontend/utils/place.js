@@ -22,13 +22,35 @@ export async function fetchCitySuggestions(input) {
       body: { input: input.trim() },
     });
 
+    const extractText = (value) => {
+      if (typeof value === "string") return value.trim();
+      if (value && typeof value.text === "string") return value.text.trim();
+      return "";
+    };
+
     const suggestions = (response?.suggestions ?? [])
       .map(({ placePrediction }) => {
-        if (!placePrediction?.structuredFormat) return null;
-        const cityName = placePrediction.structuredFormat.mainText.text.trim();
-        const countryName =
-          placePrediction.structuredFormat.secondaryText.text.trim();
-        return { cityName, countryName };
+        if (!placePrediction) return null;
+
+        const structuredFormat = placePrediction.structuredFormat ?? {};
+        const cityName = extractText(structuredFormat.mainText);
+        const countryName = extractText(structuredFormat.secondaryText);
+
+        if (cityName && countryName) {
+          return { cityName, countryName };
+        }
+
+        const predictionText = extractText(placePrediction.text);
+        if (!predictionText) return null;
+
+        const [fallbackCity = "", ...rest] = predictionText
+          .split(",")
+          .map((part) => part.trim())
+          .filter(Boolean);
+        const fallbackCountry = rest.length ? rest[rest.length - 1] : "";
+
+        if (!fallbackCity || !fallbackCountry) return null;
+        return { cityName: fallbackCity, countryName: fallbackCountry };
       })
       .filter(Boolean)
       .filter((s) => s.cityName && s.countryName)
