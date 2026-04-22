@@ -42,6 +42,13 @@ const formatValue = (value) =>
     maximumFractionDigits: 2,
   });
 
+const formattedDuration = computed(() => {
+  const minutes = Number(props.stats?.totalTime ?? 0);
+  const hours = Math.floor(minutes / 60);
+  const mins = Math.floor(minutes % 60);
+  return `${hours > 0 ? `${hours}h ` : ""}${mins} min`;
+});
+
 const isDownloading = ref(false);
 const isDropdownOpen = ref(false);
 const dropdownContainerRef = ref(null);
@@ -199,7 +206,7 @@ const handleDownload = async (mode) => {
           <Timer class="icon" size="25" />
           <h3 class="subtitle gradient-cta">Temps</h3>
         </div>
-        <p class="body">{{ formatValue(props.stats?.totalTime ?? 0) }}</p>
+        <p class="body">{{ formattedDuration }}</p>
       </div>
     </div>
   </section>
@@ -301,7 +308,9 @@ const handleDownload = async (mode) => {
 
 .dropdown-enter-active,
 .dropdown-leave-active {
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
 }
 
 .dropdown-enter-from,
@@ -338,7 +347,9 @@ const handleDownload = async (mode) => {
   background: white;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
   border: 1px solid rgba(0, 0, 0, 0.08);
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
   position: relative;
   overflow: hidden;
 }
