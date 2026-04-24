@@ -136,7 +136,7 @@ onMounted(fetchTrips);
             {{ tripError }}
           </p>
           <p v-else-if="tripList.length === 0" class="trips-state">
-            Aucun trip enregistré.
+            Aucun trajet enregistré.
           </p>
           <div v-else class="trips-list">
             <TripCard
