@@ -1,6 +1,6 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
-const { getStepEstimation } = require("../utils/emissionDatas");
+const { getStepEstimation, getCoordinates } = require("../utils/emissionDatas");
 
 function isMissingStepTimeColumnError(error) {
   if (!error || error.code !== "P2022") return false;
@@ -390,6 +390,30 @@ async function updateStep(req, res) {
         metadata: true,
       },
     });
+
+    // Store GPS points in PostGIS (non-blocking — does not affect the response)
+    if (updateData.labelStart && updateData.labelEnd) {
+      Promise.all([
+        getCoordinates(updateData.labelStart),
+        getCoordinates(updateData.labelEnd),
+      ])
+        .then(
+          ([startCoords, endCoords]) =>
+            prisma.$executeRaw`
+            UPDATE steps
+            SET point_start = ST_SetSRID(ST_MakePoint(${startCoords.lng}, ${startCoords.lat}), 4326),
+                point_end   = ST_SetSRID(ST_MakePoint(${endCoords.lng}, ${endCoords.lat}), 4326)
+            WHERE id = ${stepId}
+          `,
+        )
+        .catch((geoErr) =>
+          console.warn(
+            `GPS point storage failed for step ${stepId}:`,
+            geoErr.message,
+          ),
+        );
+    }
+
     res.json({ id: updated.id, ...updated, estimationError });
   } catch (error) {
     console.error("Error updating step:", error);

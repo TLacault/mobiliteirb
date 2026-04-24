@@ -1,5 +1,6 @@
 const { PrismaClient } = require("@prisma/client");
 const { getMobilityStats: calculateMobilityStats } = require("../utils/stats");
+const { getCoordinates } = require("../utils/emissionDatas");
 
 const prisma = new PrismaClient();
 
@@ -1094,11 +1095,140 @@ async function generateMobilityPdf(mobility) {
   return buildPdfBuffer(buildPdfLines());
 }
 
+/**
+ * Geocode a batch of unique place labels in parallel (with concurrency cap).
+ * Uses Google Geocoding API (via getCoordinates) — no rate-limit unlike Nominatim.
+ * @param {Set<string>} labels
+ * @param {number} concurrency - max simultaneous requests
+ * @returns {Promise<Map<string, {lat: number, lng: number}>>}
+ */
+async function batchGeocode(labels, concurrency = 8) {
+  const coordsMap = new Map();
+  const labelArr = [...labels];
+
+  for (let i = 0; i < labelArr.length; i += concurrency) {
+    const batch = labelArr.slice(i, i + concurrency);
+    const results = await Promise.allSettled(
+      batch.map(async (label) => {
+        const coords = await getCoordinates(label);
+        return { label, coords };
+      }),
+    );
+    for (const r of results) {
+      if (r.status === "fulfilled" && r.value.coords) {
+        coordsMap.set(r.value.label, r.value.coords);
+      }
+    }
+  }
+
+  return coordsMap;
+}
+
+/**
+ * GET /api/v1/mobilities/:id/globe
+ * Returns all trips/steps with GPS coordinates (lat/lng).
+ * For steps missing PostGIS data, geocodes via Google API in parallel and persists the results.
+ */
+async function getMobilityGlobeData(req, res) {
+  try {
+    const { id: mobilityId } = req.params;
+    const userId = req.user.id;
+    const isPreview = req.query.preview === "true";
+
+    const mobility = await prisma.mobility.findUnique({
+      where: { id: mobilityId },
+      select: { userId: true },
+    });
+
+    if (!mobility) {
+      return res.status(404).json({ error: "Mobility not found" });
+    }
+
+    if (mobility.userId !== userId && !isPreview) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    // Fetch all trips
+    const trips = await prisma.trip.findMany({
+      where: { mobilityId },
+      select: { id: true, name: true },
+      orderBy: { id: "asc" },
+    });
+
+    // Fetch steps with PostGIS coordinates for each trip
+    const tripsWithSteps = await Promise.all(
+      trips.map(async (trip) => {
+        const steps = await prisma.$queryRaw`
+          SELECT
+            id,
+            label_start      AS "labelStart",
+            label_end        AS "labelEnd",
+            sequence_order   AS "sequenceOrder",
+            ST_Y(point_start) AS "startLat",
+            ST_X(point_start) AS "startLng",
+            ST_Y(point_end)   AS "endLat",
+            ST_X(point_end)   AS "endLng"
+          FROM steps
+          WHERE id_trip = ${trip.id}
+          ORDER BY sequence_order ASC
+        `;
+        return { ...trip, steps };
+      }),
+    );
+
+    // Collect unique labels missing GPS data
+    const labelsToGeocode = new Set();
+    for (const trip of tripsWithSteps) {
+      for (const s of trip.steps) {
+        if (s.labelStart && s.startLat === null)
+          labelsToGeocode.add(s.labelStart);
+        if (s.labelEnd && s.endLat === null) labelsToGeocode.add(s.labelEnd);
+      }
+    }
+
+    if (labelsToGeocode.size > 0) {
+      const coordsMap = await batchGeocode(labelsToGeocode);
+
+      // Persist GPS points and update in-memory objects simultaneously
+      await Promise.allSettled(
+        tripsWithSteps.flatMap((trip) =>
+          trip.steps
+            .filter((s) => s.startLat === null && s.labelStart && s.labelEnd)
+            .map(async (step) => {
+              const startCoords = coordsMap.get(step.labelStart);
+              const endCoords = coordsMap.get(step.labelEnd);
+              if (!startCoords || !endCoords) return;
+
+              await prisma.$executeRaw`
+                UPDATE steps
+                SET point_start = ST_SetSRID(ST_MakePoint(${startCoords.lng}, ${startCoords.lat}), 4326),
+                    point_end   = ST_SetSRID(ST_MakePoint(${endCoords.lng}, ${endCoords.lat}), 4326)
+                WHERE id = ${step.id}
+              `;
+
+              // Reflect updated coords in the response
+              step.startLat = startCoords.lat;
+              step.startLng = startCoords.lng;
+              step.endLat = endCoords.lat;
+              step.endLng = endCoords.lng;
+            }),
+        ),
+      );
+    }
+
+    res.json({ trips: tripsWithSteps });
+  } catch (error) {
+    console.error("Error fetching globe data:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+}
+
 module.exports = {
   getMobilities,
   searchMobilty,
   getMobility,
   getMobilityStats,
+  getMobilityGlobeData,
   createMobility,
   deleteMobility,
   updateMobility,

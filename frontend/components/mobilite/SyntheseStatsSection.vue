@@ -172,7 +172,7 @@ const handleDownload = async (mode) => {
 
     <GlobePopup
       v-model="showGlobe"
-      :trips="props.trips"
+      :mobility-id="props.mobilityId"
       :is-preview="props.isPreview"
     />
 
@@ -308,9 +308,7 @@ const handleDownload = async (mode) => {
 
 .dropdown-enter-active,
 .dropdown-leave-active {
-  transition:
-    opacity 0.15s ease,
-    transform 0.15s ease;
+  transition: opacity 0.15s ease, transform 0.15s ease;
 }
 
 .dropdown-enter-from,
@@ -347,9 +345,7 @@ const handleDownload = async (mode) => {
   background: white;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
   border: 1px solid rgba(0, 0, 0, 0.08);
-  transition:
-    box-shadow 0.2s ease,
-    transform 0.2s ease;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
   position: relative;
   overflow: hidden;
 }

@@ -280,6 +280,12 @@ router.get("/:id", authenticateJWT, mobilityController.getMobility);
  */
 router.get("/:id/stats", authenticateJWT, mobilityController.getMobilityStats);
 
+router.get(
+  "/:id/globe",
+  authenticateJWT,
+  mobilityController.getMobilityGlobeData,
+);
+
 /**
  * @openapi
  * /mobilities/{id}:

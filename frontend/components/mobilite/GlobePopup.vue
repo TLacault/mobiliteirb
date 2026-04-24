@@ -81,12 +81,11 @@
 <script setup>
 import { ref, reactive, computed, watch, onBeforeUnmount, nextTick } from "vue";
 import { Globe, X, ListFilter } from "lucide-vue-next";
-import { getSteps } from "~/utils/step_api";
-import { geocodePlaces } from "~/utils/geocode";
+import { getMobilityGlobeData } from "~/utils/mobility_api";
 
 const props = defineProps({
   modelValue: { type: Boolean, required: true },
-  trips: { type: Array, default: () => [] },
+  mobilityId: { type: String, required: true },
   isPreview: { type: Boolean, default: false },
 });
 
@@ -151,49 +150,26 @@ async function buildArcsData() {
   tripEntries.length = 0;
 
   try {
-    const tripSteps = await Promise.all(
-      props.trips.map((t) => getSteps(t.id, props.isPreview).catch(() => [])),
-    );
-
-    const placeNames = new Set();
-    for (const steps of tripSteps) {
-      for (const s of steps) {
-        if (s.labelStart) placeNames.add(s.labelStart);
-        if (s.labelEnd) placeNames.add(s.labelEnd);
-      }
-    }
-
-    if (placeNames.size === 0) {
-      loading.value = false;
-      return;
-    }
-
-    const coordsMap = await geocodePlaces([...placeNames]);
+    const data = await getMobilityGlobeData(props.mobilityId, props.isPreview);
 
     const arcList = [];
     const pointMap = new Map();
 
-    tripSteps.forEach((steps, tripIdx) => {
+    data.trips.forEach((trip, tripIdx) => {
       const color = getColor(tripIdx);
-      const name = props.trips[tripIdx]?.name ?? `Trajet ${tripIdx + 1}`;
+      const name = trip.name ?? `Trajet ${tripIdx + 1}`;
 
-      tripEntries.push({
-        id: props.trips[tripIdx]?.id,
-        name,
-        color,
-        visible: true,
-      });
+      tripEntries.push({ id: trip.id, name, color, visible: true });
 
-      for (const step of steps) {
-        const from = coordsMap.get(step.labelStart);
-        const to = coordsMap.get(step.labelEnd);
-        if (!from || !to) continue;
+      for (const step of trip.steps) {
+        const { startLat, startLng, endLat, endLng } = step;
+        if (startLat == null || endLat == null) continue;
 
         arcList.push({
-          startLat: from.lat,
-          startLng: from.lng,
-          endLat: to.lat,
-          endLng: to.lng,
+          startLat: Number(startLat),
+          startLng: Number(startLng),
+          endLat: Number(endLat),
+          endLng: Number(endLng),
           color,
           tripName: name,
           labelStart: step.labelStart,
@@ -202,8 +178,8 @@ async function buildArcsData() {
 
         if (!pointMap.has(step.labelStart)) {
           pointMap.set(step.labelStart, {
-            lat: from.lat,
-            lng: from.lng,
+            lat: Number(startLat),
+            lng: Number(startLng),
             label: step.labelStart,
             size: 0.4,
             color,
@@ -212,8 +188,8 @@ async function buildArcsData() {
         }
         if (!pointMap.has(step.labelEnd)) {
           pointMap.set(step.labelEnd, {
-            lat: to.lat,
-            lng: to.lng,
+            lat: Number(endLat),
+            lng: Number(endLng),
             label: step.labelEnd,
             size: 0.4,
             color,
