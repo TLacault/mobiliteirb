@@ -7,9 +7,9 @@ import {
   SquareKanban,
   FileDown,
   ChevronDown,
-  FileText,
   FileSpreadsheet,
   FileJson,
+  FileImage,
   Globe,
 } from "lucide-vue-next";
 import GlobePopup from "./GlobePopup.vue";
@@ -54,7 +54,7 @@ const isDropdownOpen = ref(false);
 const dropdownContainerRef = ref(null);
 
 const options = [
-  { label: "PDF", value: "pdf", icon: FileText },
+  { label: "Rapport PDF", value: "rapport", icon: FileImage },
   { label: "CSV", value: "csv", icon: FileSpreadsheet },
   { label: "JSON", value: "json", icon: FileJson },
 ];
@@ -91,6 +91,11 @@ const handleDownload = async (mode) => {
       blob = new Blob([JSON.stringify(rawData, null, 2)], {
         type: "application/json",
       });
+    } else if (mode === "rapport") {
+      blob =
+        rawData instanceof Blob
+          ? rawData
+          : new Blob([rawData], { type: "application/pdf" });
     } else {
       blob = rawData instanceof Blob ? rawData : new Blob([rawData]);
     }
@@ -99,9 +104,10 @@ const handleDownload = async (mode) => {
 
     const link = document.createElement("a");
     link.href = url;
+    const ext = mode === "rapport" ? "pdf" : mode;
     link.setAttribute(
       "download",
-      `Synthese_Mobilite_${props.mobilityId}.${mode}`,
+      `Synthese_Mobilite_${props.mobilityId}.${ext}`,
     );
 
     document.body.appendChild(link);

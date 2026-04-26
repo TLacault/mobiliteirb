@@ -21,7 +21,7 @@
         </div>
         <div class="right-column reveal-on-scroll reveal-left delay-1">
           <img
-            src="/images/example_trajet.webp"
+            src="/images/stepcard.png"
             alt="La Solution image"
             class="solution-img"
           />
@@ -89,6 +89,7 @@ p {
   width: 450px;
   max-width: 90%;
   height: auto;
+  filter: drop-shadow(0px 4px 10px rgba(0, 0, 0, 0.1));
 }
 
 @media (max-width: 900px) {
