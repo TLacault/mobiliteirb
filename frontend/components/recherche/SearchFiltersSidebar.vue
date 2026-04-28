@@ -520,8 +520,8 @@ function triggerSearch() {
 .filters-content {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  gap: 1.25rem;
+  justify-content: flex-start;
+  gap: 2rem;
   flex: 1;
 }
 
