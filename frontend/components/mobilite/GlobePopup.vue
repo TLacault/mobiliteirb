@@ -538,4 +538,50 @@ onBeforeUnmount(() => {
   opacity: 0;
   transform: scale(0.97) translateY(8px);
 }
+
+@media (max-width: 768px) {
+  .globe-backdrop {
+    top: 0;
+  }
+
+  .globe-popup {
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    aspect-ratio: auto;
+    border-radius: 0;
+  }
+
+  .globe-header {
+    padding: 0.7rem 1rem;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .globe-title {
+    font-size: 0.95rem;
+    white-space: normal;
+  }
+
+  .trip-filter-btn {
+    margin-left: auto;
+  }
+
+  .trip-panel {
+    padding: 0.5rem 1rem;
+    gap: 0.4rem;
+    max-height: 35vh;
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .globe-header {
+    padding: 0.6rem 0.75rem;
+  }
+
+  .trip-filter-btn span {
+    display: none;
+  }
+}
 </style>

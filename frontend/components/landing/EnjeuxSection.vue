@@ -167,6 +167,36 @@
     text-decoration: underline;
   }
 }
+
+@media (max-width: 640px) {
+  .section-enjeux {
+    padding: 50px 1.5rem;
+  }
+
+  .title-container {
+    margin-bottom: 32px;
+  }
+
+  .flex-container {
+    gap: 24px;
+  }
+
+  .source-bar {
+    align-items: flex-start;
+    border-radius: 16px;
+    padding: 0.65rem 1rem;
+    font-size: 0.78rem;
+    line-height: 1.45;
+  }
+
+  .source-bar span {
+    display: inline;
+  }
+
+  .source-bar a {
+    margin-left: 4px;
+  }
+}
 </style>
 
 <script setup>

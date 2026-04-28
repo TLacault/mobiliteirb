@@ -130,6 +130,29 @@ const mobilityDeleted = (uuid) => {
   justify-content: center;
 }
 
+@media (max-width: 768px) {
+  .page {
+    padding: 1.5rem 0;
+  }
+
+  .container {
+    padding: 0 1rem;
+  }
+
+  .title-container {
+    padding: 1rem 0.5rem;
+  }
+
+  .mobilities-section {
+    margin-top: 1rem;
+  }
+
+  .cards-container {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+}
+
 .info-card {
   background: white;
   border-radius: 12px;

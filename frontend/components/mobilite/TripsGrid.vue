@@ -1019,4 +1019,54 @@ onUnmounted(() => {
     min-width: 280px;
   }
 }
+
+@media (max-width: 768px) {
+  .section-header {
+    gap: 0.75rem;
+    padding-bottom: 1rem;
+  }
+
+  .section-header-left {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .btn-new-trip {
+    margin-left: 0;
+  }
+
+  .section-header-right {
+    width: 100%;
+  }
+
+  .sort-dropdown {
+    width: 100%;
+  }
+
+  .sort-trigger {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .sort-menu {
+    left: 0;
+    right: 0;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .trips-carousel-shell {
+    --trips-gap: 1rem;
+  }
+
+  .trips-indicator {
+    margin-top: -2.5rem;
+  }
+
+  .indicator-dot {
+    width: 12px;
+    height: 12px;
+  }
+}
 </style>

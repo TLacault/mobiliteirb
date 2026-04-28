@@ -11,12 +11,14 @@ import {
   MapPin,
   ArrowUpDown,
   Infinity,
+  ChevronDown,
 } from "lucide-vue-next";
 const emit = defineEmits(["search"]);
 
 const departure = ref("");
 const arrival = ref("");
 const locationError = ref(false);
+const isExpanded = ref(true);
 
 watch([departure, arrival], () => {
   if (locationError.value) locationError.value = false;
@@ -183,10 +185,19 @@ function triggerSearch() {
 </script>
 
 <template>
-  <aside class="filters-wrapper">
+  <aside class="filters-wrapper" :class="{ collapsed: !isExpanded }">
     <div class="filters-header">
       <Filter class="section-icon" size="32" />
       <h2 class="section-title gradient-cta">Filtres</h2>
+      <button
+        type="button"
+        class="filters-toggle"
+        @click="isExpanded = !isExpanded"
+        :aria-expanded="isExpanded"
+        aria-label="Afficher ou masquer les filtres"
+      >
+        <ChevronDown size="22" :class="{ open: isExpanded }" />
+      </button>
     </div>
 
     <div class="filters-section">
@@ -794,6 +805,34 @@ function triggerSearch() {
   font-weight: 500;
 }
 
+.filters-toggle {
+  display: none;
+  margin-left: auto;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  color: var(--text);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.filters-toggle:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.filters-toggle :deep(svg) {
+  transition: transform 0.2s ease;
+}
+
+.filters-toggle :deep(svg.open) {
+  transform: rotate(180deg);
+}
+
 @media (max-width: 1024px) {
   .filters-wrapper {
     position: static;
@@ -807,6 +846,15 @@ function triggerSearch() {
 
   .filters-actions {
     flex-shrink: 0;
+  }
+
+  .filters-toggle {
+    display: flex;
+  }
+
+  .filters-wrapper.collapsed .filters-section,
+  .filters-wrapper.collapsed .filters-actions {
+    display: none;
   }
 }
 </style>

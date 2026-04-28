@@ -11,7 +11,7 @@
         <span class="logo-text">Mobilit<span class="green">Eirb</span></span>
       </div>
 
-      <!-- Navigation Links -->
+      <!-- Navigation Links (desktop) -->
       <div class="navbar-links">
         <NuxtLink
           v-for="link in navLinks"
@@ -24,7 +24,7 @@
         </NuxtLink>
       </div>
 
-      <!-- Account/Connection Section -->
+      <!-- Account/Connection Section (desktop) -->
       <div class="navbar-account">
         <NuxtLink v-if="!isAuthenticated" to="/connexion" class="btn-connexion">
           Connexion
@@ -76,7 +76,70 @@
           </div>
         </div>
       </div>
+
+      <!-- Hamburger Button (mobile only) -->
+      <button
+        class="hamburger-btn"
+        @click.stop="toggleMobileMenu"
+        :aria-expanded="isMobileMenuOpen"
+        aria-label="Menu navigation"
+      >
+        <X v-if="isMobileMenuOpen" size="24" />
+        <Menu v-else size="24" />
+      </button>
     </div>
+
+    <!-- Mobile Menu Panel -->
+    <Transition name="slide-down">
+      <div v-if="isMobileMenuOpen" class="mobile-menu">
+        <NuxtLink
+          v-for="link in navLinks"
+          :key="link.path"
+          :to="link.path"
+          class="mobile-nav-link"
+          @click="() => { handleNavbarLinkClick(link.path); closeMobileMenu(); }"
+        >
+          {{ link.name }}
+        </NuxtLink>
+
+        <div class="mobile-divider"></div>
+
+        <NuxtLink
+          v-if="!isAuthenticated"
+          to="/connexion"
+          class="mobile-auth-btn"
+          @click="closeMobileMenu"
+        >
+          Connexion
+        </NuxtLink>
+
+        <div v-else class="mobile-user-section">
+          <div class="mobile-user-info">
+            <div class="mobile-user-avatar">{{ userInitials }}</div>
+            <div class="mobile-user-text">
+              <div class="mobile-user-name">{{ userName }}</div>
+              <div class="mobile-user-email">{{ user?.email }}</div>
+            </div>
+          </div>
+          <div class="mobile-divider"></div>
+          <NuxtLink
+            to="/dashboard"
+            class="mobile-nav-link"
+            @click="() => { handleDashboardClick(); closeMobileMenu(); }"
+          >
+            <LayoutDashboard size="18" />
+            <span>Dashboard</span>
+          </NuxtLink>
+          <button
+            @click="() => { handleLogout(); closeMobileMenu(); }"
+            class="mobile-nav-link mobile-logout"
+          >
+            <LogOut size="18" color="var(--danger)" />
+            <span>Se déconnecter</span>
+          </button>
+        </div>
+      </div>
+    </Transition>
   </nav>
 </template>
 
@@ -84,11 +147,14 @@
 const { user, isAuthenticated, logout, checkAuth } = useAuth();
 const { clearMobilite } = useMobiliteSession();
 const isMenuOpen = ref(false);
+const isMobileMenuOpen = ref(false);
 import {
   LayoutDashboard,
   CircleUserRound,
   LogOut,
   ChevronDown,
+  Menu,
+  X,
 } from "lucide-vue-next";
 
 const navLinks = [
@@ -97,12 +163,10 @@ const navLinks = [
   { name: "Recherche", path: "/recherche" },
 ];
 
-// Vérifier l'authentification au montage
 onMounted(async () => {
   await checkAuth();
 });
 
-// Calculer les initiales de l'utilisateur
 const userInitials = computed(() => {
   if (!user.value) return "?";
   const firstName = user.value.given_name?.[0] || "";
@@ -110,7 +174,6 @@ const userInitials = computed(() => {
   return (firstName + lastName).toUpperCase() || "U";
 });
 
-// Nom complet de l'utilisateur
 const userName = computed(() => {
   if (!user.value) return "";
   return `${user.value.given_name || ""} ${
@@ -124,6 +187,15 @@ const toggleMenu = () => {
 
 const closeMenu = () => {
   isMenuOpen.value = false;
+};
+
+const toggleMobileMenu = () => {
+  isMobileMenuOpen.value = !isMobileMenuOpen.value;
+  if (isMobileMenuOpen.value) isMenuOpen.value = false;
+};
+
+const closeMobileMenu = () => {
+  isMobileMenuOpen.value = false;
 };
 
 const handleNavbarLinkClick = (path) => {
@@ -142,13 +214,18 @@ const handleLogout = () => {
   logout();
 };
 
-// Fermer le menu si on clique en dehors
 onMounted(() => {
   const handleClickOutside = (event) => {
-    const userMenu = document.querySelector(".user-menu");
-    if (userMenu && !userMenu.contains(event.target)) {
-      isMenuOpen.value = false;
-    }
+    const path = event.composedPath();
+    const isInsideUserMenu = path.some((el) =>
+      el?.classList?.contains?.("user-menu")
+    );
+    const isInsideNavbar = path.some((el) =>
+      el?.classList?.contains?.("navbar")
+    );
+
+    if (!isInsideUserMenu) isMenuOpen.value = false;
+    if (!isInsideNavbar) isMobileMenuOpen.value = false;
   };
 
   document.addEventListener("click", handleClickOutside);
@@ -232,7 +309,6 @@ onMounted(() => {
 
   &:hover {
     color: var(--primary);
-    /* background-color: rgba(0, 0, 0, 0.04); */
 
     &::after {
       transform: scaleX(0.5);
@@ -439,15 +515,179 @@ onMounted(() => {
   background-color: rgba(231, 76, 60, 0.1);
 }
 
+/* ===== HAMBURGER BUTTON ===== */
+.hamburger-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text);
+  border-radius: 0.375rem;
+  transition: background-color 0.2s;
+  flex-shrink: 0;
+}
+
+.hamburger-btn:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* ===== MOBILE MENU ===== */
+.mobile-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: var(--background);
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  padding: 0.75rem 1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  z-index: 999;
+}
+
+.mobile-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  color: var(--text);
+  font-weight: 500;
+  font-size: 0.95rem;
+  text-decoration: none;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s;
+}
+
+.mobile-nav-link:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.mobile-nav-link.router-link-exact-active {
+  color: var(--primary);
+  font-weight: 600;
+  background-color: oklch(70.62% 0.139 158.37 / 0.08);
+}
+
+.mobile-divider {
+  height: 1px;
+  background-color: rgba(0, 0, 0, 0.08);
+  margin: 0.375rem 0;
+}
+
+.mobile-auth-btn {
+  display: block;
+  padding: 0.75rem 1rem;
+  background: var(--gradientCallToAction);
+  color: white;
+  text-decoration: none;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  font-size: 0.95rem;
+  text-align: center;
+  transition: opacity 0.2s;
+}
+
+.mobile-auth-btn:hover {
+  opacity: 0.9;
+}
+
+.mobile-user-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.mobile-user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem 0.75rem;
+}
+
+.mobile-user-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: radial-gradient(
+    circle at 30% 30%,
+    oklch(70.62% 0.139 158.37) 30%,
+    oklch(43.15% 0.073 199.96)
+  );
+  color: white;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.mobile-user-text {
+  min-width: 0;
+}
+
+.mobile-user-name {
+  font-weight: 600;
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+.mobile-user-email {
+  font-size: 0.8rem;
+  color: var(--text);
+  opacity: 0.6;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mobile-logout {
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+  color: var(--danger);
+}
+
+/* ===== TRANSITIONS ===== */
+.slide-down-enter-active,
+.slide-down-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.slide-down-enter-from,
+.slide-down-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+/* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
+  .navbar {
+    padding: 0.75rem 1rem;
+  }
+
   .navbar-container {
-    flex-wrap: wrap;
+    gap: 0;
   }
 
   .navbar-links {
-    order: 3;
-    width: 100%;
-    justify-content: flex-start;
+    display: none;
+  }
+
+  .navbar-account {
+    display: none;
+  }
+
+  .hamburger-btn {
+    display: flex;
   }
 }
 </style>

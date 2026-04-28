@@ -170,9 +170,18 @@ async function handleViewDetails(mobilityId) {
   }
 }
 
+const resultsHeaderRef = ref(null);
+
 async function goToPage(page) {
   currentPage.value = page;
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  if (resultsHeaderRef.value) {
+    resultsHeaderRef.value.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  } else {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
   const {
     departure = "",
     arrival = "",
@@ -203,7 +212,7 @@ async function goToPage(page) {
       <SearchFiltersSidebar @search="handleSearch" />
 
       <div class="results-wrapper">
-        <header class="section-header">
+        <header ref="resultsHeaderRef" class="section-header">
           <div class="section-header-left">
             <Route class="section-icon" size="32" />
             <h2 class="section-title gradient-cta">
@@ -381,6 +390,7 @@ async function goToPage(page) {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+  scroll-margin-top: 80px;
 }
 
 .section-header-left,
@@ -547,6 +557,40 @@ async function goToPage(page) {
 
   .results-empty {
     min-height: 200px;
+  }
+}
+
+@media (max-width: 640px) {
+  .search-page {
+    padding: 1rem;
+  }
+
+  .section-header {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .section-header-right {
+    width: 100%;
+  }
+
+  .sort-dropdown {
+    width: 100%;
+  }
+
+  .sort-trigger {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .sort-trigger > span {
+    margin-right: auto;
+  }
+
+  .sort-menu {
+    left: 0;
+    right: 0;
+    min-width: 0;
   }
 }
 </style>

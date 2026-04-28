@@ -122,4 +122,22 @@ const visiblePages = computed(() => {
   font-size: 0.85rem;
   user-select: none;
 }
+
+@media (max-width: 480px) {
+  .pagination {
+    gap: 0.25rem;
+    flex-wrap: wrap;
+  }
+
+  .page-btn {
+    min-width: 30px;
+    height: 30px;
+    font-size: 0.78rem;
+  }
+
+  .page-ellipsis {
+    min-width: 22px;
+    height: 30px;
+  }
+}
 </style>

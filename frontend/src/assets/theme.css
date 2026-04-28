@@ -120,3 +120,16 @@ body {
   font-weight: 400;
   opacity: 0.65;
 }
+
+@media (max-width: 768px) {
+  :root {
+    --font-section-title: 1.8rem;
+    --font-subtitle: 1.1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --font-section-title: 1.5rem;
+  }
+}

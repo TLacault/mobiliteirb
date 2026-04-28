@@ -98,8 +98,25 @@ p {
     align-items: center;
   }
 
+  .left-column,
+  .right-column {
+    width: 100%;
+  }
+
   .solution-img {
     margin: 0 auto;
+    width: 100%;
+    max-width: 450px;
+  }
+}
+
+@media (max-width: 768px) {
+  .solution-section {
+    margin-bottom: 4rem;
+  }
+
+  .solution-container {
+    padding: 0 1.5rem;
   }
 }
 </style>

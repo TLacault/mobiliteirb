@@ -184,4 +184,42 @@ const { isAuthenticated } = useAuth();
     opacity: 0.8;
   }
 }
+
+@media (max-width: 768px) {
+  .logo-hero {
+    margin-top: 8vh;
+    gap: 0.5rem;
+  }
+
+  .logo-image {
+    height: 70px;
+  }
+
+  .logo-text {
+    font-size: 2.6rem;
+  }
+
+  .text-hero {
+    font-size: 1.15rem;
+    padding: 1rem 1.5rem;
+  }
+
+  .more-info {
+    bottom: 5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo-image {
+    height: 55px;
+  }
+
+  .logo-text {
+    font-size: 2rem;
+  }
+
+  .text-hero {
+    font-size: 1rem;
+  }
+}
 </style>

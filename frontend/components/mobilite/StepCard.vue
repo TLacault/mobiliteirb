@@ -179,45 +179,40 @@ const scheduleSaveNotes = () => {
         <span class="step-order">Étape {{ step.sequenceOrder }}</span>
       </div>
 
-      <div class="step-top-right">
-        <div class="top-stats-row">
-          <div class="top-stat-badge">
-            <Leaf size="12" class="stat-icon" />
-            <span
-              >{{ step.carbon != null ? step.carbon.toFixed(1) : "—" }} kg
-              CO₂</span
-            >
-          </div>
-          <div class="top-stat-badge">
-            <Ruler size="12" class="stat-icon" />
-            <span
-              >{{
-                step.distance != null ? step.distance.toFixed(0) : "—"
-              }}
-              km</span
-            >
-          </div>
-          <div class="top-stat-badge">
-            <Clock3 size="12" class="stat-icon" />
-            <span>
-              <template v-if="step.time != null">
-                <template v-if="Math.floor(step.time / 60) > 0">
-                  {{ Math.floor(step.time / 60) }}h
-                </template>
-                {{ (step.time % 60).toFixed(0) }}min
-              </template>
-              <template v-else> — </template>
-            </span>
-          </div>
-        </div>
+      <button
+        class="delete-btn"
+        title="Supprimer l'étape"
+        @click="handleDelete"
+      >
+        <Trash2 size="15" />
+      </button>
+    </div>
 
-        <button
-          class="delete-btn"
-          title="Supprimer l'étape"
-          @click="handleDelete"
+    <div class="top-stats-row">
+      <div class="top-stat-badge">
+        <Leaf size="12" class="stat-icon" />
+        <span
+          >{{ step.carbon != null ? step.carbon.toFixed(1) : "—" }} kg
+          CO₂</span
         >
-          <Trash2 size="15" />
-        </button>
+      </div>
+      <div class="top-stat-badge">
+        <Ruler size="12" class="stat-icon" />
+        <span
+          >{{ step.distance != null ? step.distance.toFixed(0) : "—" }} km</span
+        >
+      </div>
+      <div class="top-stat-badge">
+        <Clock3 size="12" class="stat-icon" />
+        <span>
+          <template v-if="step.time != null">
+            <template v-if="Math.floor(step.time / 60) > 0">
+              {{ Math.floor(step.time / 60) }}h
+            </template>
+            {{ (step.time % 60).toFixed(0) }}min
+          </template>
+          <template v-else> — </template>
+        </span>
       </div>
     </div>
 
@@ -536,10 +531,24 @@ const scheduleSaveNotes = () => {
   .location-row {
     grid-template-columns: 1fr;
     align-items: flex-start;
+    gap: 0.35rem;
   }
 
   .location-label {
     width: auto;
+  }
+
+  .location-input-wrapper,
+  .transport-picker-wrapper {
+    width: 100%;
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .top-stat-badge {
+    font-size: 0.72rem;
+    padding: 0 0.4rem;
   }
 }
 

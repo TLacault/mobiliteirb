@@ -811,7 +811,7 @@ function handleEndLocationSelect() {
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .row1-container,
   .row2-container {
     padding: 0 1rem;
@@ -823,15 +823,19 @@ function handleEndLocationSelect() {
   .identity-fields,
   .location-fields {
     flex-direction: column;
+    gap: 0.75rem;
   }
 
-  .field-name {
+  .field-name,
+  .field-year {
     width: 100%;
   }
 
   .row1-right {
+    width: 100%;
     margin-left: 0;
     justify-content: flex-start;
+    flex-wrap: wrap;
   }
 
   .row2-right {
@@ -840,11 +844,36 @@ function handleEndLocationSelect() {
   }
 
   .header-tabs {
+    width: 100%;
+  }
+
+  .tab-btn {
+    flex: 1;
+    width: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .header-tabs {
     flex-direction: column;
   }
 
   .tab-btn {
     width: 100%;
+    flex: none;
+  }
+
+  .row2-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .back-btn {
+    align-self: flex-start;
+  }
+
+  .row2-right {
+    justify-content: flex-start;
   }
 }
 </style>

@@ -346,4 +346,31 @@ async function deleteMobilite(uuid) {
 .date-value {
   padding: 0.2rem 1.1rem;
 }
+
+@media (max-width: 600px) {
+  .card-container {
+    padding: 1rem 1.1rem;
+    gap: 0.85rem;
+  }
+
+  .trash-button {
+    top: 1rem;
+    right: 1rem;
+  }
+
+  .stats-section {
+    flex-wrap: wrap;
+  }
+
+  .footer-section {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    width: 100%;
+  }
+
+  .modifier-btn {
+    flex: 1;
+    justify-content: center;
+  }
+}
 </style>
