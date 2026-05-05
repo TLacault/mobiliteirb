@@ -12,6 +12,7 @@ import {
   PlaneLanding,
   TicketsPlane,
   CalendarDays,
+  ChevronDown,
 } from "lucide-vue-next";
 import PopupDelete from "../popup/PopupDelete.vue";
 import PopupAuthor from "../popup/PopupAuthor.vue";
@@ -68,10 +69,11 @@ const showAuthorPopup = ref(false);
 const badgeRef = ref(null);
 const anchorRect = ref(null);
 
-function openAuthorPopup() {
+function openAuthorPopup(event) {
   if (isAnonymousAuthor.value) return;
-  if (badgeRef.value) {
-    const rect = badgeRef.value.getBoundingClientRect();
+  const el = event?.currentTarget ?? badgeRef.value;
+  if (el) {
+    const rect = el.getBoundingClientRect();
     anchorRect.value = {
       top: rect.top,
       bottom: rect.bottom,
@@ -195,6 +197,9 @@ const goToTab = (tab) => {
   navigateTo(`/mobilite/${props.uuid}/${tab}`);
 };
 
+// Mobile header accordion
+const mobileExpanded = ref(false);
+
 // Suppression
 const showDeletePopup = ref(false);
 
@@ -239,8 +244,8 @@ function handleEndLocationSelect() {
 
 <template>
   <header class="mobilite-header">
-    <!-- Row 1 : (nom, année) | (départ, arrivée) | (badge étudiant / toggle anonyme) -->
-    <div class="header-row1">
+    <!-- Row 1 desktop : (nom, année) | (départ, arrivée) | (badge étudiant / toggle anonyme) -->
+    <div class="header-row1 desktop-row1">
       <div class="row1-container">
         <div class="identity-fields">
           <div class="identity-field-wrap">
@@ -344,7 +349,7 @@ function handleEndLocationSelect() {
               anonymous: isAnonymousAuthor,
               clickable: !isAnonymousAuthor,
             }"
-            @click.stop="openAuthorPopup"
+            @click.stop="openAuthorPopup($event)"
           >
             <User :size="15" />{{ authorLabel }}
           </span>
@@ -373,6 +378,148 @@ function handleEndLocationSelect() {
             <span class="anonymous-track"></span>
           </label>
         </div>
+      </div>
+    </div>
+
+    <!-- Row 1 mobile : name bar + collapsible panel -->
+    <div class="header-row1 mobile-row1">
+      <div class="row1-container">
+        <!-- Always visible: mobility name + expand toggle -->
+        <div class="mobile-bar">
+          <TicketsPlane size="18" class="identity-icon" />
+          <div class="field-wrap mobile-name-wrap">
+            <Transition name="badge">
+              <span v-if="savedField === 'name'" class="saved-badge badge-left">
+                <CheckCheck size="13" />
+                saved
+              </span>
+            </Transition>
+            <input
+              v-model="localName"
+              class="field-input field-name"
+              placeholder="Nom de la mobilité"
+              :disabled="isPreview"
+              @input="scheduleSave('name')"
+              @blur="saveField('name')"
+              @keydown.enter.prevent="(e) => saveField('name', e.target)"
+            />
+          </div>
+          <button
+            class="mobile-expand-btn"
+            :aria-expanded="mobileExpanded"
+            @click="mobileExpanded = !mobileExpanded"
+          >
+            <ChevronDown
+              size="20"
+              class="expand-chevron"
+              :class="{ rotated: mobileExpanded }"
+            />
+          </button>
+        </div>
+
+        <!-- Expandable panel: year, départ, arrivée, anonyme -->
+        <Transition name="mobile-panel">
+          <div v-if="mobileExpanded" class="mobile-expansion">
+            <!-- Year / Date -->
+            <div class="mobile-field">
+              <CalendarDays size="18" class="identity-icon" />
+              <div class="field-wrap" style="flex: 1">
+                <input
+                  v-model="localYear"
+                  class="field-input mobile-field-input"
+                  placeholder="Année"
+                  type="number"
+                  min="2000"
+                  max="2100"
+                  :disabled="isPreview"
+                  @input="scheduleSave('year')"
+                  @blur="saveField('year')"
+                  @keydown.enter.prevent="(e) => saveField('year', e.target)"
+                />
+                <Transition name="badge">
+                  <span v-if="savedField === 'year'" class="saved-badge badge-right">
+                    <CheckCheck size="13" color="var(--primary)" />
+                    saved
+                  </span>
+                </Transition>
+              </div>
+            </div>
+            <!-- Départ -->
+            <div class="mobile-field">
+              <PlaneTakeoff size="18" class="location-icon" />
+              <div style="flex: 1; position: relative; min-width: 0">
+                <PlaceAutocompleteInput
+                  v-model="localStartLocation"
+                  class="field-input field-location"
+                  placeholder="Ville de départ"
+                  :disabled="isPreview"
+                  @select="handleStartLocationSelect"
+                />
+                <Transition name="badge">
+                  <span
+                    v-if="savedField === 'startLocation'"
+                    class="saved-badge badge-right"
+                  >
+                    <CheckCheck size="13" color="var(--primary)" />
+                    saved
+                  </span>
+                </Transition>
+              </div>
+            </div>
+            <!-- Arrivée -->
+            <div class="mobile-field">
+              <PlaneLanding size="18" class="location-icon" />
+              <div style="flex: 1; position: relative; min-width: 0">
+                <PlaceAutocompleteInput
+                  v-model="localEndLocation"
+                  class="field-input field-location"
+                  placeholder="Ville d'arrivée"
+                  :disabled="isPreview"
+                  @select="handleEndLocationSelect"
+                />
+                <Transition name="badge">
+                  <span
+                    v-if="savedField === 'endLocation'"
+                    class="saved-badge badge-right"
+                  >
+                    <CheckCheck size="13" color="var(--primary)" />
+                    saved
+                  </span>
+                </Transition>
+              </div>
+            </div>
+            <!-- Anonyme / Author badge -->
+            <div class="mobile-field mobile-field-center">
+              <span
+                v-if="isPreview"
+                class="header-author-badge"
+                :class="{
+                  anonymous: isAnonymousAuthor,
+                  clickable: !isAnonymousAuthor,
+                }"
+                @click.stop="openAuthorPopup($event)"
+              >
+                <User :size="15" />{{ authorLabel }}
+              </span>
+              <label
+                v-if="!isPreview"
+                class="anonymous-toggle"
+                title="Mode anonyme"
+              >
+                <span class="anonymous-label">
+                  <HatGlasses size="13" />
+                  <span class="anonymous-text">Anonyme</span>
+                </span>
+                <input
+                  v-model="localAnonymous"
+                  type="checkbox"
+                  @change="saveField('anonymous')"
+                />
+                <span class="anonymous-track"></span>
+              </label>
+            </div>
+          </div>
+        </Transition>
       </div>
     </div>
 
@@ -796,55 +943,118 @@ function handleEndLocationSelect() {
   }
 }
 
+/* --- Mobile header layout --- */
+.mobile-row1 {
+  display: none;
+}
+
+.mobile-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mobile-name-wrap {
+  flex: 1;
+  min-width: 0;
+}
+
+.mobile-name-wrap .field-name {
+  width: 100%;
+}
+
+.mobile-expand-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border: none;
+  background: #f3f4f6;
+  border-radius: 8px;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.2s ease;
+
+  &:hover {
+    background: #e5e7eb;
+  }
+}
+
+.expand-chevron {
+  transition: transform 0.25s ease;
+}
+
+.expand-chevron.rotated {
+  transform: rotate(180deg);
+}
+
+.mobile-expansion {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.07);
+}
+
+.mobile-field {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  position: relative;
+}
+
+.mobile-field-input {
+  width: 100%;
+}
+
+.mobile-field-center {
+  justify-content: center;
+  padding-top: 0.25rem;
+}
+
+.mobile-panel-enter-active,
+.mobile-panel-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  overflow: hidden;
+}
+
+.mobile-panel-enter-from,
+.mobile-panel-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
 /* --- Responsive --- */
+
+/* 1100px: allow desktop row1 to wrap, shrink field-name */
 @media (max-width: 1100px) {
   .row1-container {
     flex-wrap: wrap;
   }
 
   .field-name {
-    width: 180px;
+    width: 200px;
   }
 
   .tab-btn {
-    width: 240px;
+    width: 200px;
   }
 }
 
+/* 1024px: tighten padding; location-fields flex */
 @media (max-width: 1024px) {
   .row1-container,
   .row2-container {
     padding: 0 1rem;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.75rem;
   }
 
-  .identity-fields,
   .location-fields {
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-
-  .field-name,
-  .field-year {
-    width: 100%;
-  }
-
-  .row1-right {
-    width: 100%;
-    margin-left: 0;
-    justify-content: flex-start;
-    flex-wrap: wrap;
-  }
-
-  .row2-right {
-    margin-left: 0;
-    justify-content: flex-end;
-  }
-
-  .header-tabs {
-    width: 100%;
+    flex: 1;
+    min-width: 260px;
+    gap: 1rem;
   }
 
   .tab-btn {
@@ -853,27 +1063,66 @@ function handleEndLocationSelect() {
   }
 }
 
-@media (max-width: 640px) {
-  .header-tabs {
-    flex-direction: column;
+/* 768px: switch to mobile accordion for row1; wrap row2 */
+@media (max-width: 768px) {
+  .desktop-row1 {
+    display: none;
   }
 
-  .tab-btn {
-    width: 100%;
-    flex: none;
+  .mobile-row1 {
+    display: block;
   }
 
-  .row2-container {
+  /* Stack bar + expansion panel; stretch children to full width */
+  .mobile-row1 .row1-container {
     flex-direction: column;
     align-items: stretch;
+    gap: 0;
+  }
+
+  .mobile-bar {
+    width: 100%;
+  }
+
+  .mobile-expansion {
+    width: 100%;
+  }
+
+  /* Row2: [← Retour] [Supprimer/Dupliquer →] on row 1, tabs below */
+  .row2-container {
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    align-items: center;
   }
 
   .back-btn {
-    align-self: flex-start;
+    flex-shrink: 0;
   }
 
   .row2-right {
-    justify-content: flex-start;
+    flex-shrink: 0;
+    margin-left: auto;
+  }
+
+  .header-tabs {
+    order: 3;
+    width: 100%;
+    flex: none;
+    flex-direction: row;
+    gap: 0.5rem;
+  }
+
+  .tab-btn {
+    flex: 1;
+    width: auto;
+  }
+}
+
+/* 480px: tighten padding only */
+@media (max-width: 480px) {
+  .mobile-row1 .row1-container,
+  .row2-container {
+    padding: 0 0.75rem;
   }
 }
 </style>

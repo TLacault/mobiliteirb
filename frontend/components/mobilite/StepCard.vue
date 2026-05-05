@@ -331,14 +331,6 @@ const scheduleSaveNotes = () => {
   gap: 0.35rem;
 }
 
-.step-top-right {
-  margin-left: auto;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 0.35rem;
-}
-
 .reorder-control {
   display: inline-flex;
   flex-direction: column;
@@ -512,17 +504,6 @@ const scheduleSaveNotes = () => {
 }
 
 @media (max-width: 900px) {
-  .step-top {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .step-top-right {
-    margin-left: 0;
-    align-items: center;
-    flex-wrap: wrap;
-  }
-
   .top-stats-row {
     justify-content: flex-start;
     flex-wrap: wrap;

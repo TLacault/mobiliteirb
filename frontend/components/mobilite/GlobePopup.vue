@@ -307,7 +307,7 @@ onBeforeUnmount(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 900;
+  z-index: 1100;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -319,7 +319,7 @@ onBeforeUnmount(() => {
 /* Popup — 90% of the available space below navbar */
 .globe-popup {
   position: relative;
-  z-index: 901;
+  z-index: 1101;
   height: 90%;
   aspect-ratio: 1;
   background: white;
@@ -344,7 +344,8 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  flex-shrink: 0;
+  flex: 1;
+  min-width: 0;
 }
 
 .globe-icon {
@@ -555,16 +556,10 @@ onBeforeUnmount(() => {
   .globe-header {
     padding: 0.7rem 1rem;
     gap: 0.5rem;
-    flex-wrap: wrap;
   }
 
   .globe-title {
     font-size: 0.95rem;
-    white-space: normal;
-  }
-
-  .trip-filter-btn {
-    margin-left: auto;
   }
 
   .trip-panel {
@@ -578,10 +573,6 @@ onBeforeUnmount(() => {
 @media (max-width: 480px) {
   .globe-header {
     padding: 0.6rem 0.75rem;
-  }
-
-  .trip-filter-btn span {
-    display: none;
   }
 }
 </style>

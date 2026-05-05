@@ -442,16 +442,47 @@ onUnmounted(() => {
     <div class="container">
       <!-- Section header -->
       <div class="section-header">
+        <!-- Left: icon + title -->
         <div class="section-header-left">
           <Route size="40" class="section-icon" />
           <h2 class="section-title gradient-cta">Gestion des Trajets</h2>
-          <button class="btn-new-trip" @click="handleCreateTrip">
-            <Plus size="16" />
-            Nouveau Trajet
-          </button>
         </div>
 
+        <!-- Center: trip navigation indicator -->
+        <div class="section-header-center">
+          <template v-if="!loading && !error && columns.length > 0">
+            <button
+              class="scroll-nav"
+              :disabled="!canScrollLeft"
+              @click="scrollToAdjacentTrip('left')"
+            >
+              <ChevronLeft size="18" />
+            </button>
+            <button
+              v-for="(col, index) in columns"
+              :key="`dot-${col.trip.id}`"
+              class="indicator-dot"
+              :class="{ active: visibleTripIndexes.includes(index) }"
+              :aria-label="`Aller au trajet ${index + 1}`"
+              @click="scrollToTrip(index)"
+            />
+            <button
+              class="scroll-nav"
+              :disabled="!canScrollRight"
+              @click="scrollToAdjacentTrip('right')"
+            >
+              <ChevronRight size="18" />
+            </button>
+          </template>
+        </div>
+
+        <!-- Right: new trip button + sort -->
         <div class="section-header-right">
+          <button class="btn-new-trip" @click="handleCreateTrip">
+            <Plus size="16" />
+            <span>Nouveau Trajet</span>
+          </button>
+
           <div ref="dropdownRef" class="sort-dropdown">
             <button
               class="sort-trigger"
@@ -530,37 +561,6 @@ onUnmounted(() => {
       <div v-else-if="error" class="grid-state grid-error">{{ error }}</div>
       <div v-else-if="columns.length === 0" class="grid-state">
         Aucun trajet pour cette mobilité.
-      </div>
-
-      <div
-        v-if="!loading && !error && columns.length > 0"
-        class="trips-indicator"
-        aria-label="Indicateur de trajets"
-      >
-        <button
-          class="scroll-nav"
-          :disabled="!canScrollLeft"
-          @click="scrollToAdjacentTrip('left')"
-        >
-          <ChevronLeft size="20" />
-        </button>
-
-        <button
-          v-for="(col, index) in columns"
-          :key="`dot-${col.trip.id}`"
-          class="indicator-dot"
-          :class="{ active: visibleTripIndexes.includes(index) }"
-          :aria-label="`Aller au trajet ${index + 1}`"
-          @click="scrollToTrip(index)"
-        ></button>
-
-        <button
-          class="scroll-nav"
-          :disabled="!canScrollRight"
-          @click="scrollToAdjacentTrip('right')"
-        >
-          <ChevronRight size="20" />
-        </button>
       </div>
 
       <div
@@ -647,16 +647,33 @@ onUnmounted(() => {
 .section-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1.5rem;
-  flex-wrap: wrap;
+  gap: 1rem;
   padding-bottom: 1.5rem;
 }
 
 .section-header-left {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.section-header-center {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  min-width: 0;
+  overflow: hidden;
+  padding: 0 0.25rem;
+}
+
+.section-header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
 }
 
 .section-icon {
@@ -678,7 +695,6 @@ onUnmounted(() => {
   font-weight: 400;
   cursor: pointer;
   transition: background-color 0.2s ease, color 0.2s ease;
-  margin-left: 1rem;
   white-space: nowrap;
 }
 
@@ -688,11 +704,6 @@ onUnmounted(() => {
 }
 
 /* ── Sort dropdown ──────────────────────────────── */
-
-.section-header-right {
-  display: flex;
-  align-items: center;
-}
 
 .sort-dropdown {
   position: relative;
@@ -850,16 +861,6 @@ onUnmounted(() => {
   position: relative;
 }
 
-.trips-indicator {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 0.7rem;
-  margin-bottom: 1.5rem;
-  margin-top: -3.5rem;
-  /* outline: 1px solid red; */
-}
-
 .indicator-dot {
   width: 16px;
   height: 16px;
@@ -1009,7 +1010,6 @@ onUnmounted(() => {
 }
 
 @media (max-width: 900px) {
-  .scroll-nav,
   .edge-fade {
     display: none;
   }
@@ -1022,46 +1022,50 @@ onUnmounted(() => {
 
 @media (max-width: 768px) {
   .section-header {
+    flex-wrap: wrap;
     gap: 0.75rem;
     padding-bottom: 1rem;
   }
 
-  .section-header-left {
-    flex-wrap: wrap;
+  /* Row 2: buttons each take 50% */
+  .section-header-right {
+    order: 2;
+    width: 100%;
+    margin-left: 0;
     gap: 0.5rem;
   }
 
   .btn-new-trip {
-    margin-left: 0;
-  }
-
-  .section-header-right {
-    width: 100%;
+    flex: 1;
+    justify-content: center;
   }
 
   .sort-dropdown {
-    width: 100%;
+    flex: 1;
   }
 
   .sort-trigger {
     width: 100%;
-    justify-content: space-between;
+    justify-content: center;
+  }
+
+  /* Row 3: dots + nav arrows */
+  .section-header-center {
+    order: 3;
+    width: 100%;
+    padding: 0;
+    justify-content: center;
   }
 
   .sort-menu {
-    left: 0;
     right: 0;
-    min-width: 0;
+    left: auto;
   }
 }
 
 @media (max-width: 640px) {
   .trips-carousel-shell {
     --trips-gap: 1rem;
-  }
-
-  .trips-indicator {
-    margin-top: -2.5rem;
   }
 
   .indicator-dot {

@@ -99,6 +99,7 @@
           class="mobile-nav-link"
           @click="() => { handleNavbarLinkClick(link.path); closeMobileMenu(); }"
         >
+          <component :is="link.icon" size="18" />
           {{ link.name }}
         </NuxtLink>
 
@@ -114,22 +115,18 @@
         </NuxtLink>
 
         <div v-else class="mobile-user-section">
-          <div class="mobile-user-info">
+          <NuxtLink
+            to="/connexion"
+            class="mobile-user-info"
+            @click="closeMobileMenu"
+          >
             <div class="mobile-user-avatar">{{ userInitials }}</div>
             <div class="mobile-user-text">
               <div class="mobile-user-name">{{ userName }}</div>
               <div class="mobile-user-email">{{ user?.email }}</div>
             </div>
-          </div>
-          <div class="mobile-divider"></div>
-          <NuxtLink
-            to="/dashboard"
-            class="mobile-nav-link"
-            @click="() => { handleDashboardClick(); closeMobileMenu(); }"
-          >
-            <LayoutDashboard size="18" />
-            <span>Dashboard</span>
           </NuxtLink>
+          <div class="mobile-divider"></div>
           <button
             @click="() => { handleLogout(); closeMobileMenu(); }"
             class="mobile-nav-link mobile-logout"
@@ -155,12 +152,14 @@ import {
   ChevronDown,
   Menu,
   X,
+  Home,
+  Search,
 } from "lucide-vue-next";
 
 const navLinks = [
-  { name: "Accueil", path: "/" },
-  { name: "Dashboard", path: "/dashboard" },
-  { name: "Recherche", path: "/recherche" },
+  { name: "Accueil", path: "/", icon: Home },
+  { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
+  { name: "Recherche", path: "/recherche", icon: Search },
 ];
 
 onMounted(async () => {
@@ -607,6 +606,14 @@ onMounted(() => {
   align-items: center;
   gap: 0.75rem;
   padding: 0.5rem 1rem 0.75rem;
+  text-decoration: none;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s;
+  cursor: pointer;
+}
+
+.mobile-user-info:hover {
+  background-color: rgba(0, 0, 0, 0.05);
 }
 
 .mobile-user-avatar {
