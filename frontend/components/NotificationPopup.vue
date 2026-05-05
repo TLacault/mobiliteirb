@@ -105,6 +105,16 @@ const currentIcon = computed(() =>
   background: rgba(0, 0, 0, 0.06);
 }
 
+@media (max-width: 640px) {
+  .notif {
+    top: 0.75rem;
+    left: 0.75rem;
+    right: 0.75rem;
+    min-width: 0;
+    max-width: none;
+  }
+}
+
 /* Slide animation */
 .notif-slide-enter-active {
   transition: opacity 0.35s cubic-bezier(0.22, 1, 0.36, 1),

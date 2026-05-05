@@ -1,3 +1,8 @@
+<script>
+// Module-level singleton — shared across ALL card instances
+let closeCurrentPopup = null;
+</script>
+
 <script setup>
 import { ref, computed } from "vue";
 import {
@@ -44,6 +49,7 @@ const anchorRect = ref(null);
 
 function openAuthorPopup() {
   if (isAnonymous.value) return;
+  if (closeCurrentPopup) closeCurrentPopup();
   if (badgeRef.value) {
     const rect = badgeRef.value.getBoundingClientRect();
     anchorRect.value = {
@@ -54,6 +60,7 @@ function openAuthorPopup() {
     };
   }
   showAuthorPopup.value = true;
+  closeCurrentPopup = () => { showAuthorPopup.value = false; };
 }
 
 function formatTime(totalMinutes) {
