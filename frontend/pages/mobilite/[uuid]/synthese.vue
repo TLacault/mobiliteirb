@@ -136,7 +136,7 @@ onMounted(fetchTrips);
             {{ tripError }}
           </p>
           <p v-else-if="tripList.length === 0" class="trips-state">
-            Aucun trip enregistré.
+            Aucun trajet enregistré.
           </p>
           <div v-else class="trips-list">
             <TripCard
@@ -198,7 +198,7 @@ onMounted(fetchTrips);
 .trips-list {
   display: grid;
   gap: 2rem;
-  grid-template-columns: repeat(auto-fit, minmax(550px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(550px, 100%), 1fr));
 }
 
 .trips-state {
@@ -210,5 +210,22 @@ onMounted(fetchTrips);
 
 .trips-error {
   color: #ef4444;
+}
+
+@media (max-width: 1024px) {
+  .trips-list {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .scene-content {
+    padding: 1rem;
+  }
+
+  .trip-container {
+    padding: 2rem 0;
+  }
 }
 </style>

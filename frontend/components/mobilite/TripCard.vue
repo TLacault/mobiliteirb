@@ -481,4 +481,29 @@ function requestSort(statField) {
   border-color: oklch(63.066% 0.194 29.425 / 45%);
   background: oklch(63.066% 0.194 29.425 / 8%);
 }
+
+@media (max-width: 640px) {
+  .card-header {
+    padding: 0 0.25rem;
+  }
+
+  .trip-name-input {
+    padding-right: 0.6rem;
+    font-size: 1rem;
+  }
+
+  .edit-hint {
+    display: none;
+  }
+
+  .stats-section {
+    padding: 0 0.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-section {
+    grid-template-columns: 1fr;
+  }
+}
 </style>

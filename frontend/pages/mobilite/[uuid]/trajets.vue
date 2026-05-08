@@ -92,4 +92,10 @@ const handleUpdated = (patch) => {
 .error-state {
   color: #ef4444;
 }
+
+@media (max-width: 768px) {
+  .scene-content {
+    padding: 1rem;
+  }
+}
 </style>

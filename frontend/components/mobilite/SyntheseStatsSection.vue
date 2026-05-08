@@ -7,9 +7,9 @@ import {
   SquareKanban,
   FileDown,
   ChevronDown,
-  FileText,
   FileSpreadsheet,
   FileJson,
+  FileImage,
   Globe,
 } from "lucide-vue-next";
 import GlobePopup from "./GlobePopup.vue";
@@ -42,12 +42,19 @@ const formatValue = (value) =>
     maximumFractionDigits: 2,
   });
 
+const formattedDuration = computed(() => {
+  const minutes = Number(props.stats?.totalTime ?? 0);
+  const hours = Math.floor(minutes / 60);
+  const mins = Math.floor(minutes % 60);
+  return `${hours > 0 ? `${hours}h ` : ""}${mins} min`;
+});
+
 const isDownloading = ref(false);
 const isDropdownOpen = ref(false);
 const dropdownContainerRef = ref(null);
 
 const options = [
-  { label: "PDF", value: "pdf", icon: FileText },
+  { label: "Rapport PDF", value: "rapport", icon: FileImage },
   { label: "CSV", value: "csv", icon: FileSpreadsheet },
   { label: "JSON", value: "json", icon: FileJson },
 ];
@@ -84,6 +91,11 @@ const handleDownload = async (mode) => {
       blob = new Blob([JSON.stringify(rawData, null, 2)], {
         type: "application/json",
       });
+    } else if (mode === "rapport") {
+      blob =
+        rawData instanceof Blob
+          ? rawData
+          : new Blob([rawData], { type: "application/pdf" });
     } else {
       blob = rawData instanceof Blob ? rawData : new Blob([rawData]);
     }
@@ -92,9 +104,10 @@ const handleDownload = async (mode) => {
 
     const link = document.createElement("a");
     link.href = url;
+    const ext = mode === "rapport" ? "pdf" : mode;
     link.setAttribute(
       "download",
-      `Synthese_Mobilite_${props.mobilityId}.${mode}`,
+      `Synthese_Mobilite_${props.mobilityId}.${ext}`,
     );
 
     document.body.appendChild(link);
@@ -165,7 +178,7 @@ const handleDownload = async (mode) => {
 
     <GlobePopup
       v-model="showGlobe"
-      :trips="props.trips"
+      :mobility-id="props.mobilityId"
       :is-preview="props.isPreview"
     />
 
@@ -199,7 +212,7 @@ const handleDownload = async (mode) => {
           <Timer class="icon" size="25" />
           <h3 class="subtitle gradient-cta">Temps</h3>
         </div>
-        <p class="body">{{ formatValue(props.stats?.totalTime ?? 0) }}</p>
+        <p class="body">{{ formattedDuration }}</p>
       </div>
     </div>
   </section>
@@ -380,5 +393,40 @@ const handleDownload = async (mode) => {
 
 .icon {
   color: var(--primary);
+}
+
+@media (max-width: 1024px) {
+  .stats-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .overview-header {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .header-actions {
+    width: 100%;
+  }
+
+  .header-actions .btn {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 640px) {
+  .stats-cards {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .stat-card .body {
+    font-size: 1.1rem;
+  }
 }
 </style>

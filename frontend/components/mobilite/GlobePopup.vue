@@ -81,12 +81,11 @@
 <script setup>
 import { ref, reactive, computed, watch, onBeforeUnmount, nextTick } from "vue";
 import { Globe, X, ListFilter } from "lucide-vue-next";
-import { getSteps } from "~/utils/step_api";
-import { geocodePlaces } from "~/utils/geocode";
+import { getMobilityGlobeData } from "~/utils/mobility_api";
 
 const props = defineProps({
   modelValue: { type: Boolean, required: true },
-  trips: { type: Array, default: () => [] },
+  mobilityId: { type: String, required: true },
   isPreview: { type: Boolean, default: false },
 });
 
@@ -151,49 +150,26 @@ async function buildArcsData() {
   tripEntries.length = 0;
 
   try {
-    const tripSteps = await Promise.all(
-      props.trips.map((t) => getSteps(t.id, props.isPreview).catch(() => [])),
-    );
-
-    const placeNames = new Set();
-    for (const steps of tripSteps) {
-      for (const s of steps) {
-        if (s.labelStart) placeNames.add(s.labelStart);
-        if (s.labelEnd) placeNames.add(s.labelEnd);
-      }
-    }
-
-    if (placeNames.size === 0) {
-      loading.value = false;
-      return;
-    }
-
-    const coordsMap = await geocodePlaces([...placeNames]);
+    const data = await getMobilityGlobeData(props.mobilityId, props.isPreview);
 
     const arcList = [];
     const pointMap = new Map();
 
-    tripSteps.forEach((steps, tripIdx) => {
+    data.trips.forEach((trip, tripIdx) => {
       const color = getColor(tripIdx);
-      const name = props.trips[tripIdx]?.name ?? `Trajet ${tripIdx + 1}`;
+      const name = trip.name ?? `Trajet ${tripIdx + 1}`;
 
-      tripEntries.push({
-        id: props.trips[tripIdx]?.id,
-        name,
-        color,
-        visible: true,
-      });
+      tripEntries.push({ id: trip.id, name, color, visible: true });
 
-      for (const step of steps) {
-        const from = coordsMap.get(step.labelStart);
-        const to = coordsMap.get(step.labelEnd);
-        if (!from || !to) continue;
+      for (const step of trip.steps) {
+        const { startLat, startLng, endLat, endLng } = step;
+        if (startLat == null || endLat == null) continue;
 
         arcList.push({
-          startLat: from.lat,
-          startLng: from.lng,
-          endLat: to.lat,
-          endLng: to.lng,
+          startLat: Number(startLat),
+          startLng: Number(startLng),
+          endLat: Number(endLat),
+          endLng: Number(endLng),
           color,
           tripName: name,
           labelStart: step.labelStart,
@@ -202,8 +178,8 @@ async function buildArcsData() {
 
         if (!pointMap.has(step.labelStart)) {
           pointMap.set(step.labelStart, {
-            lat: from.lat,
-            lng: from.lng,
+            lat: Number(startLat),
+            lng: Number(startLng),
             label: step.labelStart,
             size: 0.4,
             color,
@@ -212,8 +188,8 @@ async function buildArcsData() {
         }
         if (!pointMap.has(step.labelEnd)) {
           pointMap.set(step.labelEnd, {
-            lat: to.lat,
-            lng: to.lng,
+            lat: Number(endLat),
+            lng: Number(endLng),
             label: step.labelEnd,
             size: 0.4,
             color,
@@ -252,8 +228,8 @@ async function initGlobe() {
   globeInstance = Globe()(globeContainer.value)
     .width(width)
     .height(height)
-    .globeImageUrl("//unpkg.com/three-globe/example/img/earth-blue-marble.jpg")
-    .backgroundImageUrl("//unpkg.com/three-globe/example/img/night-sky.png")
+    .globeImageUrl("/globe/earth-blue-marble.jpg")
+    .backgroundImageUrl("/globe/night-sky.png")
     .arcColor("color")
     .arcAltitude((d) => {
       const toRad = Math.PI / 180;
@@ -331,7 +307,7 @@ onBeforeUnmount(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 900;
+  z-index: 1100;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -343,7 +319,7 @@ onBeforeUnmount(() => {
 /* Popup — 90% of the available space below navbar */
 .globe-popup {
   position: relative;
-  z-index: 901;
+  z-index: 1101;
   height: 90%;
   aspect-ratio: 1;
   background: white;
@@ -368,7 +344,8 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  flex-shrink: 0;
+  flex: 1;
+  min-width: 0;
 }
 
 .globe-icon {
@@ -561,5 +538,41 @@ onBeforeUnmount(() => {
 .popup-slide-leave-to {
   opacity: 0;
   transform: scale(0.97) translateY(8px);
+}
+
+@media (max-width: 768px) {
+  .globe-backdrop {
+    top: 0;
+  }
+
+  .globe-popup {
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    aspect-ratio: auto;
+    border-radius: 0;
+  }
+
+  .globe-header {
+    padding: 0.7rem 1rem;
+    gap: 0.5rem;
+  }
+
+  .globe-title {
+    font-size: 0.95rem;
+  }
+
+  .trip-panel {
+    padding: 0.5rem 1rem;
+    gap: 0.4rem;
+    max-height: 35vh;
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .globe-header {
+    padding: 0.6rem 0.75rem;
+  }
 }
 </style>

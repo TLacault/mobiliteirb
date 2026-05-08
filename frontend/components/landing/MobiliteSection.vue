@@ -41,10 +41,12 @@ useHead({
 .section-mobilite {
   display: flex;
   justify-content: center;
+  padding: 0 2rem;
 }
 
 .content-wrapper {
   max-width: 1200px;
+  width: 100%;
   display: flex;
   align-items: center;
   gap: 60px;
@@ -80,5 +82,22 @@ useHead({
   width: 100%;
   max-width: 700px;
   object-fit: contain;
+}
+
+@media (max-width: 768px) {
+  .section-mobilite {
+    padding: 0 1.5rem;
+  }
+
+  .content-wrapper {
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .text-zone,
+  .image-zone {
+    width: 100%;
+    flex: none;
+  }
 }
 </style>

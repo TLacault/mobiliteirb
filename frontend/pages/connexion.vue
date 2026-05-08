@@ -336,4 +336,27 @@ h1 {
     text-align: left;
   }
 }
+
+@media (max-width: 480px) {
+  .login-section,
+  .user-section {
+    padding: 1.5rem 1rem;
+  }
+
+  .actions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .action-button,
+  .logout-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .login-button {
+    width: 100%;
+    justify-content: center;
+  }
+}
 </style>

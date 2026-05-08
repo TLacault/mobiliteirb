@@ -1,3 +1,8 @@
+<script>
+// Module-level singleton — shared across ALL card instances
+let closeCurrentPopup = null;
+</script>
+
 <script setup>
 import { ref, computed } from "vue";
 import {
@@ -44,6 +49,7 @@ const anchorRect = ref(null);
 
 function openAuthorPopup() {
   if (isAnonymous.value) return;
+  if (closeCurrentPopup) closeCurrentPopup();
   if (badgeRef.value) {
     const rect = badgeRef.value.getBoundingClientRect();
     anchorRect.value = {
@@ -54,6 +60,7 @@ function openAuthorPopup() {
     };
   }
   showAuthorPopup.value = true;
+  closeCurrentPopup = () => { showAuthorPopup.value = false; };
 }
 
 function formatTime(totalMinutes) {
@@ -298,5 +305,45 @@ function formatCarbon(kg) {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px oklch(70.62% 0.139 158.37 / 25%);
   filter: brightness(1.02);
+}
+
+@media (max-width: 768px) {
+  .row-top {
+    flex-wrap: wrap;
+    white-space: normal;
+    row-gap: 0.5rem;
+    column-gap: 0.5rem;
+  }
+
+  .name-text {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .location {
+    width: 100%;
+    font-size: 0.82rem;
+  }
+
+  .location span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
+
+  .row-bottom {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .stats-grid {
+    width: 100%;
+  }
+
+  .details-btn {
+    width: 100%;
+    justify-content: center;
+  }
 }
 </style>

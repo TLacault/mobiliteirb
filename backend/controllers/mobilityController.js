@@ -1,5 +1,8 @@
 const { PrismaClient } = require("@prisma/client");
 const { getMobilityStats: calculateMobilityStats } = require("../utils/stats");
+const { getCoordinates } = require("../utils/emissionDatas");
+const { generateMobilityCsv } = require("../utils/exportCsv");
+const { generateMobilityPdfStyled } = require("../utils/exportPdfStyled");
 
 const prisma = new PrismaClient();
 
@@ -769,83 +772,29 @@ async function exportMobility(req, res) {
     if (mobility.userId !== userId)
       return res.status(403).json({ error: "Forbidden" });
 
-    if (mode === "pdf") {
-      try {
-        res.setHeader("Content-Type", "application/pdf");
-        res.setHeader(
-          "Content-Disposition",
-          `attachment; filename="mobility-${id}.pdf"`,
-        );
-
-        const pdfBuffer = await generateMobilityPdf(mobility);
-        return res.status(200).send(pdfBuffer);
-      } catch (pdfError) {
-        console.error("Error generating PDF:", pdfError);
-        return res.status(500).json({ error: "Failed to generate PDF" });
-      }
-    }
-
     if (mode === "csv") {
-      const escapeCsv = (value) => {
-        const str = String(value ?? "");
-        return `"${str.replace(/"/g, '""')}"`;
-      };
-
-      const rows = [
-        [
-          "mobilityId",
-          "mobilityName",
-          "year",
-          "startLocation",
-          "endLocation",
-          "tripId",
-          "tripName",
-          "tripIsSelected",
-          "stepOrder",
-          "transportMode",
-          "labelStart",
-          "labelEnd",
-          "distance",
-          "time",
-          "carbon",
-        ],
-      ];
-
-      (mobility.trips || []).forEach((trip) => {
-        (trip.steps || []).forEach((step) => {
-          rows.push([
-            mobility.id,
-            mobility.name,
-            mobility.year
-              ? new Date(mobility.year).toISOString().slice(0, 10)
-              : "",
-            mobility.startLocation,
-            mobility.endLocation,
-            trip.id,
-            trip.name,
-            trip.isSelected,
-            step.sequenceOrder,
-            step.transportMode,
-            step.labelStart,
-            step.labelEnd,
-            step.distance,
-            step.time,
-            step.carbon,
-          ]);
-        });
-      });
-
-      const csvContent = rows
-        .map((row) => row.map((cell) => escapeCsv(cell)).join(","))
-        .join("\n");
-
+      const csvContent = generateMobilityCsv(mobility);
       res.setHeader("Content-Type", "text/csv; charset=utf-8");
       res.setHeader(
         "Content-Disposition",
         `attachment; filename="mobility-${id}.csv"`,
       );
-
       return res.status(200).send(csvContent);
+    }
+
+    if (mode === "rapport") {
+      try {
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader(
+          "Content-Disposition",
+          `attachment; filename="Synthese_Mobilite_${id}.pdf"`,
+        );
+        const pdfBuffer = await generateMobilityPdfStyled(mobility);
+        return res.status(200).send(pdfBuffer);
+      } catch (pdfError) {
+        console.error("Error generating styled PDF:", pdfError);
+        return res.status(500).json({ error: "Failed to generate PDF" });
+      }
     }
 
     res.json(mobility);
@@ -856,242 +805,131 @@ async function exportMobility(req, res) {
 }
 
 /**
- * Generates a PDF buffer from mobility data
- * @async
- * @function generateMobilityPdf
- * @param {Object} mobility - The mobility object containing data to be converted to PDF
- * @returns {Promise<Buffer>} A Promise that resolves to a PDF buffer
- * @throws {Error} May throw an error if PDF generation fails
- * @example
- * const pdfBuffer = await generateMobilityPdf(mobility);
+ * Geocode a batch of unique place labels in parallel (with concurrency cap).
+ * Uses Google Geocoding API (via getCoordinates) — no rate-limit unlike Nominatim.
+ * @param {Set<string>} labels
+ * @param {number} concurrency - max simultaneous requests
+ * @returns {Promise<Map<string, {lat: number, lng: number}>>}
  */
-async function generateMobilityPdf(mobility) {
-  const pageWidth = 595.28;
-  const pageHeight = 841.89;
-  const margin = 42;
-  const fontSize = 11;
-  const lineHeight = 12;
-  const maxCharsPerLine = 96;
-  const linesPerPage = Math.floor((pageHeight - margin * 2) / lineHeight);
+async function batchGeocode(labels, concurrency = 8) {
+  const coordsMap = new Map();
+  const labelArr = [...labels];
 
-  function normalizePdfText(value) {
-    const text = String(value ?? "");
-    return text
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/\\/g, "\\\\")
-      .replace(/\(/g, "\\(")
-      .replace(/\)/g, "\\)")
-      .replace(/\r?\n/g, " ")
-      .replace(/[^\x20-\x7E]/g, "?");
-  }
-
-  function wrapPdfText(value, maxLength) {
-    const words = normalizePdfText(value)
-      .replace(/\t/g, "    ")
-      .split(/\s+/)
-      .filter(Boolean);
-    if (words.length === 0) return [""];
-
-    const lines = [];
-    let currentLine = "";
-
-    words.forEach((word) => {
-      if (word.length > maxLength) {
-        if (currentLine) {
-          lines.push(currentLine);
-          currentLine = "";
-        }
-
-        for (let index = 0; index < word.length; index += maxLength) {
-          lines.push(word.slice(index, index + maxLength));
-        }
-        return;
-      }
-
-      const candidate = currentLine ? `${currentLine} ${word}` : word;
-      if (candidate.length > maxLength) {
-        if (currentLine) lines.push(currentLine);
-        currentLine = word;
-      } else {
-        currentLine = candidate;
-      }
-    });
-
-    if (currentLine) lines.push(currentLine);
-    return lines.length > 0 ? lines : [""];
-  }
-
-  function addTitle(lines, text) {
-    lines.push({
-      text: text.toUpperCase(),
-      size: 18,
-      isBold: true,
-      indent: 0,
-      spacing: 20,
-    });
-  }
-
-  function addSubtitle(lines, text) {
-    lines.push({ text, size: 13, isBold: true, indent: 0, spacing: 15 });
-  }
-
-  function addBody(lines, text, indent = 0) {
-    const rawParts = String(text ?? "").split(/\r?\n/);
-    rawParts.forEach((part) => {
-      const wrapped = wrapPdfText(part, maxCharsPerLine - indent / 5);
-      wrapped.forEach((l) =>
-        lines.push({ text: l, size: 10, isBold: false, indent, spacing: 12 }),
-      );
-    });
-  }
-
-  function addSpacer(lines, count = 1) {
-    for (let index = 0; index < count; index += 1) {
-      lines.push({ text: "", size: 10, isBold: false, indent: 0, spacing: 10 });
-    }
-  }
-
-  function formatWholeNumber(value) {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? String(Math.round(parsed)) : "-";
-  }
-
-  function formatTime(value) {
-    const parsed = Number(value);
-    if (!Number.isFinite(parsed) || parsed < 0) return "-";
-    const hours = Math.floor(parsed / 60);
-    const minutes = Math.round(parsed % 60);
-    return `${hours > 0 ? `${hours}h ` : ""}${minutes}min`;
-  }
-
-  function buildPdfLines() {
-    const lines = [];
-
-    addTitle(lines, mobility.name || "RAPPORT DE MOBILITÉ");
-    lines.push({
-      text: "________________________________________________",
-      size: 10,
-      indent: 0,
-      spacing: 5,
-    });
-
-    addSpacer(lines, 2);
-
-    // INFOS GÉNÉRALES
-    addSubtitle(lines, "Détails de la mission");
-    if (mobility.startLocation)
-      addBody(lines, `Départ : ${mobility.startLocation}`, 10);
-    if (mobility.endLocation)
-      addBody(lines, `Arrivée : ${mobility.endLocation}`, 10);
-
-    addSpacer(lines, 2);
-
-    // TRAJETS
-    (mobility.trips || []).forEach((trip, i) => {
-      addSubtitle(lines, `Trajet ${i + 1} : ${trip.name || "Sans nom"}`);
-      addSpacer(lines, 1);
-
-      (trip.steps || []).forEach((step) => {
-        const info = `${step.transportMode} | ${formatWholeNumber(
-          step.distance,
-        )}km | ${formatWholeNumber(step.carbon)}kg CO2 | ${formatTime(
-          step.time,
-        )}`;
-        addBody(lines, `- ${step.labelStart} => ${step.labelEnd}`, 20);
-        addBody(lines, `  [ ${info} ]`, 30);
-        addSpacer(lines, 1);
-      });
-      addSpacer(lines, 1);
-    });
-
-    return lines;
-  }
-
-  function buildPdfPageContent(pageLines) {
-    const commands = ["BT"];
-    let currentY = pageHeight - margin;
-
-    pageLines.forEach((lineObj) => {
-      const safeLine =
-        typeof lineObj === "string"
-          ? { text: lineObj, size: 10, isBold: false, indent: 0, spacing: 10 }
-          : lineObj;
-      const { text, size, isBold, indent, spacing } = safeLine;
-
-      currentY -= spacing;
-
-      const font = isBold ? `/F1 ${size} Tf` : `/F1 ${size} Tf`;
-
-      commands.push(`${font}`);
-      commands.push(`1 0 0 1 ${margin + indent} ${currentY} Tm`);
-      commands.push(`(${normalizePdfText(text)}) Tj`);
-    });
-
-    commands.push("ET");
-    return commands.join("\n");
-  }
-
-  function buildPdfBuffer(lines) {
-    const pages = [];
-    for (let index = 0; index < lines.length; index += linesPerPage) {
-      pages.push(lines.slice(index, index + linesPerPage));
-    }
-
-    const objects = [];
-    objects.push("<< /Type /Catalog /Pages 2 0 R >>");
-    const pageObjectIds = Array.from(
-      { length: pages.length },
-      (_, index) => 4 + index * 2,
+  for (let i = 0; i < labelArr.length; i += concurrency) {
+    const batch = labelArr.slice(i, i + concurrency);
+    const results = await Promise.allSettled(
+      batch.map(async (label) => {
+        const coords = await getCoordinates(label);
+        return { label, coords };
+      }),
     );
-    objects.push(
-      `<< /Type /Pages /Kids [${pageObjectIds
-        .map((id) => `${id} 0 R`)
-        .join(" ")}] /Count ${pages.length} >>`,
-    );
-    objects.push("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>");
-
-    pages.forEach((pageLines, index) => {
-      const pageObjectId = 4 + index * 2;
-      const contentObjectId = pageObjectId + 1;
-      const contentStream = buildPdfPageContent(pageLines);
-      const contentLength = Buffer.byteLength(contentStream, "ascii");
-
-      objects.push(
-        `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageWidth.toFixed(
-          2,
-        )} ${pageHeight.toFixed(
-          2,
-        )}] /Resources << /Font << /F1 3 0 R >> >> /Contents ${contentObjectId} 0 R >>`,
-      );
-      objects.push(
-        `<< /Length ${contentLength} >>\nstream\n${contentStream}\nendstream`,
-      );
-    });
-
-    let pdf = "%PDF-1.4\n";
-    const offsets = [0];
-
-    objects.forEach((body, index) => {
-      const objectId = index + 1;
-      offsets.push(Buffer.byteLength(pdf, "ascii"));
-      pdf += `${objectId} 0 obj\n${body}\nendobj\n`;
-    });
-
-    const xrefOffset = Buffer.byteLength(pdf, "ascii");
-    pdf += `xref\n0 ${objects.length + 1}\n`;
-    pdf += "0000000000 65535 f \n";
-    for (let index = 1; index < offsets.length; index += 1) {
-      pdf += `${String(offsets[index]).padStart(10, "0")} 00000 n \n`;
+    for (const r of results) {
+      if (r.status === "fulfilled" && r.value.coords) {
+        coordsMap.set(r.value.label, r.value.coords);
+      }
     }
-    pdf += `trailer\n<< /Size ${
-      objects.length + 1
-    } /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF\n`;
-
-    return Buffer.from(pdf, "ascii");
   }
 
-  return buildPdfBuffer(buildPdfLines());
+  return coordsMap;
+}
+
+/**
+ * GET /api/v1/mobilities/:id/globe
+ * Returns all trips/steps with GPS coordinates (lat/lng).
+ * For steps missing PostGIS data, geocodes via Google API in parallel and persists the results.
+ */
+async function getMobilityGlobeData(req, res) {
+  try {
+    const { id: mobilityId } = req.params;
+    const userId = req.user.id;
+    const isPreview = req.query.preview === "true";
+
+    const mobility = await prisma.mobility.findUnique({
+      where: { id: mobilityId },
+      select: { userId: true },
+    });
+
+    if (!mobility) {
+      return res.status(404).json({ error: "Mobility not found" });
+    }
+
+    if (mobility.userId !== userId && !isPreview) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    // Fetch all trips
+    const trips = await prisma.trip.findMany({
+      where: { mobilityId },
+      select: { id: true, name: true },
+      orderBy: { id: "asc" },
+    });
+
+    // Fetch steps with PostGIS coordinates for each trip
+    const tripsWithSteps = await Promise.all(
+      trips.map(async (trip) => {
+        const steps = await prisma.$queryRaw`
+          SELECT
+            id,
+            label_start      AS "labelStart",
+            label_end        AS "labelEnd",
+            sequence_order   AS "sequenceOrder",
+            ST_Y(point_start) AS "startLat",
+            ST_X(point_start) AS "startLng",
+            ST_Y(point_end)   AS "endLat",
+            ST_X(point_end)   AS "endLng"
+          FROM steps
+          WHERE id_trip = ${trip.id}
+          ORDER BY sequence_order ASC
+        `;
+        return { ...trip, steps };
+      }),
+    );
+
+    // Collect unique labels missing GPS data
+    const labelsToGeocode = new Set();
+    for (const trip of tripsWithSteps) {
+      for (const s of trip.steps) {
+        if (s.labelStart && s.startLat === null)
+          labelsToGeocode.add(s.labelStart);
+        if (s.labelEnd && s.endLat === null) labelsToGeocode.add(s.labelEnd);
+      }
+    }
+
+    if (labelsToGeocode.size > 0) {
+      const coordsMap = await batchGeocode(labelsToGeocode);
+
+      // Persist GPS points and update in-memory objects simultaneously
+      await Promise.allSettled(
+        tripsWithSteps.flatMap((trip) =>
+          trip.steps
+            .filter((s) => s.startLat === null && s.labelStart && s.labelEnd)
+            .map(async (step) => {
+              const startCoords = coordsMap.get(step.labelStart);
+              const endCoords = coordsMap.get(step.labelEnd);
+              if (!startCoords || !endCoords) return;
+
+              await prisma.$executeRaw`
+                UPDATE steps
+                SET point_start = ST_SetSRID(ST_MakePoint(${startCoords.lng}, ${startCoords.lat}), 4326),
+                    point_end   = ST_SetSRID(ST_MakePoint(${endCoords.lng}, ${endCoords.lat}), 4326)
+                WHERE id = ${step.id}
+              `;
+
+              // Reflect updated coords in the response
+              step.startLat = startCoords.lat;
+              step.startLng = startCoords.lng;
+              step.endLat = endCoords.lat;
+              step.endLng = endCoords.lng;
+            }),
+        ),
+      );
+    }
+
+    res.json({ trips: tripsWithSteps });
+  } catch (error) {
+    console.error("Error fetching globe data:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
 }
 
 module.exports = {
@@ -1099,6 +937,7 @@ module.exports = {
   searchMobilty,
   getMobility,
   getMobilityStats,
+  getMobilityGlobeData,
   createMobility,
   deleteMobility,
   updateMobility,

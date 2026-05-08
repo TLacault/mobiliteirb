@@ -10,41 +10,47 @@ import { ref } from "vue";
  * @returns {Promise<Array>}
  */
 
-export async function fetchCitySuggestions(input, apiKey) {
+export async function fetchCitySuggestions(input) {
   if (!input || input.length < 2) {
     return [];
   }
 
-  if (!apiKey) {
-    throw new Error("Missing NUXT_PUBLIC_GMAPS_API_KEY runtime config");
-  }
-
   try {
-    const response = await $fetch(
-      "https://places.googleapis.com/v1/places:autocomplete",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Goog-Api-Key": apiKey,
-          "X-Goog-FieldMask":
-            "suggestions.placePrediction.placeId,suggestions.placePrediction.text.text,suggestions.placePrediction.structuredFormat.mainText.text,suggestions.placePrediction.structuredFormat.secondaryText.text",
-        },
-        body: {
-          input: input.trim(),
-          languageCode: "fr",
-          includedPrimaryTypes: ["(cities)"],
-        },
-      },
-    );
+    const response = await $fetch("/api/v1/places/autocomplete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: { input: input.trim() },
+    });
+
+    const extractText = (value) => {
+      if (typeof value === "string") return value.trim();
+      if (value && typeof value.text === "string") return value.text.trim();
+      return "";
+    };
 
     const suggestions = (response?.suggestions ?? [])
       .map(({ placePrediction }) => {
-        if (!placePrediction?.structuredFormat) return null;
-        const cityName = placePrediction.structuredFormat.mainText.text.trim();
-        const countryName =
-          placePrediction.structuredFormat.secondaryText.text.trim();
-        return { cityName, countryName };
+        if (!placePrediction) return null;
+
+        const structuredFormat = placePrediction.structuredFormat ?? {};
+        const cityName = extractText(structuredFormat.mainText);
+        const countryName = extractText(structuredFormat.secondaryText);
+
+        if (cityName && countryName) {
+          return { cityName, countryName };
+        }
+
+        const predictionText = extractText(placePrediction.text);
+        if (!predictionText) return null;
+
+        const [fallbackCity = "", ...rest] = predictionText
+          .split(",")
+          .map((part) => part.trim())
+          .filter(Boolean);
+        const fallbackCountry = rest.length ? rest[rest.length - 1] : "";
+
+        if (!fallbackCity || !fallbackCountry) return null;
+        return { cityName: fallbackCity, countryName: fallbackCountry };
       })
       .filter(Boolean)
       .filter((s) => s.cityName && s.countryName)
@@ -76,9 +82,6 @@ export function useCityAutocomplete() {
   const suggestionsNotEmpty = ref(false);
   const timer = ref(null);
 
-  const { public: publicConfig } = useRuntimeConfig();
-  const apiKey = publicConfig?.gmapsApiKey;
-
   async function fetchSuggestions(query) {
     const normalizedQuery = query.trim();
 
@@ -89,7 +92,7 @@ export function useCityAutocomplete() {
     }
 
     try {
-      const list = await fetchCitySuggestions(normalizedQuery, apiKey);
+      const list = await fetchCitySuggestions(normalizedQuery);
       suggestions.value = list;
       suggestionsNotEmpty.value = list.length > 0;
       return list;

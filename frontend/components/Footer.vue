@@ -237,4 +237,11 @@ import {
     background: oklch(70.62% 0.139 158.37 / 0.08);
   }
 }
+
+@media (max-width: 480px) {
+  .footer-links {
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+}
 </style>

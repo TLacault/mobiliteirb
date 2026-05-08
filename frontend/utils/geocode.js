@@ -58,24 +58,11 @@ async function _nominatimSearch(query) {
   lastRequestTime = Date.now();
 
   try {
-    const params = new URLSearchParams({
-      q: query,
-      format: "json",
-      limit: "1",
-      "accept-language": "fr",
-    });
-
-    const res = await fetch(
-      `https://nominatim.openstreetmap.org/search?${params}`,
-      {
-        headers: {
-          "User-Agent": "MobilitEirb/1.0 (student project)",
-        },
-      },
-    );
+    const params = new URLSearchParams({ q: query });
+    const res = await fetch(`/api/v1/places/geocode?${params}`);
 
     if (!res.ok) {
-      console.warn(`Nominatim returned ${res.status} for "${query}"`);
+      console.warn(`Nominatim proxy returned ${res.status} for "${query}"`);
       return null;
     }
 

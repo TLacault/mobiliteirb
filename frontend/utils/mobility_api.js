@@ -218,3 +218,23 @@ export async function exportMobility(id, mode) {
     throw error;
   }
 }
+
+/**
+ * Fetch globe data for a mobility: all trips/steps with GPS coordinates.
+ * Missing PostGIS points are geocoded and persisted server-side before returning.
+ * @param {string} id - Mobility ID
+ * @param {boolean} [preview] - If true, skip ownership check
+ * @returns {Promise<{ trips: Array<{ id: string, name: string, steps: Array }> }>}
+ */
+export async function getMobilityGlobeData(id, preview = false) {
+  if (!id) throw new Error("id is required");
+  try {
+    const params = preview ? "?preview=true" : "";
+    return await authenticatedFetch(
+      `${API_BASE}/mobilities/${id}/globe${params}`,
+    );
+  } catch (error) {
+    console.error(`Error fetching globe data for mobility ${id}:`, error);
+    throw error;
+  }
+}

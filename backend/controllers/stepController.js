@@ -1,6 +1,6 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
-const { getStepEstimation } = require("../utils/emissionDatas");
+const { getStepEstimation, getCoordinates } = require("../utils/emissionDatas");
 
 function isMissingStepTimeColumnError(error) {
   if (!error || error.code !== "P2022") return false;
@@ -337,42 +337,49 @@ async function updateStep(req, res) {
       return res.status(403).json({ error: "Forbidden" });
     }
 
-    const { labelStart, labelEnd, transportMode, metadata, sequenceOrder } = req.body;
-    
+    const { labelStart, labelEnd, transportMode, metadata, sequenceOrder } =
+      req.body;
+
     let updateData = {
       labelStart: labelStart !== undefined ? labelStart : step.labelStart,
       labelEnd: labelEnd !== undefined ? labelEnd : step.labelEnd,
-      transportMode: transportMode !== undefined ? transportMode : step.transportMode,
+      transportMode:
+        transportMode !== undefined ? transportMode : step.transportMode,
       metadata: metadata !== undefined ? metadata : step.metadata,
-      sequenceOrder: sequenceOrder !== undefined ? sequenceOrder : step.sequenceOrder
+      sequenceOrder:
+        sequenceOrder !== undefined ? sequenceOrder : step.sequenceOrder,
     };
 
     const hasNewInput = labelStart || labelEnd || transportMode;
-    const hasRequiredData = updateData.labelStart && updateData.labelEnd && updateData.transportMode;
+    const hasRequiredData =
+      updateData.labelStart && updateData.labelEnd && updateData.transportMode;
+
+    let estimationError = null;
 
     if (hasRequiredData && hasNewInput) {
       try {
         const estimation = await getStepEstimation({
           origin: updateData.labelStart,
           destination: updateData.labelEnd,
-          transportMode: updateData.transportMode
+          transportMode: updateData.transportMode,
         });
         updateData.carbon = estimation.carbon;
         updateData.distance = estimation.distance;
         updateData.time = estimation.time;
       } catch (err) {
-        console.error("Error during estimation:", err.message);
-        return res.status(400).json({ 
-          error: "Erreur lors du calcul",
-          details: err.message 
-        });
-      }      
+        estimationError = err.message;
+        console.error("Estimation failed:", err.message);
+        // Reset stale stats so the frontend shows "—" instead of old values
+        updateData.carbon = null;
+        updateData.distance = null;
+        updateData.time = null;
+      }
     }
 
     const updated = await prisma.step.update({
       where: { id: stepId },
       data: updateData,
-      select: { 
+      select: {
         id: true,
         labelStart: true,
         labelEnd: true,
@@ -380,10 +387,34 @@ async function updateStep(req, res) {
         carbon: true,
         distance: true,
         time: true,
-        metadata: true
+        metadata: true,
       },
     });
-    res.json({ id: updated.id, ...updated });
+
+    // Store GPS points in PostGIS (non-blocking — does not affect the response)
+    if (updateData.labelStart && updateData.labelEnd) {
+      Promise.all([
+        getCoordinates(updateData.labelStart),
+        getCoordinates(updateData.labelEnd),
+      ])
+        .then(
+          ([startCoords, endCoords]) =>
+            prisma.$executeRaw`
+            UPDATE steps
+            SET point_start = ST_SetSRID(ST_MakePoint(${startCoords.lng}, ${startCoords.lat}), 4326),
+                point_end   = ST_SetSRID(ST_MakePoint(${endCoords.lng}, ${endCoords.lat}), 4326)
+            WHERE id = ${stepId}
+          `,
+        )
+        .catch((geoErr) =>
+          console.warn(
+            `GPS point storage failed for step ${stepId}:`,
+            geoErr.message,
+          ),
+        );
+    }
+
+    res.json({ id: updated.id, ...updated, estimationError });
   } catch (error) {
     console.error("Error updating step:", error);
     res.status(500).json({ error: "Internal server error" });

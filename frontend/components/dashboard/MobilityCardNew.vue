@@ -92,4 +92,16 @@ async function createNewMobilite(form) {
     background-color: var(--tertiary);
   }
 }
+
+@media (max-width: 600px) {
+  .card-container {
+    height: auto;
+    min-height: 200px;
+    padding: 1.75rem 1rem;
+  }
+
+  .card-title {
+    font-size: 1.05rem;
+  }
+}
 </style>

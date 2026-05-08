@@ -183,7 +183,7 @@ async function deleteMobilite(uuid) {
 
 .card-container {
   flex-wrap: wrap;
-  max-width: 500px;
+  max-width: 550px;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -231,7 +231,6 @@ async function deleteMobilite(uuid) {
 .stats-section {
   display: flex;
   gap: 0.4rem;
-  flex-wrap: wrap;
   justify-content: flex-start;
 }
 
@@ -346,5 +345,32 @@ async function deleteMobilite(uuid) {
 
 .date-value {
   padding: 0.2rem 1.1rem;
+}
+
+@media (max-width: 600px) {
+  .card-container {
+    padding: 1rem 1.1rem;
+    gap: 0.85rem;
+  }
+
+  .trash-button {
+    top: 1rem;
+    right: 1rem;
+  }
+
+  .stats-section {
+    flex-wrap: wrap;
+  }
+
+  .footer-section {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    width: 100%;
+  }
+
+  .modifier-btn {
+    flex: 1;
+    justify-content: center;
+  }
 }
 </style>

@@ -65,4 +65,10 @@ p {
   opacity: 0.7;
   font-size: 1.1rem;
 }
+
+@media (max-width: 768px) {
+  .page {
+    gap: 4rem;
+  }
+}
 </style>
