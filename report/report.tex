@@ -193,6 +193,45 @@ Le besoin initial peut être résumé ainsi :
 Ce rapport se concentre sur les \textbf{choix techniques}, les \textbf{arbitrages d'implémentation} et la \textbf{méthode de calcul} mis en œuvre. Il décrit comment nous sommes passés du besoin exprimé à une solution déployée et opérationnelle, en explicitant les décisions prises, les difficultés rencontrées et les compromis effectués.
 
 % ------------------------------------------------------------
+\section{Organisation générale}
+% ------------------------------------------------------------
+
+Pour mener à bien ce projet en équipe, nous avons mis en place une méthodologie de travail rigoureuse, centralisée sur GitHub. Cette approche nous a permis de fluidifier la collaboration, de répartir les tâches efficacement et de maintenir un contrôle strict sur la qualité du code.
+
+\subsection{Gestion de projet avec GitHub}
+
+Le suivi des tâches a été entièrement géré via \textbf{GitHub Projects} grâce à un tableau de type Kanban. Dans un premier temps, nous avons découpé le cahier des charges établi avec le client en \textbf{issues} détaillées, chacune correspondant à une fonctionnalité ou un composant spécifique de l'application (ex. : \og Authentification via EirbConnect\fg{}, \og Intégration Google Routes API\fg{}, \og Export PDF\fg{}). Ces issues ont été organisées en colonnes représentant les différentes phases du développement : \texttt{Backlog}, \texttt{To Do}, \texttt{In Progress}, \texttt{Review}, \texttt{Done}.
+
+\subsection{Git Workflow et branches}
+
+Afin d'éviter les conflits et de garantir un code fonctionnel à tout instant, nous avons adopté un \textbf{Gitflow simplifié}. 
+
+Les développements se font sur des branches dédiées créées depuis la branche \texttt{develop} et nommées selon le format \texttt{feat/description} (ex. : \texttt{feat/auth-eirbconnect}). Pour corriger un problème ou apporter une modification liée à de la configuration, nous utilisons des branches \texttt{fix/description} ou \texttt{chore/description}.
+
+Une fois une fonctionnalité terminée, elle est fusionnée dans la branche \textbf{d'intégration} \texttt{develop} où toutes les nouvelles fonctionnalités sont testées ensemble.
+
+Enfin, la branche \texttt{main} est considérée comme la version stable, fonctionnelle et déployée de l'application. Il s'agit de la branche de \textbf{production}. Toute modification doit passer par une pull request validée.
+
+\subsection{Convention de commit et traçabilité}
+
+Pour conserver un historique de projet lisible, clair et exploitable, nous avons adopté la spécification \textbf{Conventional Commits}.
+
+Chaque message de commit obéit à la structure stricte suivante :
+\begin{center}
+\texttt{TYPE(scope): description courte}
+\end{center}
+
+Les types autorisés permettaient de catégoriser la nature de la modification :
+\begin{itemize}
+  \item \textbf{\texttt{feat}} : ajout d'une nouvelle fonctionnalité (ex. \texttt{feat(api): added distance calculation}) ;
+  \item \textbf{\texttt{fix}} : correction d'un bug (ex. \texttt{fix(auth): fixed 500 error on login}) ;
+  \item \textbf{\texttt{chore}} : tâches de maintenance, configuration ou dépendances n'affectant pas le code logique ;
+  \item \textbf{\texttt{docs}}, \textbf{\texttt{style}}, \textbf{\texttt{refactor}} : respectivement pour la documentation, le formatage visuel et le remaniement de code.
+\end{itemize}
+
+Finalement, l'ajout optionnel mais recommandé de la référence à l'issue GitHub (\texttt{ref \#numero}) permettait de lier directement le code produit à la tâche Kanban correspondante.
+
+% ------------------------------------------------------------
 \section{Architecture retenue}
 % ------------------------------------------------------------
 
