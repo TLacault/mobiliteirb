@@ -1,45 +1,601 @@
+% ============================================================
+%  Mobilit'Eirb — Rapport de PFA  |  Semestre 8 — 2025/2026
+% ============================================================
 \documentclass[11pt,a4paper]{article}
+
+% ----- Encodage & langue -----
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[french]{babel}
+
+% ----- Typographie -----
 \usepackage{lmodern}
 \usepackage{microtype}
-\usepackage{geometry}
-\geometry{margin=2.5cm}
+\usepackage{setspace}
+\setstretch{1.15}
+
+% ----- Mise en page -----
+\usepackage[
+  top=2.5cm, bottom=2.5cm,
+  left=3cm,  right=2.5cm,
+  headheight=22pt
+]{geometry}
+
+% ----- Couleurs -----
+\usepackage[dvipsnames,svgnames,x11names]{xcolor}
+\definecolor{accent}{HTML}{2E7D32}       % vert foncé
+\definecolor{accentlight}{HTML}{E8F5E9}  % vert très pâle
+\definecolor{accentmid}{HTML}{A5D6A7}    % vert moyen
+\definecolor{darkgray}{HTML}{37474F}
+\definecolor{midgray}{HTML}{78909C}
+\definecolor{codebg}{HTML}{F5F5F5}
+\definecolor{linkteal}{HTML}{00695C}
+
+% ----- Liens -----
+\usepackage[colorlinks=true,
+            linkcolor=accent,
+            urlcolor=linkteal,
+            citecolor=accent]{hyperref}
+
+% ----- En-têtes et pieds de page -----
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{midgray}Mobilit'Eirb — Rapport PFA}
+\fancyhead[R]{\small\color{midgray}Semestre 8 — 2025/2026}
+\fancyfoot[C]{\small\color{midgray}\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{accentmid}\leaders\hrule height \headrulewidth\hfill}}
+
+% ----- Titres de sections -----
+\usepackage{titlesec}
+\titleformat{\section}
+  {\large\bfseries\color{accent}}
+  {\thesection.}{0.6em}{}
+  [\vspace{-0.4em}{\color{accentmid}\rule{\linewidth}{1.2pt}}]
+\titleformat{\subsection}
+  {\normalsize\bfseries\color{darkgray}}
+  {\thesubsection.}{0.5em}{}
+\titleformat{\subsubsection}
+  {\normalsize\itshape\color{darkgray}}
+  {\thesubsubsection.}{0.5em}{}
+
+% ----- Boîtes colorées -----
+\usepackage[most]{tcolorbox}
+\tcbuselibrary{listings,breakable}
+
+\newtcolorbox{infobox}[1][]{
+  colback=accentlight, colframe=accent,
+  fonttitle=\bfseries\small,
+  left=4pt, right=4pt, top=4pt, bottom=4pt,
+  boxrule=0.6pt, arc=3pt,
+  #1
+}
+
+\newtcolorbox{warnbox}[1][]{
+  colback=Cornsilk, colframe=Goldenrod!70!black,
+  fonttitle=\bfseries\small,
+  left=4pt, right=4pt, top=4pt, bottom=4pt,
+  boxrule=0.6pt, arc=3pt,
+  #1
+}
+
+% ----- Code -----
+\usepackage{listings}
+\lstdefinestyle{codestyle}{
+  backgroundcolor=\color{codebg},
+  basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\color{accent}\bfseries,
+  stringstyle=\color{Maroon},
+  commentstyle=\color{midgray}\itshape,
+  numberstyle=\tiny\color{midgray},
+  numbers=left, numbersep=8pt,
+  breaklines=true,
+  frame=single, framerule=0.4pt,
+  framesep=4pt, rulecolor=\color{accentmid},
+  xleftmargin=12pt,
+  showstringspaces=false,
+  tabsize=2,
+  inputencoding=utf8,
+  extendedchars=true,
+  literate=
+    {é}{{\'{e}}}1 {è}{{\`{e}}}1 {ê}{{\^{e}}}1 {ë}{{\"e}}1
+    {à}{{\`{a}}}1 {â}{{\^{a}}}1 {ù}{{\`{u}}}1 {û}{{\^{u}}}1
+    {ô}{{\^{o}}}1 {î}{{\^{i}}}1 {ï}{{\"i}}1
+    {É}{{\'E}}1 {È}{{\`E}}1 {Ê}{{\^E}}1
+    {À}{{\`A}}1 {Â}{{\^A}}1 {Ù}{{\`U}}1
+    {Û}{{\^U}}1 {Ô}{{\^O}}1 {Î}{{\^I}}1
+    {ç}{{\c{c}}}1 {Ç}{{\c{C}}}1
+}
+\lstset{style=codestyle}
+
+% ----- Tableaux -----
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\renewcommand{\arraystretch}{1.25}
+
+% ----- Graphiques & flottants -----
 \usepackage{graphicx}
 \usepackage{float}
-\usepackage[hidelinks]{hyperref}
-\usepackage{listings}
+\usepackage{caption}
+\captionsetup{font=small,labelfont={bf,color=darkgray},labelsep=period}
+
+% ----- Divers -----
+\usepackage{enumitem}
+\setlist[itemize]{leftmargin=1.5em, itemsep=2pt}
+\setlist[enumerate]{leftmargin=1.5em, itemsep=2pt}
 \usepackage{amsmath}
+\usepackage{parskip}
+\setlength{\parskip}{0.5em}
 
-\title{RAPPORT \\ - \\ Projet de fin d'année (PFA) \\ - \\ Mobiliteirb \\ Évaluation du coût Co2eq de la mobilité des élèves ingénieurs}
-\author{Tim Lacault \\ Margaux Lopez \\ Mano Domingo \\ Yoann Moresco \\Eve Turchet}
-\date{Semestre 8 - 2025/2026}
+% ============================================================
+%  PAGE DE TITRE PERSONNALISÉE
+% ============================================================
+\newcommand{\maketitlepage}{%
+  \begin{titlepage}
+    \pagecolor{accent}
+    \color{white}
+    \vspace*{3cm}
+    \begin{center}
+      {\fontsize{9pt}{11pt}\selectfont\MakeUppercase{Projet de Fin d'Année --- ENSEIRB-MATMECA}}\\[0.6cm]
+      {\fontsize{36pt}{40pt}\selectfont\bfseries Mobilit'Eirb}\\[0.3cm]
+      {\fontsize{13pt}{16pt}\selectfont\color{accentmid}
+        Évaluation du coût CO\textsubscript{2}eq\\[0.1cm]
+        de la mobilité des élèves ingénieurs}\\[2.5cm]
+      \textcolor{accentmid}{\rule{6cm}{0.6pt}}\\[1.2cm]
+      {\large
+        Tim Lacault \quad$\cdot$\quad Margaux Lopez\\[0.3cm]
+        Mano Domingo \quad$\cdot$\quad Yoann Moresco \quad$\cdot$\quad Eve Turchet}\\[2.5cm]
+      \textcolor{accentmid}{\rule{6cm}{0.6pt}}\\[0.8cm]
+      {\normalsize Semestre 8 — 2025/2026}
+    \end{center}
+    \vfill
+  \end{titlepage}
+  \nopagecolor
+}
 
-\graphicspath{./img/}
-
+% ============================================================
+%  DOCUMENT
+% ============================================================
 \begin{document}
-\maketitle
+
+\maketitlepage
+
 \newpage
 \renewcommand{\contentsname}{Table des matières}
-\tableofcontents
+{
+  \hypersetup{linkcolor=darkgray}
+  \tableofcontents
+}
 \newpage
 
-\section{Introduction} 
-% contexte du projet 
+% ------------------------------------------------------------
+\section{Introduction}
+% ------------------------------------------------------------
 
-\section{Fonctionnement de l'application}
+\textbf{Mobilit'Eirb} est une application web développée dans le cadre du Projet de Fin d'Année du semestre 8 à l'ENSEIRB-MATMECA. Son objectif est de permettre aux étudiants de l'école de mesurer et de visualiser l'empreinte carbone de leurs mobilités académiques : semestres à l'étranger, stages, périodes de projet hors site.
 
-\section{Architecture du projet}
+\subsection{Contexte et besoin initial}
 
-\section{Outils utilisés}
+L'école souhaite mieux comprendre l'impact environnemental des déplacements de ses élèves dans le cadre de leurs cursus. Il n'existait pas d'outil adapté permettant, d'un côté, à chaque étudiant de documenter ses trajets de mobilité et, de l'autre, à l'administration d'agréger ces données pour produire un bilan carbone.
 
+Le besoin initial peut être résumé ainsi :
+\begin{itemize}
+  \item permettre à chaque étudiant de saisir ses trajets de mobilité (départ, arrivée, mode de transport, étapes) ;
+  \item calculer automatiquement les émissions CO\textsubscript{2} associées à chaque étape du trajet ;
+  \item permettre la comparaison de plusieurs alternatives de trajet pour un même déplacement ;
+  \item offrir à l'école une vue agrégée des données pour établir un bilan carbone annuel.
+\end{itemize}
+
+\subsection{Périmètre du rapport}
+
+Ce rapport se concentre sur les \textbf{choix techniques}, les \textbf{arbitrages d'implémentation} et la \textbf{méthode de calcul} mis en œuvre. Il décrit comment nous sommes passés du besoin exprimé à une solution déployée et opérationnelle, en explicitant les décisions prises, les difficultés rencontrées et les compromis effectués.
+
+% ------------------------------------------------------------
+\section{Architecture retenue}
+% ------------------------------------------------------------
+
+\subsection{Vue d'ensemble}
+
+L'application repose sur une architecture trois-tiers classique, entièrement conteneurisée via \textbf{Docker Compose}. Deux fichiers de configuration coexistent selon l'environnement.
+
+\medskip
+\noindent\textbf{Développement} (\texttt{docker-compose.yml}) — 4 services :
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Service} & \textbf{Rôle} & \textbf{Port} \\
+\midrule
+\texttt{frontend} & Nuxt 3 dev server (hot-reload) & 8080 \\
+\texttt{backend}  & Node.js + Express (nodemon)     & 3001 \\
+\texttt{db}       & PostgreSQL 15 + PostGIS          & 5432 \\
+\texttt{studio}   & Prisma Studio (exploration BDD)  & 5555 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent\textbf{Production} (\texttt{docker-compose.prod.yml}) — 3 services :
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Service} & \textbf{Rôle} & \textbf{Port exposé} \\
+\midrule
+\texttt{frontend} & Nginx servant les fichiers statiques Nuxt compilés & 10077 \\
+\texttt{backend}  & Image préconstruite (\texttt{registry.eirb.fr})     & — (réseau interne) \\
+\texttt{db}       & PostgreSQL 15 + PostGIS                              & — (réseau interne) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Les services communiquent sur un \textit{réseau privé Docker}. En production, seul le port 10077 est ouvert vers l'hôte ; le reverse proxy Eirbware gère le TLS et redirige le trafic HTTPS. Le service \texttt{studio} n'est présent qu'en développement.
+
+\subsection{Pourquoi cette stack ?}
+
+\subsubsection*{Nuxt 3 / Vue 3 (frontend)}
+
+Nuxt 3 a été choisi pour son écosystème mature (composables, routing, gestion d'état), sa compatibilité native avec Vue 3 et sa capacité à générer une application purement client-side (mode SPA). Ce dernier point s'est avéré déterminant, comme expliqué à la section~\ref{sec:ssr}.
+
+\subsubsection*{Node.js + Express (backend)}
+
+Express est un framework minimaliste et bien maîtrisé par l'équipe. Il offre une grande flexibilité pour structurer une API REST et s'intègre naturellement avec Prisma. Le choix de JavaScript/Node.js (plutôt que Python ou Go) a facilité le partage de conventions entre le frontend et le backend.
+
+\subsubsection*{PostgreSQL + PostGIS}
+
+PostgreSQL a été retenu pour sa robustesse et sa compatibilité avec l'extension \textbf{PostGIS}, qui permet le stockage natif de points géographiques (latitude/longitude) sous forme de géométries \texttt{geometry(Point, 4326)} en WGS84. Ce type de données est utilisé pour stocker les coordonnées de départ et d'arrivée de chaque étape.
+
+\subsubsection*{Prisma ORM}
+
+Prisma a été choisi pour sa génération de types TypeScript, son interface de migration déclarative et son studio web intégré (\texttt{Prisma Studio}) qui facilite la manipulation des données en développement. Son schéma déclaratif sert de source unique de vérité pour la structure de la base.
+
+\begin{infobox}[title={Infrastructure de production}]
+En production, l'application est déployée sur un VPS fourni par Eirbware. Le registre d'images Docker utilisé est \texttt{registry.eirb.fr/mobiliteirb/...}. Le déploiement est automatisé via \textbf{GitHub Actions} : chaque push sur \texttt{main} déclenche un build et un push des images ; la mise en production s'effectue ensuite via un simple \texttt{docker compose pull \&\& docker compose up -d} sur le serveur.
+\end{infobox}
+
+\subsection{Modèle de données}
+
+Le schéma relationnel repose sur quatre entités :
+
+\begin{itemize}
+  \item \textbf{User} — l'étudiant, identifié par son login CAS (\texttt{casLogin}) ;
+  \item \textbf{Mobility} — une mobilité académique (ex. : \og Erasmus Berlin 2025\fg{}), avec lieu de départ, lieu d'arrivée et année ;
+  \item \textbf{Trip} — un itinéraire alternatif au sein d'une mobilité (ex. : \og trajet en avion\fg{} vs. \og trajet en train\fg{}) ; un seul Trip peut être \og sélectionné\fg{} comme référence ;
+  \item \textbf{Step} — une étape élémentaire d'un trajet (ex. : Bordeaux $\to$ Paris en TGV), avec mode de transport, distance, durée et émissions CO\textsubscript{2}.
+\end{itemize}
+
+\begin{center}
+\begin{tabular}{p{2.8cm}p{9.5cm}}
+\toprule
+\textbf{Entité} & \textbf{Champs principaux} \\
+\midrule
+\texttt{User} & \texttt{id}, \texttt{casLogin} (unique), \texttt{email} \\
+\texttt{Mobility} & \texttt{id}, \texttt{name}, \texttt{year}, \texttt{startLocation}, \texttt{endLocation}, \texttt{isAnonymous} \\
+\texttt{Trip} & \texttt{id}, \texttt{name}, \texttt{isSelected} \\
+\texttt{Step} & \texttt{id}, \texttt{sequenceOrder}, \texttt{labelStart}, \texttt{labelEnd}, \texttt{pointStart/End} (PostGIS), \texttt{transportMode}, \texttt{distance}, \texttt{time}, \texttt{carbon} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Les suppressions sont en cascade (suppression d'une Mobility $\Rightarrow$ suppression de ses Trips $\Rightarrow$ de leurs Steps).
+
+% ------------------------------------------------------------
+\section{Authentification}
+% ------------------------------------------------------------
+
+\subsection{EirbConnect et OpenID Connect}
+
+Pour éviter la gestion de mots de passe, nous avons intégré \textbf{EirbConnect}, le fournisseur d'identité de l'école, via le protocole \textbf{OpenID Connect (OAuth 2.0)}.
+
+Le flux est le suivant :
+\begin{enumerate}
+  \item L'utilisateur clique sur \og Se connecter\fg{} ; l'application redirige vers \texttt{connect.vpn.eirb.fr} avec un paramètre \texttt{state} aléatoire anti-CSRF.
+  \item Après authentification, EirbConnect redirige vers \texttt{/auth/callback?code=...}.
+  \item Le frontend échange le code contre un \textit{access token} JWT et les informations utilisateur (login CAS, email, prénom, nom).
+  \item Le JWT est transmis dans le header \texttt{Authorization: Bearer ...} à chaque requête API.
+  \item Le backend valide le token et extrait l'identité de l'utilisateur via un middleware dédié.
+\end{enumerate}
+
+\subsection{Contrôle d'accès par utilisateur}
+
+Chaque ressource (mobilité, trajet, étape) appartient à un utilisateur identifié par son \texttt{id} extrait du JWT. Toutes les routes de l'API vérifient, avant toute opération de lecture, modification ou suppression, que l'utilisateur authentifié est bien le propriétaire de la ressource. La seule exception est la recherche publique (\texttt{/mobilities/searchMobilty}), qui expose en lecture seule les mobilités non anonymes de l'ensemble des utilisateurs.
+
+\subsection{Anonymisation}
+
+Chaque mobilité peut être marquée \texttt{isAnonymous}. Dans ce cas, les informations d'identité de l'auteur sont masquées dans toutes les réponses API, y compris dans les résultats de la recherche publique.
+
+% ------------------------------------------------------------
+\section{API REST}
+% ------------------------------------------------------------
+
+L'API est de type \textbf{REST} : les ressources sont accessibles via des URL hiérarchiques (\texttt{/api/v1/...}), les opérations sont portées par les verbes HTTP standards, et les filtres ou options sont transmis en \textbf{query parameters}. Toutes les routes nécessitent un JWT valide dans le header \texttt{Authorization: Bearer ...}. La documentation est générée par \textbf{swagger-jsdoc} à partir d'annotations \texttt{@openapi} directement dans les fichiers de routes, et exposée à \texttt{/api/docs}.
+
+\subsection{Mobilités}
+
+La mobilité est la ressource racine. Les listes sont toujours filtrées sur l'utilisateur authentifié.
+
+\begin{center}
+\begin{tabularx}{\linewidth}{llX}
+\toprule
+\textbf{Méthode} & \textbf{Route} & \textbf{Description} \\
+\midrule
+GET    & \texttt{/mobilities}               & Liste des mobilités de l'utilisateur \\
+POST   & \texttt{/mobilities}               & Créer une mobilité \\
+GET    & \texttt{/mobilities/:id}           & Détail \\
+PATCH  & \texttt{/mobilities/:id}           & Modifier (nom, année, lieux, anonymat) \\
+DELETE & \texttt{/mobilities/:id}           & Supprimer (cascade trajets et étapes) \\
+GET    & \texttt{/mobilities/:id/stats}     & Statistiques du trajet sélectionné \\
+POST   & \texttt{/mobilities/:id/duplicate} & Dupliquer avec ses trajets et étapes \\
+GET    & \texttt{/mobilities/:id/export}    & Export — \texttt{?mode=json|csv|pdf} \\
+GET    & \texttt{/mobilities/searchMobilty} & Recherche publique (voir §\ref{sec:recherche}) \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{Trajets}
+
+Un trajet est un itinéraire alternatif au sein d'une mobilité. Un seul trajet par mobilité peut être marqué \texttt{isSelected = true} ; le passer à \texttt{true} désélectionne automatiquement les autres.
+
+\begin{center}
+\begin{tabularx}{\linewidth}{llX}
+\toprule
+\textbf{Méthode} & \textbf{Route} & \textbf{Description} \\
+\midrule
+GET    & \texttt{/mobilities/:id/trips} & Lister les trajets — \texttt{?order=emissions\_desc|...} \\
+POST   & \texttt{/mobilities/:id/trips} & Créer un trajet \\
+GET    & \texttt{/trips/:id}            & Détail \\
+GET    & \texttt{/trips/:id/stats}      & Statistiques (CO\textsubscript{2}, distance, durée, nb étapes) \\
+PATCH  & \texttt{/trips/:id}            & Modifier — nom ou \texttt{isSelected} \\
+DELETE & \texttt{/trips/:id}            & Supprimer \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{Étapes}
+
+Une étape est créée vide (sans corps), puis renseignée progressivement. Le calcul de distance, durée et émissions est déclenché automatiquement lors du \texttt{PATCH} dès que \texttt{labelStart}, \texttt{labelEnd} et \texttt{transportMode} sont tous présents (voir section~\ref{sec:calcul}).
+
+\begin{center}
+\begin{tabularx}{\linewidth}{llX}
+\toprule
+\textbf{Méthode} & \textbf{Route} & \textbf{Description} \\
+\midrule
+GET    & \texttt{/trips/:id/steps} & Lister les étapes — \texttt{?preview=true} pour accès en lecture sans ownership \\
+POST   & \texttt{/trips/:id/steps} & Créer une étape vide \\
+GET    & \texttt{/steps/:id}       & Détail \\
+PATCH  & \texttt{/steps/:id}       & Modifier — déclenche le calcul si données complètes \\
+DELETE & \texttt{/steps/:id}       & Supprimer \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{Recherche publique}
+\label{sec:recherche}
+
+La route \texttt{/mobilities/searchMobilty} expose les mobilités non anonymes de tous les utilisateurs. Elle accepte de nombreux query parameters : texte libre (\texttt{query}, \texttt{departure}, \texttt{arrival}), filtres numériques (\texttt{minCarbon}, \texttt{maxCarbon}, \texttt{minDistance}, \texttt{maxDistance}, \texttt{minTime}, \texttt{maxTime}, \texttt{minSteps}, \texttt{maxSteps}), modes de transport (\texttt{transportModes}), tri (\texttt{order}) et pagination (\texttt{page}, 10 résultats par page).
+
+\begin{warnbox}[title={Filtrage en mémoire}]
+Les filtres numériques (CO\textsubscript{2}, distance, durée) ne peuvent pas être délégués à Prisma, qui ne supporte pas les agrégations conditionnelles dans un \texttt{WHERE}. La stratégie retenue est : récupérer toutes les mobilités en base, calculer les statistiques de chacune en mémoire Node.js, puis filtrer. Cette approche est correcte pour le volume attendu mais ne passerait pas à l'échelle sur des milliers d'entrées.
+\end{warnbox}
+
+% ------------------------------------------------------------
+\section{Méthode de calcul CO\textsubscript{2}}
+\label{sec:calcul}
+% ------------------------------------------------------------
+
+Le calcul d'une étape se déroule en deux phases indépendantes : le calcul de la \textbf{distance et de la durée}, puis le calcul des \textbf{émissions CO\textsubscript{2}}.
+
+\subsection{Calcul de la distance et de la durée}
+
+\subsubsection*{Google Routes API (cas principal)}
+
+Pour la grande majorité des modes de transport terrestres (voiture, vélo, marche, transports en commun), nous utilisons la \textbf{Google Routes API} (\texttt{computeRoutes}). Elle prend en entrée une adresse d'origine et de destination (texte libre), et retourne la distance réelle en mètres et la durée en secondes.
+
+\begin{lstlisting}[language=bash, caption={Exemple de requête Google Routes API}]
+POST https://routes.googleapis.com/directions/v2:computeRoutes
+{
+  "origin": { "address": "Bordeaux" },
+  "destination": { "address": "Paris Gare de Lyon" },
+  "travelMode": "TRANSIT",
+  "departureTime": "2026-03-09T09:00:00Z",
+  "transitPreferences": {
+    "routingPreference": "FEWER_TRANSFERS",
+    "allowedTravelModes": ["RAIL"]
+  }
+}
+\end{lstlisting}
+
+Les modes TRANSIT sont mappés sur des sous-types (\texttt{RAIL}, \texttt{SUBWAY}, \texttt{LIGHT\_RAIL}, \texttt{BUS}) pour affiner la recherche d'itinéraire. La date de départ est fixée au prochain lundi matin à 9h pour obtenir un résultat représentatif hors week-end.
+
+\subsubsection*{Validation des distances pour les transports urbains}
+
+Un garde-fou a été ajouté pour les modes de transport incompatibles avec les longues distances :
+\begin{itemize}
+  \item Tram, métro, bus, bus électrique : distance max. \textbf{100 km}.
+  \item RER / Transilien : distance max. \textbf{150 km}.
+\end{itemize}
+Au-delà, l'API retourne une erreur explicite invitant l'utilisateur à choisir un mode plus adapté.
+
+\subsubsection*{Formule de Haversine (avion)}
+
+L'API Google Routes ne supporte pas les vols aériens. Pour le mode \texttt{plane}, nous géocodons les deux adresses via l'\textbf{API Google Geocoding} et calculons la distance à vol d'oiseau avec la formule de Haversine :
+
+\begin{equation}
+  d = 2R \cdot \arctan2\!\left(\sqrt{a},\, \sqrt{1-a}\right)
+  \quad \text{avec} \quad
+  a = \sin^2\!\tfrac{\Delta\phi}{2} + \cos\phi_1\cos\phi_2\sin^2\!\tfrac{\Delta\lambda}{2}
+\end{equation}
+
+où $R = 6371$ km est le rayon terrestre moyen. La durée estimée est :
+\[
+  t_{\text{avion}} = \frac{d}{800} \times 60 + 40 \;\text{min}
+\]
+Le terme $+40$ min modélise les phases de décollage et d'atterrissage, ainsi que les délais d'embarquement.
+
+\subsection{Calcul des émissions CO\textsubscript{2}}
+
+Une fois la distance connue, les émissions sont calculées via l'\textbf{API Impact CO\textsubscript{2}} de l'ADEME, qui implémente les facteurs d'émission de la \textit{Base Carbone} officielle.
+
+\begin{lstlisting}[language=bash, caption={Appel à l'API Impact CO2 (exemple : TGV sur 585 km)}]
+GET https://impactco2.fr/api/v1/transport
+  ?km=585&transports=2&ignoreRadiativeForcing=0
+  &includeConstruction=0&occupencyRate=1
+\end{lstlisting}
+
+L'API retourne directement la valeur en \textbf{kgCO\textsubscript{2}eq} pour la distance et le mode demandés. Elle couvre 30 modes de transport, des plus courants (voiture thermique, TGV, avion) aux plus spécifiques (covoiturage électrique à 3 passagers, trottinette électrique, bus GNV…).
+
+\begin{center}
+\begin{tabular}{llp{6.5cm}}
+\toprule
+\textbf{Paramètre} & \textbf{Valeur retenue} & \textbf{Justification} \\
+\midrule
+\texttt{ignoreRadiativeForcing} & 0 (inclus) & Forçage radiatif avion inclus par défaut \\
+\texttt{includeConstruction}    & 0 (exclu)  & Hors périmètre du bilan de déplacement \\
+\texttt{occupencyRate}          & 1          & Pas de données sur le taux de remplissage \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Choix de l'ADEME vs. calcul local}
+
+Nous avons évalué deux alternatives au recours à l'API :
+\begin{enumerate}
+  \item \textbf{Intégrer les facteurs d'émission en local} (table statique de kgCO\textsubscript{2}/km par mode). Simple, mais nécessite une maintenance manuelle lors des mises à jour de la Base Carbone.
+  \item \textbf{API Impact CO\textsubscript{2} (retenu)} : source officielle, toujours à jour, gestion automatique des cas particuliers (forçage radiatif, options de construction). Gratuite pour notre volume.
+\end{enumerate}
+
+% ------------------------------------------------------------
 \section{Choix d'implémentation}
+% ------------------------------------------------------------
 
-\section{Méthode de calcul}
+\subsection{Rendu côté client uniquement (pas de SSR)}
+\label{sec:ssr}
 
+Nuxt 3 supporte le Server-Side Rendering (SSR) par défaut. Nous avons fait le choix de le désactiver au profit d'un mode \textbf{SPA pur (Client-Side Only)}.
+
+\begin{warnbox}[title={Problème rencontré}]
+Dans un environnement Docker Compose, chaque service vit dans son propre conteneur. Si le SSR était activé, Nuxt tenterait d'appeler \texttt{http://localhost:3001} depuis le conteneur frontend lors du rendu serveur, ce qui aboutit systématiquement à une erreur de connexion (le backend est inaccessible via \texttt{localhost} inter-conteneurs).
+\end{warnbox}
+
+La solution la plus propre aurait été de configurer une variable d'environnement d'URL interne (ex. \texttt{http://backend:3001} via le réseau Docker). Toutefois, cela aurait complexifié la gestion des environnements (dev / prod) et introduit des désynchronisations potentielles entre SSR et rendu client. Nous avons préféré une approche \textbf{client-side only homogène} : tous les appels API sont émis depuis le navigateur, ce qui simplifie l'architecture et le débogage.
+
+\subsection{PostGIS pour les coordonnées géographiques}
+
+Le champ \texttt{pointStart} et \texttt{pointEnd} de l'entité \texttt{Step} utilisent le type \texttt{geometry(Point, 4326)} de PostGIS (système WGS84). Ce type natif aurait permis des requêtes géospatiales (distance entre points, bounding box…). En pratique, les requêtes actuelles utilisent principalement les labels textuels ; PostGIS reste en place comme fondation pour des fonctionnalités futures (clustering géographique, carte de chaleur des trajets).
+
+Prisma ne supporte pas nativement les types géométriques PostGIS : ils sont déclarés en \texttt{Unsupported("geometry(Point, 4326)")} dans le schéma, et manipulés via des requêtes SQL brutes pour l'insertion si nécessaire.
+
+\subsection{Gestion des quotas API}
+
+Les APIs externes disposent de quotas qu'il est nécessaire de maîtriser :
+
+\begin{center}
+\begin{tabular}{p{3.8cm}p{5cm}p{4.5cm}}
+\toprule
+\textbf{API} & \textbf{Tarif} & \textbf{Crédit gratuit} \\
+\midrule
+Google Routes API    & 5\,\$/1\,000 requêtes & \$200/mois $\approx$ 40\,000 appels \\
+Google Geocoding API & 5\,\$/1\,000 requêtes & (crédit partagé) \\
+ADEME Impact CO\textsubscript{2}  & Gratuite              & Sans quota strict \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Chaque étape calculée consomme au plus 2 appels Google (1 Routes API, + 1 Geocoding uniquement pour le mode avion). Plusieurs stratégies limitent la consommation :
+
+\begin{itemize}
+  \item \textbf{Pas de recalcul inutile} : les valeurs \texttt{distance}, \texttt{time} et \texttt{carbon} sont stockées en base et ne sont recalculées que si l'un des champs déterminants (\texttt{labelStart}, \texttt{labelEnd}, \texttt{transportMode}) est modifié.
+  \item \textbf{Gestion d'erreur explicite} : en cas de dépassement de quota ou d'erreur API, un message d'erreur précis est renvoyé à l'utilisateur.
+  \item \textbf{Limites applicatives} : 20 mobilités par utilisateur, 30 trajets par mobilité, 30 étapes par trajet, ce qui borne le nombre d'appels par utilisateur.
+\end{itemize}
+
+\subsection{Export des données}
+
+L'application supporte l'export d'une mobilité en trois formats :
+\begin{itemize}
+  \item \textbf{JSON} : export brut de la structure complète (pour réimport ou traitement externe) ;
+  \item \textbf{CSV} : tableau plat (une ligne par étape) pour import dans un tableur ;
+  \item \textbf{PDF} : document généré via \textbf{PDFKit} (\texttt{pdfkit v0.18}), une bibliothèque Node.js légère de génération PDF. Le rendu (\texttt{utils/exportPdfStyled.js}) produit un document A4 portrait stylisé reprenant la palette de couleurs de l'application.
+\end{itemize}
+
+PDFKit a été préféré à Puppeteer (Chrome headless) : il génère le PDF directement depuis Node.js sans navigateur embarqué, réduisant l'empreinte mémoire et simplifiant le déploiement Docker.
+
+\subsection{Calcul des statistiques}
+
+La route \texttt{/mobilities/:id/stats} agrège les statistiques de la mobilité (CO\textsubscript{2} total, distance totale, durée, répartition par mode de transport) en ne prenant en compte que les trajets \textbf{sélectionnés} (\texttt{isSelected = true}). Ce mécanisme permet à l'utilisateur de définir son trajet de référence parmi plusieurs alternatives et d'obtenir le bilan de ce trajet uniquement.
+
+% ------------------------------------------------------------
+\section{Difficultés rencontrées et solutions apportées}
+% ------------------------------------------------------------
+
+\subsection{Gestion de la colonne \texttt{time} en migration incrémentale}
+
+La colonne \texttt{time} dans la table \texttt{steps} a été ajoutée après le déploiement initial de la base. Pour ne pas casser les environnements existants en attente de migration, certaines fonctions du backend utilisent un mécanisme de \textbf{fallback gracieux} : si une requête Prisma échoue avec le code d'erreur \texttt{P2022} (colonne inconnue) et que la colonne concernée est \texttt{time}, la requête est rejouée sans ce champ, et la valeur est extraite du champ \texttt{metadata} si disponible.
+
+\begin{lstlisting}[caption={Détection et contournement de la colonne manquante}]
+try {
+  steps = await prisma.step.findMany({ where: { tripId },
+    select: { ..., time: true }
+  });
+} catch (error) {
+  if (isMissingStepTimeColumnError(error)) {
+    // Fallback sans la colonne time
+    steps = await prisma.step.findMany({ where: { tripId },
+      select: { ... }  // sans time
+    });
+  }
+}
+\end{lstlisting}
+
+\subsection{Modes de transit et imprécision de Google Routes}
+
+La Google Routes API retourne un itinéraire en transport en commun sans garantir que le mode utilisé correspond exactement à celui demandé. Par exemple, un trajet demandé en \og tram \fg{} peut être résolu par un itinéraire en bus si aucun tram ne dessert la zone. Nous avons ajouté le paramètre \texttt{allowedTravelModes} dans \texttt{transitPreferences} pour contraindre le type de transport, tout en maintenant les garde-fous de distance pour détecter les cas aberrants.
+
+\subsection{Adresses mal orthographiées ou ambiguës}
+
+Le géocodage d'adresses en texte libre produit parfois des résultats inattendus (une ville homonyme dans un autre pays, une gare mal identifiée). La solution retenue est de retourner une erreur explicite à l'utilisateur avec le message brut de l'API, l'invitant à préciser l'adresse (ex. : \og Paris, France\fg{} plutôt que \og Paris\fg{}).
+
+\subsection{Bus longue distance}
+
+Le mode \texttt{bus\_gasoline\_long\_haul} (autocar interurbain) utilise le même mode de routage Google que la voiture (\texttt{DRIVE}), car l'API Google ne gère pas ce mode spécifiquement. La durée retournée est multipliée par un facteur \textbf{1,2} pour modéliser les arrêts intermédiaires typiques d'un autocar.
+
+% ------------------------------------------------------------
 \section{Limites et pistes d'amélioration}
+% ------------------------------------------------------------
 
+\subsection{Limites actuelles}
+
+\begin{itemize}
+  \item \textbf{Dépendance aux quotas Google Maps} : en cas de dépassement de quota (10\,000 requêtes/mois), l'ensemble du calcul est bloqué. Une alternative open-source (OpenRouteService, OSRM) pourrait être intégrée comme fallback.
+  \item \textbf{Calcul de la recherche en mémoire} : les filtres numériques (CO\textsubscript{2}, distance) sont appliqués côté Node.js après récupération de toutes les mobilités. Cette approche ne passe pas à l'échelle avec des milliers d'entrées.
+  \item \textbf{Pas de SSR} : l'absence de Server-Side Rendering pénalise le temps de premier affichage et rend l'application inaccessible aux moteurs de recherche.
+  \item \textbf{Mode avion approximatif} : la formule de Haversine donne la distance orthodromique (arc de grand cercle), qui peut différer de la route aérienne réelle selon les espaces aériens traversés.
+\end{itemize}
+
+\subsection{Pistes d'amélioration}
+
+\begin{itemize}
+  \item \textbf{Migration vers les vues matérialisées Postgres} : précalculer et indexer les statistiques par mobilité directement en base pour rendre la recherche filtrée performante quelle que soit la volumétrie.
+  \item \textbf{Intégration d'une API d'itinéraires aériens} (ex. : FlightAware, Aviationstack) pour obtenir la distance de vol réelle plutôt qu'une approximation à vol d'oiseau.
+  \item \textbf{Tableau de bord de supervision} avec visualisations agrégées (répartition par mode de transport, bilan annuel, cartographie des destinations) pour répondre au besoin de pilotage de l'école — fonctionnalité non encore implémentée.
+  \item \textbf{Import en masse} via un fichier CSV (pour les administrateurs souhaitant saisir des données historiques) ou via une connexion directe aux systèmes de scolarité.
+  \item \textbf{Notifications et alertes} : rappeler à un étudiant de finaliser la saisie de sa mobilité, ou alerter l'administrateur quand le bilan annuel est disponible.
+\end{itemize}
+
+% ------------------------------------------------------------
 \section{Conclusion}
+% ------------------------------------------------------------
+
+Ce projet a permis de concevoir et de déployer une application web complète, de la base de données à l'interface utilisateur, en répondant à un besoin réel identifié à l'ENSEIRB-MATMECA. Les principales réalisations techniques sont :
+
+\begin{itemize}
+  \item une architecture Dockerisée, déployée en production sur l'infrastructure Eirbware avec CI/CD automatisée ;
+  \item une chaîne de calcul CO\textsubscript{2} à deux niveaux (Google Routes API + formule de Haversine pour les vols, ADEME Impact CO\textsubscript{2} pour les facteurs d'émission) couvrant 30 modes de transport ;
+  \item une authentification déléguée à EirbConnect (OpenID Connect), sans gestion de mots de passe ;
+  \item des mécanismes de robustesse face aux erreurs d'API, aux migrations incrémentales et aux limites de quotas.
+\end{itemize}
+
+Les choix d'implémentation ont systématiquement privilégié la \textbf{simplicité et la maintenabilité} sur l'optimisation prématurée, en acceptant des compromis (filtrage en mémoire, rendu client-side only, PDF artisanal) documentés et réversibles. Les pistes d'amélioration identifiées constituent une feuille de route cohérente pour faire évoluer l'application vers un outil de pilotage à part entière du bilan carbone de l'école.
 
 \end{document}
