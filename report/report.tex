@@ -204,7 +204,7 @@ Le suivi des tâches a été entièrement géré via \textbf{GitHub Projects} gr
 
 \subsection{Git Workflow et branches}
 
-Afin d'éviter les conflits et de garantir un code fonctionnel à tout instant, nous avons adopté un \textbf{Gitflow simplifié}. 
+Afin d'éviter les conflits et de garantir un code fonctionnel à tout instant, nous avons adopté un \textbf{Gitflow simplifié}.
 
 Les développements se font sur des branches dédiées créées depuis la branche \texttt{develop} et nommées selon le format \texttt{feat/description} (ex. : \texttt{feat/auth-eirbconnect}). Pour corriger un problème ou apporter une modification liée à de la configuration, nous utilisons des branches \texttt{fix/description} ou \texttt{chore/description}.
 
@@ -231,6 +231,7 @@ Les types autorisés permettaient de catégoriser la nature de la modification :
 
 Finalement, l'ajout optionnel mais recommandé de la référence à l'issue GitHub (\texttt{ref \#numero}) permettait de lier directement le code produit à la tâche Kanban correspondante.
 
+\newpage
 % ------------------------------------------------------------
 \section{Architecture retenue}
 % ------------------------------------------------------------
@@ -319,9 +320,16 @@ Le schéma relationnel repose sur quatre entités :
 
 Les suppressions sont en cascade (suppression d'une Mobility $\Rightarrow$ suppression de ses Trips $\Rightarrow$ de leurs Steps).
 
+\newpage
 % ------------------------------------------------------------
 \section{Authentification}
 % ------------------------------------------------------------
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\linewidth]{images/auth.png}
+  \caption{Flux d'authentification OpenID Connect (EirbConnect / Keycloak)}
+\end{figure}
 
 \subsection{EirbConnect et OpenID Connect}
 
@@ -418,6 +426,7 @@ La route \texttt{/mobilities/searchMobilty} expose les mobilités non anonymes d
 Les filtres numériques (CO\textsubscript{2}, distance, durée) ne peuvent pas être délégués à Prisma, qui ne supporte pas les agrégations conditionnelles dans un \texttt{WHERE}. La stratégie retenue est : récupérer toutes les mobilités en base, calculer les statistiques de chacune en mémoire Node.js, puis filtrer. Cette approche est correcte pour le volume attendu mais ne passerait pas à l'échelle sur des milliers d'entrées.
 \end{warnbox}
 
+\newpage
 % ------------------------------------------------------------
 \section{Méthode de calcul CO\textsubscript{2}}
 \label{sec:calcul}
@@ -456,6 +465,7 @@ Un garde-fou a été ajouté pour les modes de transport incompatibles avec les 
 \end{itemize}
 Au-delà, l'API retourne une erreur explicite invitant l'utilisateur à choisir un mode plus adapté.
 
+\newpage
 \subsubsection*{Formule de Haversine (avion)}
 
 L'API Google Routes ne supporte pas les vols aériens. Pour le mode \texttt{plane}, nous géocodons les deux adresses via l'\textbf{API Google Geocoding} et calculons la distance à vol d'oiseau avec la formule de Haversine :
@@ -504,6 +514,7 @@ Nous avons évalué deux alternatives au recours à l'API :
   \item \textbf{API Impact CO\textsubscript{2} (retenu)} : source officielle, toujours à jour, gestion automatique des cas particuliers (forçage radiatif, options de construction). Gratuite pour notre volume.
 \end{enumerate}
 
+\newpage
 % ------------------------------------------------------------
 \section{Choix d'implémentation}
 % ------------------------------------------------------------
@@ -564,6 +575,7 @@ PDFKit a été préféré à Puppeteer (Chrome headless) : il génère le PDF di
 
 La route \texttt{/mobilities/:id/stats} agrège les statistiques de la mobilité (CO\textsubscript{2} total, distance totale, durée, répartition par mode de transport) en ne prenant en compte que les trajets \textbf{sélectionnés} (\texttt{isSelected = true}). Ce mécanisme permet à l'utilisateur de définir son trajet de référence parmi plusieurs alternatives et d'obtenir le bilan de ce trajet uniquement.
 
+\newpage
 % ------------------------------------------------------------
 \section{Difficultés rencontrées et solutions apportées}
 % ------------------------------------------------------------
@@ -599,6 +611,7 @@ Le géocodage d'adresses en texte libre produit parfois des résultats inattendu
 
 Le mode \texttt{bus\_gasoline\_long\_haul} (autocar interurbain) utilise le même mode de routage Google que la voiture (\texttt{DRIVE}), car l'API Google ne gère pas ce mode spécifiquement. La durée retournée est multipliée par un facteur \textbf{1,2} pour modéliser les arrêts intermédiaires typiques d'un autocar.
 
+\newpage
 % ------------------------------------------------------------
 \section{Limites et pistes d'amélioration}
 % ------------------------------------------------------------
@@ -626,6 +639,7 @@ Le mode \texttt{bus\_gasoline\_long\_haul} (autocar interurbain) utilise le mêm
 \input{forum.tex}
 % ------------------------------------------------------------
 
+\newpage
 % ------------------------------------------------------------
 \section{Conclusion}
 % ------------------------------------------------------------
